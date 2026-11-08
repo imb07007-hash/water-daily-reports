@@ -521,7 +521,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
    </div>
    <div class="archive-exports hidden" id="archiveExports">
     <span class="archive-exports-caption" id="archiveScopeLabel"></span>
-    <button type="button" class="btn" id="archiveExcel">تنزيل Excel</button>
+    <button type="button" class="btn" id="archiveExcel">تنزيل Excel (CSV)</button>
     <button type="button" class="btn" id="archivePdf">طباعة / PDF</button>
    </div>
    <div id="archiveResults" aria-live="polite" aria-busy="false" class="archive-empty">اختر نوع التقرير ثم اضغط عرض التقارير.</div>
@@ -1114,6 +1114,8 @@ function archiveSetMode(mode){
  $('archiveExports').classList.add('hidden');
  archiveRows=[];archiveQueryInfo=null;archiveVisibleCount=ARCHIVE_SHOW_STEP;
  archiveSearchVersion++;
+ $('archiveSearch').disabled=false;
+ $('archiveResults').setAttribute('aria-busy','false');
 }
 function archiveOpen(){
  if(!signedIn())return;
@@ -1138,7 +1140,7 @@ async function archiveFetchAll(scope,period,searchVersion){
  for(let offset=0;offset<=20000;offset+=ARCHIVE_PAGE_SIZE){
   if(searchVersion!==archiveSearchVersion)throw Error('تم تغيير البحث.');
   const p=new URLSearchParams({
-   select:'id,station_id,report_date,data,created_at,source,source_sent_at',
+   select:'id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at',
    order:'report_date.desc,created_at.desc',limit:String(ARCHIVE_PAGE_SIZE),offset:String(offset)
   });
   if(scope)p.set('station_id','eq.'+scope);
@@ -1326,6 +1328,119 @@ async function archiveSearch(){
  }finally{
   if(searchVersion===archiveSearchVersion){button.disabled=false;out.setAttribute('aria-busy','false')}
  }
+}
+
+
+function archiveCsvCell(value){
+ let textValue=String(value===null||value===undefined?'':value);
+ // Excel formula injection protection for free-text notes and station labels.
+ if(/^[\s]*[=+\-@\t\r]/.test(textValue))textValue="'"+textValue;
+ return '"'+textValue.replace(/"/g,'""')+'"';
+}
+function archiveAddField(row,prefix,value,depth=0){
+ if(value===null||value===undefined||depth>6)return;
+ if(typeof value==='object'&&!Array.isArray(value)){
+  for(const [key,val] of Object.entries(value)){
+   archiveAddField(row,prefix+' / '+key,val,depth+1);
+  }
+ }else if(Array.isArray(value)){
+  value.forEach((val,index)=>archiveAddField(row,prefix+' / '+(index+1),val,depth+1));
+ }else row[prefix]=String(value);
+}
+function archiveExportDataRow(r){
+ const s=stations.find(x=>x.id===r.station_id);
+ const config=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:s;
+ const row={
+  'المحطة':s?.name||r.station_id,
+  'تاريخ التقرير':r.report_date,
+  'المصدر':r.source==='migration'?'واتساب - استيراد تاريخي':'الموقع',
+  'تاريخ الإرسال الأصلي':r.source==='migration'?(r.source_sent_at||''):r.created_at,
+  'وقت حفظه في النظام':r.created_at
+ };
+ const metrics=r.data?.metrics||{};
+ for(const [id,value] of Object.entries(metrics)){
+  const label=config?.metrics?.find(m=>m.id===id)?.label||id;
+  archiveAddField(row,'مؤشر / '+label,value);
+ }
+ for(const [gid,content] of Object.entries(r.data?.groups||{})){
+  const g=config?.groups?.find(x=>x.id===gid);
+  const groupName=g?.title||gid;
+  for(const [iid,entry] of Object.entries(content||{})){
+   const item=g?.items?.find(x=>x.id===iid);
+   archiveAddField(row,'قسم / '+groupName+' / '+(item?.label||iid),entry);
+  }
+ }
+ for(const [nid,value] of Object.entries(r.data?.notes||{})){
+  const label=config?.noteFields?.find(n=>n.id===nid)?.label||nid;
+  archiveAddField(row,'ملاحظات / '+label,value);
+ }
+ return row;
+}
+function archiveExcel(){
+ if(!archiveQueryInfo||!archiveRows.length||!signedIn())return;
+ const scope=archiveQueryInfo.scope;
+ if(!isAdmin()&&scope!==currentStationId)return;
+ const rows=archiveRows.map(archiveExportDataRow);
+ const headers=Array.from(new Set(rows.flatMap(r=>Object.keys(r))));
+ const textFile='\uFEFF'+headers.map(archiveCsvCell).join(',')+'\r\n'+
+  rows.map(r=>headers.map(h=>archiveCsvCell(r[h]??'')).join(',')).join('\r\n');
+ const label=archiveQueryInfo.period.mode==='yearly'?String(archiveQueryInfo.period.year):
+  archiveQueryInfo.period.mode==='monthly'?archiveQueryInfo.period.month:'يومي';
+ const station=scope||'جميع_المحطات';
+ const filename=('تقارير_حلول_المياه_'+station+'_'+label+'.csv').replace(/[^\w\u0600-\u06ff.-]/g,'_');
+ downloadBlob(new Blob([textFile],{type:'text/csv;charset=utf-8;'}),filename);
+}
+function archivePdf(){
+ if(!archiveQueryInfo||!archiveRows.length||!signedIn())return;
+ if(!isAdmin()&&archiveQueryInfo.scope!==currentStationId)return;
+ const info=archiveQueryInfo,station=info.scope?stations.find(s=>s.id===info.scope)?.name||info.scope:'جميع المحطات';
+ const period=info.period.mode==='yearly'?'التقرير السنوي '+info.period.year:
+  info.period.mode==='monthly'?'التقرير الشهري '+info.period.month:'التقارير اليومية';
+ const clone=$('archiveResults').cloneNode(true);
+ clone.removeAttribute('id');
+ for(const button of clone.querySelectorAll('button'))button.remove();
+ if(info.period.mode!=='daily'){
+  for(const list of clone.querySelectorAll('.archive-report-list'))list.remove();
+  for(const block of clone.querySelectorAll('.archive-block')){
+   if(block.querySelector('.archive-report-list')||block.textContent.trim()==='التقارير اليومية المحفوظة')block.remove();
+  }
+ }
+ const printWindow=window.open('','_blank');
+ if(!printWindow){toast('فعّل السماح بالنوافذ المنبثقة لطباعة التقرير.',true);return}
+ const title='شركة حلول المياه — '+period+' — '+station;
+ const currentStyles=document.getElementById('app-css')?.textContent||'';
+ const printOnlyStyle=String.raw`
+  body{background:#fff;padding:20px!important;margin:0;font-family:Tahoma,Arial,sans-serif;color:#24445d}
+  .archive-print-header{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:8px 0 16px;border-bottom:3px solid #0362AF;margin-bottom:20px}
+  .archive-print-header img{height:75px;width:145px;object-fit:contain}
+  .archive-print-header h1{font-size:20px;color:#0362AF;margin:0 0 8px}
+  .archive-print-header p{font-size:12px;color:#555;margin:0}
+  .archive-print-actions{padding:10px 0 16px;text-align:center}
+  .archive-print-actions button{background:#0362AF;color:white;border:0;padding:10px 20px;border-radius:8px;cursor:pointer}
+  .archive-block,.archive-kpi{break-inside:avoid-page}
+  .archive-barset{min-width:0!important}
+  .archive-report-list{max-height:none}
+  .archive-entry button,.archive-row-action,.archive-more{display:none!important}
+  @media print{
+   @page{size:A4 landscape;margin:12mm}
+   body{padding:0!important}
+   .archive-print-actions{display:none!important}
+   .archive-block,.archive-kpi{break-inside:avoid-page}
+  }
+ `;
+ const safeTitle=esc(title);
+ const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+safeTitle+'</title>'+
+  '<style>'+currentStyles+'\n'+printOnlyStyle+'</style></head><body>'+
+  '<header class="archive-print-header"><div><h1>'+safeTitle+'</h1><p>نظام التقارير التشغيلية اليومية</p></div>'+
+  '<img alt="شعار شركة حلول المياه" src="'+LOGO+'"></header>'+
+  '<div class="archive-print-actions"><button type="button" onclick="window.print()">طباعة / حفظ PDF</button></div>'+
+  '<main>'+clone.innerHTML+'</main>'+
+  '<p class="archive-hint">تم إعداد هذا التقرير من القراءات المحفوظة في النظام. الأيام غير المسجلة لا تُحتسب إنتاجًا صفريًا.</p>'+
+  '</body></html>';
+ printWindow.document.open();
+ printWindow.document.write(html);
+ printWindow.document.close();
+ printWindow.focus();
 }
 
 async function archiveDelete(id){
@@ -2128,6 +2243,16 @@ $('accountList').addEventListener('click',accountListAction);
 $('archiveBtn').onclick=archiveOpen;
 $('archiveClose').onclick=archiveClose;
 $('archiveSearch').onclick=archiveSearch;
+$('archiveExcel').onclick=archiveExcel;
+$('archivePdf').onclick=archivePdf;
+for(const id of ['archiveFrom','archiveTo','archiveMonth','archiveYear']){
+ $(id).addEventListener('change',()=>{
+  archiveSearchVersion++;archiveRows=[];archiveQueryInfo=null;
+  $('archiveSearch').disabled=false;
+  $('archiveExports').classList.add('hidden');
+  $('archiveResults').innerHTML='<div class="archive-empty">اضغط عرض التقارير لتحديث النتائج.</div>';
+ });
+}
 document.querySelector('.archive-modes').addEventListener('click',e=>{
  const button=e.target.closest('[data-archive-mode]');if(button)archiveSetMode(button.dataset.archiveMode);
 });
