@@ -111,8 +111,10 @@ const formatDate=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return '';let parts=d
 const currentDate=dateToday();
 function load(key,fallback){try{let o=JSON.parse(localStorage.getItem(key));return o===null?clone(fallback):o}catch(e){return clone(fallback)}}
 function store(key,v){try{localStorage.setItem(key,JSON.stringify(v));return true}catch(e){toast('تعذر الحفظ محليًا. صدّر نسخة JSON للاحتفاظ بالبيانات.',true);return false}}
-let stations=clone(defaults),reports={};
-if(!Array.isArray(stations)||!stations.length)stations=clone(defaults);
+const allowedStationIds=['jizan','matari','marbah'];
+const allowedStations=()=>allowedStationIds.map(id=>defaults.find(s=>s.id===id)).filter(Boolean);
+let stations=clone(allowedStations()),reports={};
+if(!Array.isArray(stations)||!stations.length)stations=clone(allowedStations());
 for(const station of stations)if(station.id==='matari'&&station.name==='وحدة تحلية المياه الجوفية بالمطاري')station.name='وحدة تحلية المياه الجوفية بالماطري';
 if(typeof reports!=='object'||!reports)reports={};
 let stationId=stations[0].id,date=currentDate,record={},drafts=load(DRAFTS_KEY,{}),editorStationId=stationId,toastTimer=null;receipts=load(RECEIPTS_KEY,{});requestIds=load(REQUESTS_KEY,{});
@@ -419,7 +421,8 @@ async function loadCloudStations(){
   const valid=rows.filter(r=>r&&typeof r.id==='string'&&r.config&&r.config.id===r.id&&Array.isArray(r.config.metrics)&&Array.isArray(r.config.groups));
   if(!valid.length)throw Error('وصلت إعدادات محطات غير صالحة.');
   const sorted=new Map(valid.map(r=>[r.id,r.config]));
-  stations=[...defaults.filter(s=>sorted.has(s.id)).map(s=>sorted.get(s.id)),...valid.filter(r=>!defaults.some(s=>s.id===r.id)).map(r=>r.config)];
+  stations=allowedStationIds.map(id=>sorted.get(id)).filter(Boolean);
+  if(!stations.length)throw Error('لم يتم العثور على المحطات الثلاث المطلوبة في Supabase.');
   cloudReady=true;
   if(!stations.some(s=>s.id===stationId)){stationId=stations[0].id;record=fetchRecord()}
   refreshSelects();renderInputs();renderReport();updateSaveStatus();
