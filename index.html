@@ -437,6 +437,30 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  .archive-entry .sec-actions{width:100%}
 }
 
+
+/* Annual growth / decline trend based on daily recorded production averages */
+.archive-trend-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:13px 0}
+.archive-trend-kpi{padding:13px;border:1px solid #dce8f2;background:#f8fbfe;border-radius:10px;display:flex;flex-direction:column;gap:5px}
+.archive-trend-kpi small{font-size:11px;color:#617c8e;font-weight:800}
+.archive-trend-kpi strong{font-size:20px;color:#0362AF;direction:ltr;text-align:right;font-weight:900}
+.archive-trend-kpi span{font-size:11px;color:#668095}
+.archive-trend-kpi.up strong{color:#187958}
+.archive-trend-kpi.down strong{color:#b75c3b}
+.archive-trend-bars{min-width:740px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));align-items:end;gap:7px;margin:13px 0;direction:ltr}
+.archive-trend-col{display:flex;align-items:center;flex-direction:column;justify-content:flex-end;gap:7px;min-width:0}
+.archive-trend-track{height:125px;width:min(100%,52px);background:#edf4f9;border-radius:6px 6px 2px 2px;display:flex;align-items:end;overflow:hidden}
+.archive-trend-fill{width:100%;background:linear-gradient(180deg,#50B4F2,#0362AF);border-radius:5px 5px 0 0}
+.archive-trend-fill.up{background:linear-gradient(180deg,#80d5ac,#168462)}
+.archive-trend-fill.down{background:linear-gradient(180deg,#ffbf98,#c26545)}
+.archive-trend-figure,.archive-trend-shift{font-size:10px;font-weight:800;direction:ltr;white-space:nowrap;color:#42627d;min-height:15px}
+.archive-trend-shift.up,.archive-trend-tag.up{color:#197e5d}
+.archive-trend-shift.down,.archive-trend-tag.down{color:#b25839}
+.archive-trend-month{font-size:11px;color:#54758b}
+.archive-trend-tag{display:inline-flex;border-radius:8px;padding:5px 8px;background:#eff4f8;color:#526c80;font-size:11px;font-weight:800;white-space:nowrap;direction:ltr}
+.archive-trend-tag.up{background:#e9f8f1}
+.archive-trend-tag.down{background:#fff1e9}
+@media(max-width:650px){.archive-trend-cards{grid-template-columns:1fr 1fr}.archive-trend-kpi strong{font-size:17px}}
+
 </style></head>
 <body data-auth="locked">
 
@@ -1229,7 +1253,9 @@ function archivePeriodGroups(rows,period){
  }
  return buckets.map(b=>{
   const subset=rows.filter(r=>key==='month'?r.report_date.startsWith(b.id):r.report_date===b.id);
-  return {...b,reports:subset.length,production:archiveAggregate(subset,'production').total};
+  const production=archiveAggregate(subset,'production').total;
+  const days=new Set(subset.filter(r=>dashboardNumeric(r.data?.metrics?.production)!==null).map(r=>r.report_date)).size;
+  return {...b,reports:subset.length,production,readingDays:days,average:production===null||!days?null:production/days};
  });
 }
 function archiveChart(groups){
@@ -1246,17 +1272,74 @@ function archiveChart(groups){
   '<div class="archive-barset"'+(width?' style="min-width:'+width+'px"':'')+'>'+bars+'</div></div>'+
   '<p class="archive-hint">القيم المعروضة مجموع قراءات الإنتاج المسجلة لكل فترة. (—) تعني عدم توفر قراءة.</p></div>';
 }
+
+function archiveAnnualChanges(groups){
+ return groups.map((row,i)=>{
+  const prev=groups[i-1];
+  if(row.average===null||!prev||prev.average===null)return {...row,delta:null,percent:null,direction:'none'};
+  const delta=row.average-prev.average;
+  return {...row,delta,percent:prev.average===0?null:100*delta/prev.average,
+    direction:delta>0?'up':delta<0?'down':'flat'};
+ });
+}
+function archiveChangeText(row){
+ if(row.direction==='none')return '—';
+ if(row.direction==='flat')return 'مستقر';
+ if(row.percent===null)return row.direction==='up'?'بدء إنتاج':'انخفاض إلى صفر';
+ return (row.direction==='up'?'+':'−')+Math.abs(row.percent).toFixed(1)+'%';
+}
+function archiveAnnualTrend(groups){
+ const trend=archiveAnnualChanges(groups);
+ const present=trend.filter(g=>g.average!==null);
+ if(!present.length)return '';
+ const increases=trend.filter(g=>g.direction==='up'&&g.percent!==null);
+ const decreases=trend.filter(g=>g.direction==='down'&&g.percent!==null);
+ const top=present.reduce((a,b)=>a.average>b.average?a:b);
+ const rise=increases.length?increases.reduce((a,b)=>a.percent>b.percent?a:b):null;
+ const fall=decreases.length?decreases.reduce((a,b)=>a.percent<b.percent?a:b):null;
+ const info=[
+  ['أعلى متوسط إنتاج يومي',fmt(top.average)+' م³',top.label,''],
+  ['أكبر ارتفاع عن الشهر السابق',rise?'+'+rise.percent.toFixed(1)+'%':'—',rise?.label||'لا توجد مقارنة','up'],
+  ['أكبر انخفاض عن الشهر السابق',fall?fall.percent.toFixed(1)+'%':'—',fall?.label||'لا توجد مقارنة','down']
+ ];
+ const cards='<div class="archive-trend-cards">'+info.map(([label,value,month,kind])=>
+  '<div class="archive-trend-kpi '+esc(kind)+'"><small>'+esc(label)+'</small><strong>'+esc(value)+
+  '</strong><span>'+esc(month)+'</span></div>').join('')+'</div>';
+ const max=Math.max(1,...trend.map(g=>g.average??0));
+ const bars='<div class="archive-trend-bars">'+trend.map(g=>{
+  const height=g.average===null?0:g.average===0?2:Math.max(4,Math.round(100*g.average/max));
+  return '<div class="archive-trend-col" title="'+esc(g.label+': '+(g.average===null?'لا توجد قراءة':fmt(g.average)+' م³/يوم'))+'">'+
+  '<span class="archive-trend-shift '+esc(g.direction)+'">'+esc(archiveChangeText(g))+'</span>'+
+  '<span class="archive-trend-figure">'+esc(g.average===null?'—':fmt(g.average))+'</span>'+
+  '<div class="archive-trend-track"><div class="archive-trend-fill '+esc(g.direction)+'" style="height:'+height+'%"></div></div>'+
+  '<span class="archive-trend-month">'+esc(g.label)+'</span></div>';
+ }).join('')+'</div>';
+ return '<div class="archive-block"><h3>ارتفاع وانخفاض الإنتاج خلال السنة</h3>'+
+  '<p class="archive-hint">مقارنة متوسط الإنتاج اليومي المُسجل لكل شهر بالشهر السابق مباشرة، وليس مقارنة مجموع أشهر متفاوتة في عدد الأيام.</p>'+
+  cards+'<div class="archive-chart-scroll">'+bars+'</div>'+
+  '<p class="archive-hint">لا تُعتبر الأشهر دون قراءات صفرًا. عند اختلاف عدد أيام التقارير أو المحطات المشاركة، تتأثر دقة المقارنة.</p></div>';
+}
+
+
 function archiveGroupTable(groups,period){
- const annual=period.mode==='yearly';
- const table='<div class="archive-block"><h3>'+ (annual?'تفاصيل الأشهر':'تفاصيل الأيام')+'</h3>'+
- '<div class="archive-table-scroll"><table class="archive-table"><thead><tr><th>الفترة</th><th>التقارير</th>'+
- '<th>إجمالي الإنتاج (م³)</th>'+(annual?'<th>التفاصيل</th>':'')+'</tr></thead><tbody>'+
- groups.map(g=>'<tr><td>'+esc(annual?g.label:dashboardShortDate(g.id))+'</td>'+
- '<td class="archive-num">'+esc(fmt(g.reports))+'</td><td class="archive-num">'+
- esc(g.production===null?'—':fmt(g.production))+'</td>'+
- (annual?'<td><button type="button" class="btn archive-row-action" data-archive-month="'+esc(g.id)+'">عرض الشهر</button></td>':'')+
- '</tr>').join('')+'</tbody></table></div></div>';
- return table;
+ const annual=period.mode==='yearly',data=annual?archiveAnnualChanges(groups):groups;
+ const headings='<th>الفترة</th><th>عدد التقارير</th><th>إجمالي الإنتاج (م³)</th>'+
+  (annual?'<th>أيام بها قراءات</th><th>متوسط الإنتاج اليومي (م³)</th><th>التغير عن الشهر السابق</th><th>التفاصيل</th>':'');
+ const body=data.map(row=>
+  '<tr><td>'+esc(annual?row.label:dashboardShortDate(row.id))+'</td>'+
+  '<td class="archive-num">'+esc(fmt(row.reports))+'</td>'+
+  '<td class="archive-num">'+esc(row.production===null?'—':fmt(row.production))+'</td>'+
+  (annual?'<td class="archive-num">'+esc(fmt(row.readingDays))+'</td>'+
+  '<td class="archive-num">'+esc(row.average===null?'—':fmt(row.average))+'</td>'+
+  '<td><span class="archive-trend-tag '+esc(row.direction)+'">'+esc(archiveChangeText(row))+'</span></td>'+
+  '<td><button type="button" class="btn archive-row-action" data-archive-month="'+esc(row.id)+'">عرض الشهر</button></td>':'')+
+  '</tr>'
+ ).join('');
+ return '<div class="archive-block"><h3>'+(annual?'المقارنة الشهرية للإنتاج':'تفاصيل الأيام')+'</h3>'+
+  '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+headings+
+  '</tr></thead><tbody>'+body+'</tbody></table></div>'+
+  (annual?'<p class="archive-hint">النسبة: التغير في متوسط الإنتاج اليومي المسجل مقارنة بالشهر السابق. (—) تعني عدم توفر مقارنة.</p>':'')+
+  '</div>';
 }
 function archiveStationTable(rows){
  if(!isAdmin())return '';
@@ -1294,11 +1377,13 @@ function archiveRender(){
  const name=scope?stations.find(s=>s.id===scope)?.name||scope:'جميع المحطات';
  const header='<div class="archive-station-tag">'+esc(name)+'</div>';
  let content=header;
- if(period.mode==='daily'){
+ if(!rows.length){
+  content+='<div class="archive-empty">لا توجد تقارير محفوظة لهذه الفترة أو السنة. لا توجد قراءات لعرض رسم بياني، واختر فترة أخرى تحتوي على تقارير.</div>';
+ }else if(period.mode==='daily'){
   content+='<p class="archive-missing-note">عدد التقارير: '+esc(fmt(rows.length))+'</p>'+archiveReportEntries(rows);
  }else{
   const groups=archivePeriodGroups(rows,period);
-  content+=archiveSummary(rows,period,scope)+archiveChart(groups)+archiveGroupTable(groups,period)+
+  content+=archiveSummary(rows,period,scope)+(period.mode==='yearly'?archiveAnnualTrend(groups):archiveChart(groups))+archiveGroupTable(groups,period)+
    archiveStationTable(rows)+archiveCustomMetrics(rows,scope)+
    '<div class="archive-block"><h3>التقارير اليومية المحفوظة</h3>'+archiveReportEntries(rows)+'</div>';
  }
