@@ -548,7 +548,7 @@ const isSuperAdmin=()=>currentRole==='superadmin';
 const perUserKey=(name)=>name+'_'+(currentUserId||'locked');
 
 const DRAFTS_KEY='wsc_cloud_pending_drafts_v1', RECEIPTS_KEY='wsc_cloud_receipts_v1',REQUESTS_KEY='wsc_cloud_request_ids_v1';
-let cloudReady=false,cloudSubmitting=false,sampleMode=false,archiveViewing=false,archiveConfig=null;
+let cloudReady=false,cloudSubmitting=false,archiveViewing=false,archiveConfig=null;
 let editingReportId=null,settingsEditing=false,pendingInactiveIds=[];
 let receipts={},requestIds={};
 function cloudNotice(message,status=''){const el=$('cloudNotice');el.textContent=message;el.className='cloud-notice '+status;}
@@ -588,17 +588,6 @@ const defaults=[
 {"id":"bish","name":"منظومة إنتاج تحلية المياه الجوفية والسطحية ببيش","metrics":[{"id":"raw","label":"المياه الخام","unit":"م³","shade":"blue","required":false,"visible":true,"auto":""},{"id":"production","label":"الإنتاج الإجمالي","unit":"م³","shade":"blue","required":false,"visible":true,"auto":""},{"id":"withdrawal","label":"السحب الإجمالي","unit":"م³","shade":"blue","required":false,"visible":true,"auto":""},{"id":"phase1_hours","label":"ساعات تشغيل المرحلة الأولى","unit":"","shade":"gray","required":false,"visible":true,"auto":"","type":"text"},{"id":"phase2_hours","label":"ساعات تشغيل المرحلة الثانية","unit":"","shade":"gray","required":false,"visible":true,"auto":"","type":"text"},{"id":"tds","label":"TDS","unit":"ppm","shade":"purple","required":false,"visible":true,"auto":""},{"id":"power","label":"استهلاك الكهرباء","unit":"kWh","shade":"gray","required":false,"visible":true,"auto":""}],"groups":[{"id":"withdrawal_routes","title":"تفاصيل السحب","kind":"bars","items":[{"id":"samta","label":"تنقية بيش - خط صامطة"},{"id":"shaqiq","label":"تنقية بيش - خط الشقيق"},{"id":"lift_stations","label":"محطات الرفع"}],"visible":true,"metricKey":"withdrawal"},{"id":"lift_pumps","title":"تفاصيل مضخات الرفع","kind":"bars","items":[{"id":"fatiha","label":"مضخة الفطيحة"},{"id":"haqu","label":"مضخة الحقو"},{"id":"raith","label":"مضخة الريث"}],"visible":true},{"id":"tanks","title":"مستوى الخزانات","kind":"tanks","items":[{"id":"a","label":"الخزان A"},{"id":"b","label":"الخزان B"}],"visible":true}],"noteFields":[{"id":"status","label":"حالة التشغيل"},{"id":"cause","label":"سبب انخفاض الإنتاج / التوقف"},{"id":"notes","label":"الملاحظات التشغيلية"}]},
 {"id":"damad","name":"منظومة إنتاج تحلية المياه الجوفية والسطحية على سد وادي ضمد","metrics":[{"id":"production","label":"الإنتاج","unit":"م³","shade":"blue","required":false,"visible":true,"auto":""},{"id":"power","label":"استهلاك الكهرباء","unit":"MWh","shade":"gray","required":false,"visible":true,"auto":""},{"id":"tds","label":"نسبة الأملاح","unit":"ppm","shade":"purple","required":false,"visible":true,"auto":""}],"groups":[{"id":"tanks","title":"منسوب الخزان","kind":"tanks","items":[{"id":"tank","label":"الخزان"}],"visible":true}],"noteFields":[{"id":"status","label":"حالة التشغيل"},{"id":"cause","label":"سبب انخفاض الإنتاج / التوقف"},{"id":"notes","label":"الملاحظات التشغيلية"}]}
 ];
-const samples={
-"muhayil":{"date":"2026-11-07","metrics":{"production":"0","export":"0"},"groups":{},"notes":{"status":"محطة احتياطية","cause":"قلة الطلب"}},
-"bish":{"date":"2026-11-07","metrics":{"raw":"29889","production":"27174","withdrawal":"24366","phase1_hours":"6 ساعات و30 دقيقة","phase2_hours":"20 ساعة و30 دقيقة","tds":"440","power":"7525.38"},"groups":{"withdrawal_routes":{"samta":{"value":"11217"},"shaqiq":{"value":"6043"},"lift_stations":{"value":"7106"}},"lift_pumps":{"fatiha":{"value":"5027"},"haqu":{"value":"2079"},"raith":{"value":"0"}},"tanks":{"a":{"pct":"90.7"},"b":{"pct":"89.4"}}},"notes":{"cause":"دخول محطة الشقيق 4 في الخدمة"}},
-"damad":{"date":"2026-11-07","metrics":{"production":"0","power":"1.183","tds":"0"},"groups":{"tanks":{"tank":{"pct":"100"}}},"notes":{"status":"محطة احتياطية","cause":"قلة الطلب"}},
-matari:{date:'2026-11-06',metrics:{raw:'23946',production:'18906',pumping:'23992',nwc:'5309',tds_product:'394',tds_raw:'1050',power:'39.55'},groups:{lines:{mahaliya:{value:'2520'},suwais:{value:'10050'},karbus:{value:'0'},burj:{value:'0'},qura:{value:'4262'},rayyan:{value:'1510'},badee:{value:'5650'}},tanks:{raw:{qty:'9565',pct:'80'},product:{qty:'8376',pct:'76',children:{main:'4900',secondary:'3476'}}}},notes:{cause:'قلة مصادر المياه'}},
-jizan:{date:'2026-10-24',metrics:{production:'0',raw:'0',export:'0',power:'1.64',diesel:'0',tds:''},groups:{tanks:{tank:{pct:'100'}}},notes:{status:'متوقفة',cause:'تدني جودة المياه الخام\nقلة مصادر المياه الخام'}},
-bisha:{date:'2026-10-24',metrics:{production:'0',export:'0'},notes:{status:'احتياطية',cause:'قلة الطلب'}},
-safa:{date:'2026-10-24',metrics:{production:'16523',export:'16509',tds:'387',power:'10.073'},groups:{gates:{triangle:{value:'14507'},hadn:{value:'2002'}},tanks:{raw:{pct:'90'},product:{pct:'93'}}},notes:{cause:'قلة مصادر المياه'}},
-marbah:{date:'2026-10-24',metrics:{production:'0',raw:'0',pumping:'0',power:'3100'},notes:{cause:'قلة الطلب'}},
-aradah:{date:'2026-10-24',metrics:{production:'0',status:'احتياطية',receipt:'35392',export:'31167'},groups:{meter:{previous:{value:'62755302'},current:{value:'62790694'}},gates:{total:{value:'31167'}}},notes:{status:'احتياطية'}}
-};
 const clone=o=>JSON.parse(JSON.stringify(o));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const q=x=>JSON.stringify(x).replace(/'/g,'&#39;');
@@ -620,16 +609,16 @@ const selected=()=>archiveViewing&&archiveConfig?archiveConfig:(stations.find(s=
 const reportKey=(s=stationId,d=date)=>s+'@'+d;
 function emptyRecord(){return{metrics:{},groups:{},notes:{},lastModified:null}}
 function fetchRecord(){let k=reportKey();return clone(drafts[k]||emptyRecord())}
-function preserveDraft(){if(!signedIn()||archiveViewing||sampleMode)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
+function preserveDraft(){if(!signedIn()||archiveViewing)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
 function toast(message,error=false){let t=$('toast');t.textContent=message;t.className='toast '+(error?'error':'success');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3600)}
 function updateSaveStatus(){
  let x=$('saveStatus'),k=reportKey();
- x.textContent=editingReportId?'تعديل تقرير مؤرشف — سوبر أدمن':archiveViewing?'تقرير مركزي — للقراءة فقط':isAdmin()&&!isSuperAdmin()?'الأدمن — عرض فقط':sampleMode?'عرض بيانات تجريبية — غير قابلة للإرسال':receipts[k]?'تم الإرسال مركزيًا':cloudReady?'مسودة لم ترسل':'جارٍ الاتصال أو تعذّر';
+ x.textContent=editingReportId?'تعديل تقرير مؤرشف — سوبر أدمن':archiveViewing?'تقرير مركزي — للقراءة فقط':isAdmin()&&!isSuperAdmin()?'الأدمن — عرض فقط':receipts[k]?'تم الإرسال مركزيًا':cloudReady?'مسودة لم ترسل':'جارٍ الاتصال أو تعذّر';
  $('saveBtn').textContent=editingReportId?'☁ حفظ تعديل التقرير':'☁ إرسال التقرير';
- $('saveBtn').disabled=!signedIn()||!cloudReady||archiveViewing||sampleMode||cloudSubmitting||(isAdmin()&&!isSuperAdmin())||(!editingReportId&&!!receipts[k]);
+ $('saveBtn').disabled=!signedIn()||!cloudReady||archiveViewing||cloudSubmitting||(isAdmin()&&!isSuperAdmin())||(!editingReportId&&!!receipts[k]);
  if(archiveViewing)for(const field of $('reportInputFields').querySelectorAll('input,textarea,select'))field.disabled=true;
 }
-function goTo(s,d){if(!stations.some(x=>x.id===s)||(currentRole==='station'&&s!==currentStationId))return;preserveDraft();archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();sampleMode=false;stationId=s;date=d;record=fetchRecord();$('reportDate').value=date;$('stationSelect').value=stationId;renderInputs();renderReport();updateSaveStatus()}
+function goTo(s,d){if(!stations.some(x=>x.id===s)||(currentRole==='station'&&s!==currentStationId))return;preserveDraft();archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();stationId=s;date=d;record=fetchRecord();$('reportDate').value=date;$('stationSelect').value=stationId;renderInputs();renderReport();updateSaveStatus()}
 function refreshSelects(){let val=stationId;$('stationSelect').innerHTML=stations.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');if(!stations.some(s=>s.id===val))stationId=stations[0].id;$('stationSelect').value=stationId}
 function fieldHtml(label,value,attrs={},unit='',wide=false){let attr=Object.entries(attrs).map(([k,v])=>`${k}="${esc(v)}"`).join(' ');return `<div class="field${wide?' wide':''}"><label>${esc(label)}</label><div class="input-group"><input class="control" type="${attrs['data-text']==='1'?'text':'number'}" ${attrs['data-text']==='1'?'':'step="any" inputmode="decimal"'} value="${esc(value??'')}" ${attr} placeholder="—"><span class="unit">${esc(unit)}</span></div></div>`}
 function metricAuto(m){if(!m.auto)return null;if(m.auto==='meter'){let g=record.groups.meter||{};let a=num((g.current||{}).value),b=num((g.previous||{}).value);return a!==null&&b!==null&&a>=b?a-b:null}if(m.auto==='wtp'){let w=selected().groups.find(x=>x.kind==='wtp'),g=w?(record.groups[w.id]||{}):{},r=g[m.id]||{};if(!m.additive)return num(r.total);let values=Array.from({length:w?.units||2},(_,i)=>num(r['wtp'+(i+1)]));return values.every(v=>v!==null)?values.reduce((a,b)=>a+b,0):num(r.total)}let g=selected().groups.find(x=>x.id===m.auto);if(!g)return null;let values=g.items.map(it=>num(((record.groups[g.id]||{})[it.id]||{}).value));return values.some(v=>v!==null)?values.reduce((a,b)=>a+(b??0),0):null}
@@ -705,7 +694,7 @@ async function saveReport(){
  if(!signedIn()||!cloudReady||cloudSubmitting){toast('يجب تسجيل الدخول والاتصال بالقاعدة المركزية.',true);return}
  if(isAdmin()&&!isSuperAdmin()){toast('حساب الأدمن للمتابعة والطباعة فقط.',true);return}
  if(currentRole==='station'&&stationId!==currentStationId){toast('ليس لديك صلاحية إرسال تقارير هذه المحطة.',true);return}
- if(archiveViewing||sampleMode){toast('التقارير المؤرشفة والتجريبية للقراءة فقط.',true);return}
+ if(archiveViewing){toast('التقارير المؤرشفة للقراءة فقط.',true);return}
  const k=reportKey();
  if(receipts[k]&&!editingReportId){toast('سبق إرسال هذا التقرير من حسابك.',true);return}
  const errors=validateReport();
@@ -740,7 +729,7 @@ async function saveReport(){
 
 function restoreReport(){let k=reportKey();if(!reports[k]){let matches=Object.keys(reports).filter(x=>x.startsWith(stationId+'@')).sort().reverse();if(!matches.length){toast('لا توجد تقارير محفوظة لهذه المحطة.',true);return}let d=matches[0].split('@')[1];date=d;$('reportDate').value=d;k=reportKey()}
 record=clone(reports[k]);drafts[k]=clone(record);renderInputs();renderReport();updateSaveStatus();toast('تم استرجاع التقرير المحفوظ')}
-function newReport(){archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();sampleMode=false;date=currentDate;$('reportDate').value=date;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم فتح نموذج تقرير جديد بتاريخ اليوم')}
+function newReport(){archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();date=currentDate;$('reportDate').value=date;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم فتح نموذج تقرير جديد بتاريخ اليوم')}
 function clearFields(){if(!confirm('هل تريد مسح جميع قيم التقرير الحالي غير المحفوظة؟'))return;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم مسح حقول الإدخال')}
 function downloadBlob(blob,name){let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),45000)}
 const fileStem=()=>selected().name.replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,'_')+'_'+date;
@@ -971,7 +960,7 @@ async function archiveShow(id,editable=false){
   if(editable&&!isSuperAdmin())throw Error('فقط السوبر أدمن يستطيع تعديل التقارير.');
   preserveDraft();stationId=r.station_id;date=r.report_date;
   archiveViewing=!editable;editingReportId=editable?r.id:null;archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;
-  sampleMode=false;record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
+  record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
   $('reportDate').disabled=editable;$('stationSelect').disabled=editable||!isAdmin();
   archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':'عرض التقرير المحفوظ — للقراءة فقط.');
@@ -993,7 +982,7 @@ async function loadCloudStations(){
  drafts=load(perUserKey(DRAFTS_KEY),{});
  receipts=load(perUserKey(RECEIPTS_KEY),{});
  requestIds=load(perUserKey(REQUESTS_KEY),{});
- archiveViewing=false;archiveConfig=null;sampleMode=false;record=fetchRecord();
+ archiveViewing=false;archiveConfig=null;record=fetchRecord();
  refreshSelects();$('stationSelect').disabled=!isAdmin();
  $('reportDate').value=date;renderInputs();renderReport();
  cloudReady=true;updateSaveStatus();
