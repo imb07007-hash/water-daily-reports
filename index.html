@@ -1093,7 +1093,7 @@ refreshSelects();$('reportDate').value=date;record=fetchRecord();renderInputs();
 
 const ARCHIVE_PAGE_SIZE=1000;
 const ARCHIVE_SHOW_STEP=60;
-let archiveMode='daily',archiveRows=[],archiveVisibleCount=ARCHIVE_SHOW_STEP;
+let archiveMode='daily',archiveRows=[],archiveHistoricalRows=[],archiveVisibleCount=ARCHIVE_SHOW_STEP;
 let archiveQueryInfo=null,archiveSearchVersion=0;
 
 function archiveChosenStation(){
@@ -1181,6 +1181,56 @@ async function archiveFetchAll(scope,period,searchVersion){
  }
  throw Error('نتائج كثيرة جدًا. حدد محطة أو فترة زمنية أقصر.');
 }
+
+const HIST_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+async function archiveFetchHistorical(scope,period,version){
+ if(!['monthly','yearly'].includes(period.mode))return [];
+ const q=new URLSearchParams({select:'station_id,report_year,report_month,production_m3,diesel_consumption_m3,electricity_consumption_mw,source_file,source_note',order:'station_id.asc,report_month.asc'});
+ q.set('report_year','eq.'+period.year);
+ if(scope)q.set('station_id','eq.'+scope);
+ if(period.mode==='monthly')q.set('report_month','eq.'+Number(period.month.slice(5,7)));
+ const res=await authedFetch('/rest/v1/station_monthly_reports?'+q);
+ if(!res.ok)throw Error('تعذّر تحميل السجل الشهري التاريخي ('+res.status+').');
+ const rows=await res.json();
+ if(version!==archiveSearchVersion)throw Error('تغيّر البحث.');
+ const allowed=new Set(scope?[scope]:stations.map(s=>s.id));
+ return Array.isArray(rows)?rows.filter(r=>allowed.has(r.station_id)):[];
+}
+function archiveHistoricalSection(records,period){
+ if(!records.length)return '';
+ const stationIds=[...new Set(records.map(r=>r.station_id))];
+ let html='';
+ for(const stationId of stationIds){
+  const station=stations.find(s=>s.id===stationId)?.name||stationId;
+  const rows=records.filter(r=>r.station_id===stationId);
+  const map=new Map(rows.map(r=>[Number(r.report_month),r]));
+  const months=period.mode==='yearly'?Array.from({length:12},(_,i)=>i+1):[Number(period.month.slice(5,7))];
+  const value=(r,key)=>r?dashboardNumeric(r[key]):null;
+  const sum=(key)=>rows.reduce((n,r)=>n+(value(r,key)??0),0);
+  const fileNames=[...new Set(rows.map(r=>r.source_file).filter(Boolean))];
+  const cards=[['إجمالي الإنتاج (م³)',fmt(sum('production_m3'))],['الأشهر المسجلة',fmt(rows.length)],['الديزل (م³ بحسب المصدر)',fmt(sum('diesel_consumption_m3'))],['الكهرباء (MW بحسب المصدر)',fmt(sum('electricity_consumption_mw'))]];
+  html+='<section class="archive-block"><h3>إنتاج شهري تاريخي — '+esc(station)+' — '+esc(period.year)+'</h3>'+
+    '<p class="archive-hint">هذه مجاميع إنتاج شهرية من الملف السنوي الأصلي، وليست تقارير يومية. الفراغ لا يعني صفر إنتاج.</p>'+
+    '<div class="archive-overview">'+cards.map(([label,num])=>'<div class="archive-kpi"><strong>'+esc(num)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>';
+  if(period.mode==='yearly')html+=archiveChart(months.map(m=>({id:period.year+'-'+String(m).padStart(2,'0'),label:HIST_MONTHS[m-1],production:value(map.get(m),'production_m3')})));
+  let tableRows='';
+  for(const m of months){
+   const r=map.get(m),p=value(r,'production_m3'),prev=value(map.get(m-1),'production_m3');
+   let change='—';
+   if(p!==null&&prev!==null)change=prev===0?(p===0?'مستقر':'بدء إنتاج'):((p-prev>0?'+':'')+(100*(p-prev)/prev).toFixed(1)+'%');
+   tableRows+='<tr><td>'+esc(HIST_MONTHS[m-1])+'</td>'+
+    '<td class="archive-num">'+esc(p===null?'غير مسجل':fmt(p))+'</td>'+
+    '<td class="archive-num">'+esc(value(r,'diesel_consumption_m3')===null?'—':fmt(value(r,'diesel_consumption_m3')))+'</td>'+
+    '<td class="archive-num">'+esc(value(r,'electricity_consumption_mw')===null?'—':fmt(value(r,'electricity_consumption_mw')))+'</td><td>'+esc(change)+'</td></tr>';
+  }
+  html+='<div class="archive-table-scroll"><table class="archive-table"><thead><tr><th>الشهر</th><th>الإنتاج (م³)</th><th>الديزل (م³)</th><th>الكهرباء (MW)</th><th>تغير الإنتاج</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>'+
+   '<p class="archive-hint">نسبة التغير تقارن إجمالي إنتاج الشهر بالشهر السابق. وحدة الكهرباء (MW) كما وردت في الملف دون تحويل أو تصحيح.</p>'+
+   (rows.some(r=>r.source_note)?'<p class="archive-hint">'+esc(rows.find(r=>r.source_note)?.source_note||'')+'</p>':'')+
+   '<p class="archive-hint">المصدر: '+fileNames.map(esc).join('، ')+'</p></section>';
+ }
+ return html;
+}
+
 function archiveAggregate(rows,metric){
  const values=rows.map(r=>dashboardNumeric(r.data?.metrics?.[metric])).filter(n=>n!==null);
  return {total:values.length?values.reduce((a,b)=>a+b,0):null,count:values.length};
@@ -1372,49 +1422,47 @@ function archiveCustomMetrics(rows,scope){
   '<tbody>'+entries.join('')+'</tbody></table></div></div>';
 }
 function archiveRender(){
- const rows=archiveRows,scope=archiveQueryInfo?.scope,period=archiveQueryInfo?.period;
+ const rows=archiveRows,historical=archiveHistoricalRows,scope=archiveQueryInfo?.scope,period=archiveQueryInfo?.period;
  if(!period){$('archiveResults').innerHTML='<div class="archive-empty">اختر الفترة واضغط عرض التقارير.</div>';return}
  const name=scope?stations.find(s=>s.id===scope)?.name||scope:'جميع المحطات';
- const header='<div class="archive-station-tag">'+esc(name)+'</div>';
- let content=header;
+ let content='<div class="archive-station-tag">'+esc(name)+'</div>';
  if(!rows.length){
-  content+='<div class="archive-empty">لا توجد تقارير محفوظة لهذه الفترة أو السنة. لا توجد قراءات لعرض رسم بياني، واختر فترة أخرى تحتوي على تقارير.</div>';
+  content+=historical.length?archiveHistoricalSection(historical,period):
+   '<div class="archive-empty">لا توجد تقارير محفوظة لهذه الفترة أو السنة. لا توجد قراءات لعرض رسم بياني، واختر فترة أخرى تحتوي على تقارير.</div>';
  }else if(period.mode==='daily'){
   content+='<p class="archive-missing-note">عدد التقارير: '+esc(fmt(rows.length))+'</p>'+archiveReportEntries(rows);
  }else{
   const groups=archivePeriodGroups(rows,period);
   content+=archiveSummary(rows,period,scope)+(period.mode==='yearly'?archiveAnnualTrend(groups):archiveChart(groups))+archiveGroupTable(groups,period)+
    archiveStationTable(rows)+archiveCustomMetrics(rows,scope)+
-   '<div class="archive-block"><h3>التقارير اليومية المحفوظة</h3>'+archiveReportEntries(rows)+'</div>';
+   '<div class="archive-block"><h3>التقارير اليومية المحفوظة</h3>'+archiveReportEntries(rows)+'</div>'+
+   archiveHistoricalSection(historical,period);
  }
  $('archiveResults').classList.remove('archive-empty');
  $('archiveResults').innerHTML=content;
  $('archiveScopeLabel').textContent=name+' — '+(period.mode==='yearly'?'عام '+period.year:
   period.mode==='monthly'?'شهر '+period.month:'التقارير اليومية');
- $('archiveExports').classList.toggle('hidden',rows.length===0);
+ $('archiveExports').classList.toggle('hidden',rows.length===0&&historical.length===0);
 }
 async function archiveSearch(){
  if(!signedIn())return;
  const out=$('archiveResults'),button=$('archiveSearch');
  const searchVersion=++archiveSearchVersion;
- archiveRows=[];archiveQueryInfo=null;archiveVisibleCount=ARCHIVE_SHOW_STEP;
+ archiveRows=[];archiveHistoricalRows=[];archiveQueryInfo=null;archiveVisibleCount=ARCHIVE_SHOW_STEP;
  button.disabled=true;out.setAttribute('aria-busy','true');
  out.innerHTML='<div class="archive-empty">جاري تحميل التقارير…</div>';
  $('archiveExports').classList.add('hidden');
  try{
   const scope=archiveChosenStation(),period=archivePeriod();
-  const rows=await archiveFetchAll(scope,period,searchVersion);
+  const [rows,historical]=await Promise.all([archiveFetchAll(scope,period,searchVersion),archiveFetchHistorical(scope,period,searchVersion)]);
   if(searchVersion!==archiveSearchVersion)return;
-  archiveRows=rows;archiveQueryInfo={scope,period};
+  archiveRows=rows;archiveHistoricalRows=historical;archiveQueryInfo={scope,period};
   archiveRender();
  }catch(e){
   if(searchVersion!==archiveSearchVersion)return;
   out.innerHTML='<div class="archive-empty">'+esc(e.message||'تعذر تحميل الأرشيف.')+'</div>';
- }finally{
-  if(searchVersion===archiveSearchVersion){button.disabled=false;out.setAttribute('aria-busy','false')}
- }
+ }finally{if(searchVersion===archiveSearchVersion){button.disabled=false;out.setAttribute('aria-busy','false')}}
 }
-
 
 function archiveCsvCell(value){
  let textValue=String(value===null||value===undefined?'':value);
@@ -1462,10 +1510,20 @@ function archiveExportDataRow(r){
  return row;
 }
 function archiveExcel(){
- if(!archiveQueryInfo||!archiveRows.length||!signedIn())return;
+ if(!archiveQueryInfo||(!archiveRows.length&&!archiveHistoricalRows.length)||!signedIn())return;
  const scope=archiveQueryInfo.scope;
  if(!isAdmin()&&scope!==currentStationId)return;
  const rows=archiveRows.map(archiveExportDataRow);
+ for(const r of archiveHistoricalRows)rows.push({
+  'المحطة':stations.find(s=>s.id===r.station_id)?.name||r.station_id,
+  'نوع السجل':'إنتاج شهري تاريخي',
+  'الفترة':r.report_year+'-'+String(r.report_month).padStart(2,'0'),
+  'الإنتاج (م³)':r.production_m3,
+  'الديزل (م³ بحسب المصدر)':r.diesel_consumption_m3,
+  'الكهرباء (MW بحسب المصدر)':r.electricity_consumption_mw,
+  'ملف المصدر':r.source_file,
+  'ملاحظات المصدر':r.source_note||''
+ });
  const headers=Array.from(new Set(rows.flatMap(r=>Object.keys(r))));
  const textFile='\uFEFF'+headers.map(archiveCsvCell).join(',')+'\r\n'+
   rows.map(r=>headers.map(h=>archiveCsvCell(r[h]??'')).join(',')).join('\r\n');
@@ -1476,7 +1534,7 @@ function archiveExcel(){
  downloadBlob(new Blob([textFile],{type:'text/csv;charset=utf-8;'}),filename);
 }
 function archivePdf(){
- if(!archiveQueryInfo||!archiveRows.length||!signedIn())return;
+ if(!archiveQueryInfo||(!archiveRows.length&&!archiveHistoricalRows.length)||!signedIn())return;
  if(!isAdmin()&&archiveQueryInfo.scope!==currentStationId)return;
  const info=archiveQueryInfo,station=info.scope?stations.find(s=>s.id===info.scope)?.name||info.scope:'جميع المحطات';
  const period=info.period.mode==='yearly'?'التقرير السنوي '+info.period.year:
