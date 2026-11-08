@@ -1,0 +1,21 @@
+name: Water reports source snapshot
+on:
+  push:
+    paths:
+      - '.github/workflows/source-backup.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact website source
+        uses: actions/checkout@v4
+      - name: Export website source only
+        uses: actions/upload-artifact@v4
+        with:
+          name: water-daily-reports-index
+          path: index.html
+          retention-days: 7
+          if-no-files-found: error
