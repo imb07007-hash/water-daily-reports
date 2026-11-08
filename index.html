@@ -299,15 +299,13 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     <div class="login-logo-shell"><img data-brand-logo class="brand-logo-login" alt="شعار شركة حلول المياه - Water Solutions Company" width="204" height="103"></div>
     <div class="login-identity-copy"><div class="login-brand-name">نظام التقارير التشغيلية اليومية</div><div class="login-brand-sub">شركة حلول المياه | Water Solutions Company</div></div>
    </div>
-   <div class="login-kicker">بوابة التقارير التشغيلية</div>
-   <h1 class="login-heading">مرحبًا بعودتك</h1>
-   <p class="login-lead">سجّل الدخول للوصول إلى تقارير محطتك ومؤشراتها التشغيلية.</p>
+   <h1 class="login-heading">تسجيل الدخول</h1>
    <div class="login-card">
     <form id="loginForm" autocomplete="on">
      <div class="login-form-field">
       <label for="loginUsername">اسم المستخدم</label>
       <div class="login-control-wrap">
-       <input class="login-input" id="loginUsername" name="username" autocomplete="username" required spellcheck="false" autocapitalize="off" placeholder="اسم المستخدم أو بريد المدير" dir="ltr" aria-describedby="loginUserHint">
+       <input class="login-input" id="loginUsername" name="username" autocomplete="username" required spellcheck="false" autocapitalize="off" placeholder="اسم المستخدم أو بريد المدير" dir="ltr">
       </div>
      </div>
      <div class="login-form-field">
@@ -323,26 +321,19 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     <div id="loginError" class="login-error" role="alert" aria-live="polite"></div>
     <form id="forgotForm" class="hidden">
       <h3 style="color:#0362af">استعادة كلمة المرور</h3>
-      <p class="recovery-hint">أدخل بريدك الإلكتروني المسجل في نظام التقارير. سيصلك رابط جديد لتعيين كلمة مرور.</p>
+      <p class="recovery-hint">أدخل البريد الإلكتروني المسجل.</p>
       <div class="login-form-field"><label for="forgotEmail">البريد الإلكتروني</label><input class="login-input" id="forgotEmail" type="email" autocomplete="email" required dir="ltr" placeholder="email@example.com"></div>
       <button id="sendRecoveryButton" class="btn primary login-submit" type="submit">إرسال رابط استعادة</button>
       <div id="forgotNotice" class="recovery-message" role="status" aria-live="polite"></div>
-      <div class="recovery-info" role="note">يُرسل الرابط إلى بريدك، وتفتح الرسالة الجديدة صفحة تغيير كلمة المرور مباشرة. لا تحتاج إلى نسخ رابط أو لصقه.</div>
       <button id="recoveryRefreshButton" type="button" class="btn recovery-refresh">↻ تحديث الصفحة</button>
       <button id="backFromForgot" type="button" class="recovery-link">العودة إلى تسجيل الدخول</button>
     </form>
-    <div class="login-help" id="loginUserHint">
-     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
-     <span>يُفتح نموذج المحطة المرتبطة بحسابك تلقائيًا. يمكن للمدير استخدام بريده الإلكتروني للوصول إلى لوحة جميع المحطات.</span>
-    </div>
    </div>
-   <div class="login-footer"><span>نظام آمن بصلاحيات مستقلة لكل محطة</span><span class="login-footer-mark">شركة حلول المياه</span></div>
   </div>
   <div class="login-visual" aria-hidden="true">
    <div>
-    <div class="login-visual-brand">WATER SOLUTIONS · OPERATIONS</div>
-    <h3>كل محطة.<br>بياناتها في مكان واحد.</h3>
-    <p>تقارير تشغيل يومية، متابعة دقيقة للإنتاج، ولوحة موحدة تدعم قرارات التشغيل.</p>
+    <div class="login-visual-brand">شركة حلول المياه</div>
+    <h3>نظام التقارير<br>التشغيلية اليومية</h3>
    </div>
    <svg class="login-water-art" viewBox="0 0 460 295" fill="none" xmlns="http://www.w3.org/2000/svg">
      <defs>
@@ -362,11 +353,6 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
      <circle cx="423" cy="67" r="11" fill="#E7FAFF" stroke="#77CFF0" stroke-width="4"/>
      <path d="M57 271c54-28 92-27 141-8 59 24 106 20 156-1 39-17 65-13 91 1" stroke="#C0F5FF" stroke-opacity=".6" stroke-width="4" stroke-linecap="round"/>
     </svg>
-   <div class="login-feature-row">
-    <div class="login-feature">◈ تقارير يومية</div>
-    <div class="login-feature">◈ حفظ مركزي</div>
-    <div class="login-feature">◈ صلاحيات المحطات</div>
-   </div>
   </div>
  </div>
 </section>
@@ -375,7 +361,6 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   <div class="login-card recovery-card">
     <div class="recovery-brand"><img data-brand-logo alt="شركة حلول المياه" width="176" height="89"></div>
     <h2>🔐 تعيين كلمة المرور الجديدة</h2>
-    <p class="recovery-hint">تم فتح رابط الاستعادة. اختر كلمة مرور جديدة للدخول إلى نظام تقارير المحطات.</p>
     <form id="recoveryForm">
       <div class="login-form-field"><label for="newRecoveryPassword">كلمة المرور الجديدة</label><input class="login-input" type="password" id="newRecoveryPassword" autocomplete="new-password" minlength="12" required dir="ltr"></div>
       <div class="login-form-field"><label for="confirmRecoveryPassword">تأكيد كلمة المرور</label><input class="login-input" type="password" id="confirmRecoveryPassword" autocomplete="new-password" minlength="12" required dir="ltr"></div>
@@ -387,15 +372,14 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" style="text-align:center;color:#556c82;background:#eaf6ff;border-bottom:1px solid #d9eaf7;padding:8px 12px;font-size:12px;font-weight:700">لكل محطة اسم مستخدم وكلمة مرور مستقلة. لا يظهر لموظف المحطة إلا نموذجها وتقاريرها، بينما يتمكن الأدمن من متابعة جميع المحطات.</aside>
-<div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2><span>المعاينة مطابقة لتصميم التصدير • تتحدث تلقائيًا</span></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
-<div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة المحطات — سوبر أدمن</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات في Supabase</button></div></div></div>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
+<div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
+<div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
  <div class="modal">
   <div class="modal-head"><h2>أرشيف التقارير</h2><button class="btn" id="archiveClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p style="font-size:12px;color:#718598">يعرض الأرشيف التقارير التي يحق لحسابك الاطلاع عليها فقط.</p>
-   <div class="rowfilters">
+      <div class="rowfilters">
     <div class="field"><label>المحطة</label><select class="control" id="archiveStation"><option value="">جميع المحطات</option></select></div>
     <div class="field"><label>من تاريخ</label><input class="control" type="date" id="archiveFrom"></div>
     <div class="field"><label>إلى تاريخ</label><input class="control" type="date" id="archiveTo"></div>
@@ -403,8 +387,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
    </div>
    <div id="archiveResults" class="archive-empty">اضغط بحث لاستعراض التقارير.</div>
   </div>
-  <div class="modal-foot"><span class="report-readonly">صلاحيات العرض مقيدة لكل حساب في Supabase</span></div>
- </div>
+   </div>
 </div>
 <div class="modal-backdrop hidden" id="dashboardModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(1080px,96vw)">
@@ -423,12 +406,12 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  <div class="modal" style="width:min(520px,95vw)">
   <div class="modal-head"><h2>تغيير كلمة مرور المحطة</h2><button class="btn" id="closeOwnPassword">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p style="line-height:2;color:#536e83;font-size:13px">اسم المستخدم ثابت ولا يمكن تغييره: <strong id="fixedStationUsername" dir="ltr"></strong></p>
+   <p style="line-height:2;color:#536e83;font-size:13px">اسم المستخدم: <strong id="fixedStationUsername" dir="ltr"></strong></p>
    <form id="selfPasswordForm" autocomplete="off">
     <div class="field"><label for="selfPasswordOld">كلمة المرور الحالية</label><input class="control" id="selfPasswordOld" type="password" autocomplete="current-password" required></div>
     <div class="field" style="margin-top:12px"><label for="selfPasswordNew">كلمة المرور الجديدة (12 رمزًا على الأقل)</label><input class="control" id="selfPasswordNew" type="password" autocomplete="new-password" minlength="12" required></div>
     <div class="field" style="margin-top:12px"><label for="selfPasswordConfirm">تأكيد كلمة المرور الجديدة</label><input class="control" id="selfPasswordConfirm" type="password" autocomplete="new-password" minlength="12" required></div>
-    <p style="font-size:12px;color:#607889;line-height:2">استخدم أحرفًا إنجليزية كبيرة وصغيرة وأرقامًا. السوبر أدمن يمكنه إعادة تعيين كلمة المرور عند الحاجة دون تغيير اسم المستخدم.</p>
+    <p style="font-size:12px;color:#607889;line-height:2">12 رمزًا على الأقل، تشمل حرفًا كبيرًا وصغيرًا ورقمًا.</p>
     <div id="selfPasswordFeedback" role="alert" aria-live="polite" style="font-size:12px;color:#b43142;min-height:22px"></div>
     <div class="sec-actions"><button class="btn primary" id="saveOwnPassword" type="submit">حفظ كلمة المرور الجديدة</button></div>
    </form>
@@ -438,9 +421,9 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 
 <div class="modal-backdrop hidden" id="accountsModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(1020px,97vw)">
-  <div class="modal-head"><h2>إدارة المستخدمين — السوبر أدمن</h2><button class="btn" id="accountsClose">✕ إغلاق</button></div>
+  <div class="modal-head"><h2>إدارة الحسابات</h2><button class="btn" id="accountsClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p style="font-size:12px;color:#607889;line-height:1.9">رمز PLANT هو اسم المستخدم وكلمة المرور الأولية لكل محطة. الموظف يغيّر كلمة مروره فقط، والأدمن يدير حسابات المحطات وكلمات مرورها، والسوبر أدمن يملك جميع صلاحيات إدارة الحسابات والمحطات والتقارير. يُنصح بتغيير كلمة المرور الأولية لتجنّب دخول غير مصرح به.</p>
+   <p style="font-size:12px;color:#607889;line-height:1.9">اسم المستخدم وكلمة المرور الأولية: رمز المحطة. يمكن تغيير كلمة المرور من داخل الحساب.</p>
    <div class="sec-panel" id="accountCreatePanel">
     <h3>إضافة حساب جديد</h3>
     <div class="sec-fields">
@@ -450,7 +433,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
      <div class="field"><label>كلمة المرور الأولية (رمز المحطة)</label><input class="control" id="accountPassword" dir="ltr" type="text" autocomplete="off" readonly placeholder="رمز PLANT"></div>
     </div>
     <div class="sec-actions"><button class="btn hidden" id="generatePassword">توليد كلمة مرور قوية</button><button class="btn primary" id="createAccount">＋ إنشاء الحساب</button><button class="btn" id="createStationAccounts">تجهيز حسابات المحطات الخمس</button></div>
-    <p style="font-size:11px;color:#667b8b;margin:12px 0 0">رموز المحطات من ملف «بوابات التصدير»: بيش 8053، الماطري 8054، ضمد 8056، محايل 8058، وادي جيزان 8061. مربة ليس لها رمز في الملف. اسم المستخدم ثابت؛ وكلمة المرور الأولية هي نفس الرمز. يستطيع الموظف تغييرها، ويستطيع الأدمن والسوبر أدمن إعادة تعيينها.</p>
+    <p style="font-size:11px;color:#667b8b;margin:12px 0 0">رموز المحطات: بيش 8053، الماطري 8054، ضمد 8056، محايل 8058، وادي جيزان 8061. رمز مربة غير متوفر.</p>
     <div id="accountResponse" class="sec-response hidden"></div>
    </div>
    <div class="sec-panel">
@@ -466,7 +449,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  <div class="modal">
   <div class="modal-head"><h2>سجل النشاط والمراجعة — السوبر أدمن</h2><button class="btn" id="auditClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p class="audit-intro">تتبع نشاط المستخدمين والمحطات، وعمليات إنشاء وتعديل وحذف التقارير، والتغييرات على حسابات المستخدمين، وأحداث تسجيل الدخول المتاحة من Supabase Auth. تُعرض تفاصيل القيم السابقة والجديدة للتعديلات المسجلة منذ تفعيل هذا النظام.</p>
+   <p class="audit-intro">سجل عمليات المستخدمين والتقارير وإدارة الحسابات.</p>
    <div class="audit-filters">
     <div class="field"><label for="auditActor">المستخدم / اسم الحساب</label><input class="control" type="search" id="auditActor" placeholder="اسم المستخدم أو البريد"></div>
     <div class="field"><label for="auditScope">القسم</label><select class="control" id="auditScope">
