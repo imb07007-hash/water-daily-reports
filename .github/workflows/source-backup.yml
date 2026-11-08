@@ -12,10 +12,12 @@ jobs:
     steps:
       - name: Checkout exact website source
         uses: actions/checkout@v4
-      - name: Export website source only
+      - name: Export entire recoverable source snapshot
         uses: actions/upload-artifact@v4
         with:
-          name: water-daily-reports-index
-          path: index.html
+          name: water-reports-restore-source-2026-11-08
+          path: |
+            index.html
+            recovery_snapshot/**
           retention-days: 7
           if-no-files-found: error
