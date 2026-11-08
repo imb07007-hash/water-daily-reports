@@ -1003,7 +1003,7 @@ async function archiveSearch(){
  const out=$('archiveResults'),button=$('archiveSearch');
  button.disabled=true;out.innerHTML='<div class="archive-empty">يتم جلب التقارير المصرّح بها…</div>';
  try{
-  const filter=new URLSearchParams({select:'id,station_id,report_date,created_at,source',order:'report_date.desc,created_at.desc',limit:'150'});
+  const filter=new URLSearchParams({select:'id,station_id,report_date,created_at,source,source_sent_at',order:'report_date.desc,created_at.desc',limit:'1000'});
   const chosen=isAdmin() ? $('archiveStation').value : currentStationId;
   if(chosen)filter.set('station_id','eq.'+chosen);
   if($('archiveFrom').value)filter.append('report_date','gte.'+$('archiveFrom').value);
@@ -1012,7 +1012,7 @@ async function archiveSearch(){
   if(!resp.ok)throw Error('تعذر قراءة التقارير: '+resp.status);
   const rows=await resp.json();
   out.innerHTML=Array.isArray(rows)&&rows.length
-   ?rows.map(r=>'<div class="archive-entry"><div><strong>'+esc((stations.find(s=>s.id===r.station_id)||{}).name||r.station_id)+'</strong><small>'+esc(r.report_date)+' — '+esc(new Date(r.created_at).toLocaleString('ar-SA'))+'</small></div><div class="sec-actions"><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+(isSuperAdmin()?'<button class="btn" data-archive-edit="'+esc(r.id)+'">تعديل</button><button class="btn danger" data-archive-delete="'+esc(r.id)+'">حذف</button>':'')+'</div></div>').join('')
+   ?rows.map(r=>'<div class="archive-entry"><div><strong>'+esc((stations.find(s=>s.id===r.station_id)||{}).name||r.station_id)+'</strong><small>'+esc(r.report_date)+' — '+(r.source==='migration'?'رسالة واتساب: ':'إرسال الموقع: ')+esc(dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at).date)+'، '+esc(dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at).time)+'</small></div><div class="sec-actions"><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+(isSuperAdmin()?'<button class="btn" data-archive-edit="'+esc(r.id)+'">تعديل</button><button class="btn danger" data-archive-delete="'+esc(r.id)+'">حذف</button>':'')+'</div></div>').join('')
    :'<div class="archive-empty">لا توجد تقارير لهذا الاختيار.</div>';
  }catch(e){out.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
  finally{button.disabled=false}
@@ -1038,7 +1038,7 @@ async function archiveDelete(id){
 async function archiveShow(id,editable=false){
  if(!signedIn())return;
  try{
-  const resp=await authedFetch('/rest/v1/reports?select=id,station_id,report_date,data,config_snapshot,created_at&id=eq.'+encodeURIComponent(id)+'&limit=1');
+  const resp=await authedFetch('/rest/v1/reports?select=id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at&id=eq.'+encodeURIComponent(id)+'&limit=1');
   if(!resp.ok)throw Error('تعذر الوصول للتقرير.');
   const arr=await resp.json(),r=arr[0];
   if(!r||!r.data||!stations.some(x=>x.id===r.station_id))throw Error('ليس لديك صلاحية عرض التقرير.');
@@ -1048,7 +1048,7 @@ async function archiveShow(id,editable=false){
   record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
   $('reportDate').disabled=editable;$('stationSelect').disabled=editable||!isAdmin();
-  archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':'عرض التقرير المحفوظ — للقراءة فقط.');
+  archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':r.source==='migration'?'تقرير تاريخي مستورد من واتساب — للقراءة فقط.':'عرض التقرير المحفوظ — للقراءة فقط.');
  }catch(e){toast(e.message,true)}
 }
 
@@ -1256,13 +1256,13 @@ async function dashboardRefresh(){
  try{
   const begin=dashboardShiftDate(date,-6);
   const windowQuery=new URLSearchParams({
-   select:'id,station_id,report_date,data,created_at,updated_at',
+   select:'id,station_id,report_date,data,created_at,source,source_sent_at,updated_at',
    order:'report_date.desc,created_at.desc',limit:String(Math.max(300,stations.length*8))
   });
   windowQuery.append('report_date','gte.'+begin);
   windowQuery.append('report_date','lte.'+date);
   const latestQuery=new URLSearchParams({
-   select:'id,station_id,report_date,created_at',order:'created_at.desc',limit:'50'
+   select:'id,station_id,report_date,created_at,source,source_sent_at,effective_sent_at',order:'effective_sent_at.desc',limit:'50'
   });
   const [rangeResponse,latestResponse]=await Promise.all([
    authedFetch('/rest/v1/reports?'+windowQuery.toString()),
@@ -1292,16 +1292,16 @@ async function dashboardRefresh(){
   const sorted=stations.slice().sort((a,b)=>Number(!byDayStation.has(b.id+'@'+date))-Number(!byDayStation.has(a.id+'@'+date)));
   const cards=sorted.map(s=>{
    const r=byDayStation.get(s.id+'@'+date);
-   const submit=r?dashboardSubmitTime(r.created_at):null;
+   const submit=r?dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at):null;
    const metrics=r?.data?.metrics||{};
    const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)]];
-   const status=r?'تم الاستلام':'لم يُرسل';
+   const status=r?(r.source==='migration'?'مستورد من واتساب':'تم الاستلام'):'لم يُرسل';
    return '<div class="dashboard-plant '+(r?'received':'pending')+'">'+
     '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+'</h4>'+
      '<span class="dashboard-status '+(r?'received':'pending')+'">'+status+'</span></div>'+
     '<div class="dashboard-submission">'+
-     '<div class="dashboard-field"><small>تاريخ إرسال التقرير</small><strong>'+esc(submit?.date||'—')+'</strong></div>'+
-     '<div class="dashboard-field"><small>وقت الإرسال — السعودية</small><strong dir="auto">'+esc(submit?.time||'—')+'</strong></div>'+
+     '<div class="dashboard-field"><small>'+(r?.source==='migration'?'تاريخ رسالة واتساب':'تاريخ إرسال التقرير')+'</small><strong>'+esc(submit?.date||'—')+'</strong></div>'+
+     '<div class="dashboard-field"><small>'+(r?.source==='migration'?'وقت رسالة واتساب — السعودية':'وقت إرسال الموقع — السعودية')+'</small><strong dir="auto">'+esc(submit?.time||'—')+'</strong></div>'+
     '</div>'+
     '<div class="dashboard-station-values">'+present.map(([label,value])=>
      '<div class="dashboard-station-value"><small>'+esc(label)+'</small><strong>'+esc(dashboardMetricLabel(value))+'</strong></div>').join('')+'</div>'+
@@ -1332,10 +1332,10 @@ async function dashboardRefresh(){
   const recent=latestItems.filter(r=>ids.has(r.station_id)).slice(0,10);
   const recentRows=recent.length?recent.map(r=>{
    const station=stations.find(s=>s.id===r.station_id);
-   const stamp=dashboardSubmitTime(r.created_at);
+   const stamp=dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at);
    return '<div class="dashboard-recent-row"><div class="dashboard-recent-station">'+esc(station?.name||r.station_id)+'</div>'+
     '<div><span class="dashboard-recent-label">تاريخ التقرير</span><div class="dashboard-recent-value">'+esc(dashboardShortDate(r.report_date))+'</div></div>'+
-    '<div><span class="dashboard-recent-label">أُرسل بتاريخ / الساعة</span><div class="dashboard-recent-value">'+esc(stamp.date)+' — '+esc(stamp.time)+'</div></div></div>';
+    '<div><span class="dashboard-recent-label">'+(r.source==='migration'?'وقت رسالة واتساب':'وقت الإرسال من الموقع')+'</span><div class="dashboard-recent-value">'+esc(stamp.date)+' — '+esc(stamp.time)+'</div></div></div>';
   }).join(''):'<div class="dashboard-empty">لا توجد تقارير مرسلة حتى الآن.</div>';
   const recentSection='<section class="dashboard-section"><div class="dashboard-section-head"><h3>آخر عمليات إرسال التقارير</h3>'+
    '<small>توقيت السعودية (UTC+3)</small></div><div class="dashboard-recent">'+recentRows+'</div></section>';
