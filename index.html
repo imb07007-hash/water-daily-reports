@@ -370,7 +370,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn hidden" id="stationMetricBtn">＋ إضافة باراميتر</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
@@ -400,6 +400,21 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  </div>
 </div>
 
+
+<div class="modal-backdrop hidden" id="stationMetricModal" role="dialog" aria-modal="true">
+ <div class="modal" style="width:min(490px,95vw)">
+  <div class="modal-head"><h2>إضافة باراميتر</h2><button class="btn" id="stationMetricClose">✕ إغلاق</button></div>
+  <div class="modal-body">
+   <p id="stationMetricName" style="font-size:12px;color:#547289"></p>
+   <form id="stationMetricForm">
+    <div class="field"><label for="stationMetricLabel">اسم الباراميتر</label><input class="control" id="stationMetricLabel" maxlength="70" required placeholder="اسم الباراميتر"></div>
+    <div class="field" style="margin-top:12px"><label for="stationMetricUnit">وحدة القياس</label><input class="control" id="stationMetricUnit" maxlength="20" placeholder="مثال: م³/يوم"></div>
+    <div class="sec-actions" style="margin-top:15px"><button id="stationMetricSave" type="submit" class="btn primary">إضافة</button></div>
+   </form>
+   <div id="stationMetricStatus" role="alert" aria-live="polite" style="font-size:12px;color:#b14450;margin-top:8px"></div>
+  </div>
+ </div>
+</div>
 <div class="modal-backdrop hidden" id="passwordModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(520px,95vw)">
   <div class="modal-head"><h2>تغيير كلمة المرور</h2><button class="btn" id="closeOwnPassword">✕ إغلاق</button></div>
@@ -1033,6 +1048,7 @@ async function enterApplication(){
  $('accountsBtn').classList.toggle('hidden',!isAdmin());
  $('auditBtn').classList.toggle('hidden',!isSuperAdmin());
  $('settingsBtn').classList.toggle('hidden',!isSuperAdmin());
+ $('stationMetricBtn').classList.toggle('hidden',currentRole!=='station');
  $('changeOwnPasswordBtn').classList.remove('hidden');
  $('accountRole').classList.remove('hidden');
  $('accountRole').textContent=isSuperAdmin()?'سوبر أدمن':isAdmin()?'أدمن':'محطة '+currentLoginName;
@@ -1075,7 +1091,8 @@ async function logout(){
  authSession=null;currentRole='';currentStationId='';currentUserId='';cloudReady=false;
  sessionStorage.removeItem(AUTH_KEY);
  stations=allowedStations();drafts={};receipts={};requestIds={};
- for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal','passwordModal'])$(m).classList.add('hidden');
+ for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal','passwordModal','stationMetricModal'])$(m).classList.add('hidden');
+ $('stationMetricBtn').classList.add('hidden');
  $('changeOwnPasswordBtn').classList.add('hidden');
  for(const id of ['selfPasswordOld','selfPasswordNew','selfPasswordConfirm'])$(id).value='';
  document.body.dataset.auth='locked';$('loginScreen').classList.remove('hidden');
@@ -1139,6 +1156,43 @@ async function dashboardRefresh(){
  }catch(e){view.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
 }
 
+
+
+function openStationMetric(){
+ if(currentRole!=='station'||!signedIn())return;
+ $('stationMetricName').textContent=selected().name;
+ $('stationMetricLabel').value='';
+ $('stationMetricUnit').value='';
+ $('stationMetricStatus').textContent='';
+ $('stationMetricModal').classList.remove('hidden');
+ $('stationMetricLabel').focus();
+}
+function closeStationMetric(){
+ $('stationMetricModal').classList.add('hidden');
+ $('stationMetricLabel').value='';
+ $('stationMetricUnit').value='';
+ $('stationMetricStatus').textContent='';
+}
+async function saveStationMetric(event){
+ event.preventDefault();
+ if(currentRole!=='station'||!signedIn())return;
+ const label=$('stationMetricLabel').value.trim(),unit=$('stationMetricUnit').value.trim();
+ if(label.length<2||label.length>70||unit.length>20){$('stationMetricStatus').textContent='تحقق من اسم الباراميتر ووحدة القياس.';return}
+ const button=$('stationMetricSave');button.disabled=true;
+ try{
+  const response=await authedFetch('/functions/v1/station-parameters',{method:'POST',body:JSON.stringify({label,unit})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok){
+   throw Error(result.error==='duplicate_metric'?'هذا الباراميتر موجود بالفعل.':
+    result.error==='metric_limit_reached'?'وصلت المحطة للحد الأعلى للمؤشرات.':'تعذرت إضافة الباراميتر.');
+  }
+  preserveDraft();
+  closeStationMetric();
+  await loadCloudStations();
+  toast('تمت إضافة الباراميتر إلى '+selected().name);
+ }catch(err){$('stationMetricStatus').textContent=err.message||'تعذرت إضافة الباراميتر.'}
+ finally{button.disabled=false}
+}
 
 async function accountAdminRequest(action,params={}){
  if(!isAdmin())throw Error('يتطلب هذا الإجراء صلاحية أدمن');
@@ -1569,6 +1623,10 @@ $('accountResetSave').onclick=savePasswordReset;
 $('accountResetCancel').onclick=closePasswordReset;
 $('createStationAccounts').onclick=createStationAccounts;
 $('changeOwnPasswordBtn').onclick=openOwnPassword;
+$('stationMetricBtn').onclick=openStationMetric;
+$('stationMetricClose').onclick=closeStationMetric;
+$('stationMetricForm').onsubmit=saveStationMetric;
+$('stationMetricModal').addEventListener('click',e=>{if(e.target.id==='stationMetricModal')closeStationMetric()});
 $('closeOwnPassword').onclick=closeOwnPassword;
 $('selfPasswordForm').onsubmit=changeOwnPassword;
 $('passwordModal').addEventListener('click',event=>{if(event.target.id==='passwordModal')closeOwnPassword()});
