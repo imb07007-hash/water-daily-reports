@@ -289,6 +289,27 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 }
 @media print{.app-bar::after{display:none}.report-company-logo{box-shadow:none}}
 
+
+/* Corporate identity: quiet login, clean straight logo edges. */
+.login-screen{background:linear-gradient(150deg,#eff6fc 0%,#f8fbfe 70%,#f2f7fc 100%)!important;padding:14px!important}
+.login-screen::before{display:none!important}
+.login-layout{display:block!important;grid-template-columns:none!important;width:min(470px,100%)!important;min-height:0!important;border-radius:15px!important;border:1px solid #d8e5ef!important;border-top:4px solid #0362AF!important;box-shadow:0 14px 38px #16457420!important}
+.login-visual{display:none!important}
+.login-form-side{padding:32px 35px 35px!important;background:#fff!important}
+.login-identity{flex-direction:column;align-items:center;gap:5px;justify-content:center;text-align:center;margin:0 auto 22px!important}
+.login-logo-shell{width:195px!important;height:100px!important;border-radius:0!important;box-shadow:none!important;background:#fff!important;padding:0!important;overflow:hidden!important}
+.login-logo-shell img{width:215px!important;height:111px!important;max-width:none!important;object-fit:contain!important;clip-path:inset(4% 5% 8% 5%);transform:scale(1.1)}
+.login-identity-copy{border:0!important;padding:0!important;text-align:center}
+.login-brand-name{font-size:17px!important;font-weight:900;color:#0362AF!important}
+.login-brand-sub{font-size:11px!important;color:#444!important;line-height:1.6}
+.login-heading{font-size:20px!important;text-align:center!important;margin:6px 0 18px!important;color:#444!important}
+.login-card .login-input{border-radius:9px!important}
+.app-brand-logo-shell{border-radius:0!important;overflow:hidden}
+.brand-logo-header{object-fit:contain!important;clip-path:inset(5% 5% 8% 5%);transform:scale(1.06)}
+.modal-brand-logo{border-radius:0!important;object-fit:contain!important;clip-path:inset(5% 5% 8% 5%);transform:scale(1.06)}
+.report-company-logo{border-radius:7px!important;object-fit:contain!important;clip-path:inset(3% 3% 6% 3%);padding:2px!important}
+@media(max-width:500px){.login-form-side{padding:24px 20px 30px!important}.login-logo-shell{width:165px!important;height:88px!important}.login-logo-shell img{width:187px!important;height:99px!important}.login-brand-name{font-size:15px!important}}
+
 </style></head>
 <body data-auth="locked">
 
@@ -330,30 +351,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     </form>
    </div>
   </div>
-  <div class="login-visual" aria-hidden="true">
-   <div>
-    <div class="login-visual-brand">شركة حلول المياه</div>
-    <h3>نظام التقارير<br>التشغيلية اليومية</h3>
-   </div>
-   <svg class="login-water-art" viewBox="0 0 460 295" fill="none" xmlns="http://www.w3.org/2000/svg">
-     <defs>
-       <linearGradient id="bigDrop" x1="109" y1="11" x2="350" y2="250" gradientUnits="userSpaceOnUse"><stop stop-color="#A8EAFF"/><stop offset=".49" stop-color="#50B4F2"/><stop offset="1" stop-color="#1D8FCD"/></linearGradient>
-       <linearGradient id="reservoir" x1="230" y1="145" x2="230" y2="285" gradientUnits="userSpaceOnUse"><stop stop-color="#D5F9FF" stop-opacity=".9"/><stop offset="1" stop-color="#40B5E5" stop-opacity=".17"/></linearGradient>
-     </defs>
-     <circle cx="235" cy="133" r="114" stroke="#C1F0FF" stroke-opacity=".3" stroke-width="2"/>
-     <circle cx="235" cy="133" r="139" stroke="#C1F0FF" stroke-opacity=".15" stroke-width="2" stroke-dasharray="5 12"/>
-     <path d="M233 12c-31 48-90 101-90 152 0 54 41 91 90 91s90-37 90-91c0-51-59-104-90-152Z" fill="url(#bigDrop)" stroke="#D5F8FF" stroke-width="3"/>
-     <path d="M148 162c28 22 50 19 75-3 31-26 62-28 94-4" stroke="white" stroke-opacity=".85" stroke-width="9" stroke-linecap="round"/>
-     <path d="M151 195c27 19 51 18 73-2 30-26 60-25 94-1" stroke="#E9FCFF" stroke-opacity=".9" stroke-width="7" stroke-linecap="round"/>
-     <path d="M165 220c22 12 39 11 60-5 30-23 61-17 81-3" stroke="white" stroke-opacity=".73" stroke-width="5" stroke-linecap="round"/>
-     <circle cx="192" cy="122" r="17" fill="#fff" fill-opacity=".54"/>
-     <path d="M96 210h-35c-10 0-18-8-18-18v-28" stroke="#A2E1F5" stroke-width="4" stroke-linecap="round"/>
-     <path d="M367 105h39c10 0 18-8 18-18V68" stroke="#A2E1F5" stroke-width="4" stroke-linecap="round"/>
-     <circle cx="43" cy="163" r="11" fill="#E7FAFF" stroke="#77CFF0" stroke-width="4"/>
-     <circle cx="423" cy="67" r="11" fill="#E7FAFF" stroke="#77CFF0" stroke-width="4"/>
-     <path d="M57 271c54-28 92-27 141-8 59 24 106 20 156-1 39-17 65-13 91 1" stroke="#C0F5FF" stroke-opacity=".6" stroke-width="4" stroke-linecap="round"/>
-    </svg>
-  </div>
+
  </div>
 </section>
 
@@ -372,7 +370,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
@@ -729,7 +727,6 @@ function restoreReport(){let k=reportKey();if(!reports[k]){let matches=Object.ke
 record=clone(reports[k]);drafts[k]=clone(record);renderInputs();renderReport();updateSaveStatus();toast('تم استرجاع التقرير المحفوظ')}
 function newReport(){archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();sampleMode=false;date=currentDate;$('reportDate').value=date;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم فتح نموذج تقرير جديد بتاريخ اليوم')}
 function clearFields(){if(!confirm('هل تريد مسح جميع قيم التقرير الحالي غير المحفوظة؟'))return;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم مسح حقول الإدخال')}
-function loadSample(){sampleMode=false;let x=samples[stationId];if(!x){toast('لا توجد بيانات تجريبية معتمدة لهذه المحطة. يمكنك إدخال القيم مباشرة.',true);return}preserveDraft();sampleMode=true;date=x.date;$('reportDate').value=date;record={...emptyRecord(),...clone(x)};preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('هذه بيانات تجريبية للمعاينة فقط، ولا يمكن إرسالها إلى القاعدة المركزية.')}
 function downloadBlob(blob,name){let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),45000)}
 const fileStem=()=>selected().name.replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,'_')+'_'+date;
 // Offline PNG renderer: paints the actual layout geometry and text from the live report.
@@ -817,7 +814,7 @@ function backup(){let data={format:'wsc-water-daily-v2',exportedAt:new Date().to
 async function importBackup(file){try{let data=JSON.parse(await file.text());if(data.format!=='wsc-water-daily-v2'||!Array.isArray(data.stations)||typeof data.reports!=='object'||!data.reports)throw Error('الملف ليس نسخة احتياطية من هذا النظام');if(!confirm('سيتم استبدال بيانات المحطات والتقارير الحالية بالنسخة المستوردة. هل تريد المتابعة؟'))return;stations=data.stations;reports=data.reports;store(KEY_STATIONS,stations);store(KEY_REPORTS,reports);drafts={};stationId=stations[0].id;date=currentDate;refreshSelects();record=fetchRecord();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();toast('تم استيراد النسخة الاحتياطية بنجاح')}catch(e){toast('تعذر استيراد الملف: '+e.message,true)}}
 function openFullscreen(){let overlay=$('fullscreenOverlay');let copy=$('reportSheet').cloneNode(true);copy.removeAttribute('id');copy.style.transform='none';copy.style.width='1280px';$('fullscreenContent').replaceChildren(copy);overlay.classList.remove('hidden');document.body.style.overflow='hidden'}
 function closeFullscreen(){$('fullscreenOverlay').classList.add('hidden');$('fullscreenContent').replaceChildren();document.body.style.overflow=''}
-$('saveBtn').onclick=saveReport;$('restoreBtn').onclick=restoreReport;$('newBtn').onclick=newReport;$('clearBtn').onclick=clearFields;$('sampleBtn').onclick=loadSample;$('exportBtn').onclick=exportPNG;$('shareBtn').onclick=sharePNG;$('printBtn').onclick=()=>{logActivity('PRINT_REQUESTED');window.print()};$('fullBtn').onclick=openFullscreen;$('exitFullBtn').onclick=closeFullscreen;$('exportFullBtn').onclick=exportPNG;$('backupBtn').onclick=backup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{let file=e.target.files[0];if(file)importBackup(file);e.target.value=''};
+$('saveBtn').onclick=saveReport;$('restoreBtn').onclick=restoreReport;$('newBtn').onclick=newReport;$('clearBtn').onclick=clearFields;$('exportBtn').onclick=exportPNG;$('shareBtn').onclick=sharePNG;$('printBtn').onclick=()=>{logActivity('PRINT_REQUESTED');window.print()};$('fullBtn').onclick=openFullscreen;$('exitFullBtn').onclick=closeFullscreen;$('exportFullBtn').onclick=exportPNG;$('backupBtn').onclick=backup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{let file=e.target.files[0];if(file)importBackup(file);e.target.value=''};
 $('fullscreenOverlay').addEventListener('click',e=>{if(e.target.id==='fullscreenOverlay')closeFullscreen()});
 // Settings editor: all changes are made through the interface; no code edits necessary.
 const editStation=()=>stations.find(s=>s.id===editorStationId)||stations[0];
