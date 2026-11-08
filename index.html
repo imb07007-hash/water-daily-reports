@@ -370,9 +370,9 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn hidden" id="stationMetricBtn">＋ إضافة باراميتر</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
-<div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
+<div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2 id="settingsTitle">إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
  <div class="modal">
   <div class="modal-head"><h2>أرشيف التقارير</h2><button class="btn" id="archiveClose">✕ إغلاق</button></div>
@@ -401,20 +401,6 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 </div>
 
 
-<div class="modal-backdrop hidden" id="stationMetricModal" role="dialog" aria-modal="true">
- <div class="modal" style="width:min(490px,95vw)">
-  <div class="modal-head"><h2>إضافة باراميتر</h2><button class="btn" id="stationMetricClose">✕ إغلاق</button></div>
-  <div class="modal-body">
-   <p id="stationMetricName" style="font-size:12px;color:#547289"></p>
-   <form id="stationMetricForm">
-    <div class="field"><label for="stationMetricLabel">اسم الباراميتر</label><input class="control" id="stationMetricLabel" maxlength="70" required placeholder="اسم الباراميتر"></div>
-    <div class="field" style="margin-top:12px"><label for="stationMetricUnit">وحدة القياس</label><input class="control" id="stationMetricUnit" maxlength="20" placeholder="مثال: م³/يوم"></div>
-    <div class="sec-actions" style="margin-top:15px"><button id="stationMetricSave" type="submit" class="btn primary">إضافة</button></div>
-   </form>
-   <div id="stationMetricStatus" role="alert" aria-live="polite" style="font-size:12px;color:#b14450;margin-top:8px"></div>
-  </div>
- </div>
-</div>
 <div class="modal-backdrop hidden" id="passwordModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(520px,95vw)">
   <div class="modal-head"><h2>تغيير كلمة المرور</h2><button class="btn" id="closeOwnPassword">✕ إغلاق</button></div>
@@ -549,6 +535,7 @@ const perUserKey=(name)=>name+'_'+(currentUserId||'locked');
 
 const DRAFTS_KEY='wsc_cloud_pending_drafts_v1', RECEIPTS_KEY='wsc_cloud_receipts_v1',REQUESTS_KEY='wsc_cloud_request_ids_v1';
 let cloudReady=false,cloudSubmitting=false,archiveViewing=false,archiveConfig=null;
+let stationVersions=Object.create(null);
 let editingReportId=null,settingsEditing=false,pendingInactiveIds=[];
 let receipts={},requestIds={};
 function cloudNotice(message,status=''){const el=$('cloudNotice');el.textContent=message;el.className='cloud-notice '+status;}
@@ -824,46 +811,75 @@ $('fullscreenOverlay').addEventListener('click',e=>{if(e.target.id==='fullscreen
 const editStation=()=>stations.find(s=>s.id===editorStationId)||stations[0];
 let settingsBackup=null;
 function saveStations(){refreshSelects()}
+
 function openSettings(){
- if(!isSuperAdmin())return;
- preserveDraft();settingsEditing=true;settingsBackup=clone(stations);pendingInactiveIds=[];
- editorStationId=stationId;renderSettings();$('modalBackdrop').classList.remove('hidden');
+ if(!signedIn()||!cloudReady)return;
+ preserveDraft();
+ settingsEditing=true;
+ settingsBackup=clone(stations);
+ pendingInactiveIds=[];
+ editorStationId=currentRole==='station'?currentStationId:stationId;
+ $('deleteStationBtn').classList.toggle('hidden',!isAdmin());
+ $('settingsTitle').textContent=currentRole==='station'?'إدارة المحطة':'إدارة المحطات';
+ renderSettings();
+ $('modalBackdrop').classList.remove('hidden');
 }
 function discardSettings(){
- if(!isSuperAdmin())return;
+ if(!settingsEditing||!signedIn())return;
  if(settingsBackup)stations=clone(settingsBackup);
- pendingInactiveIds=[];settingsEditing=false;
- $('modalBackdrop').classList.add('hidden');refreshSelects();renderInputs();renderReport();updateSaveStatus();
- toast('تم إلغاء التغييرات غير المحفوظة.');
+ pendingInactiveIds=[];
+ settingsEditing=false;
+ settingsBackup=null;
+ $('modalBackdrop').classList.add('hidden');
+ refreshSelects();renderInputs();renderReport();updateSaveStatus();
 }
 async function closeSettings(){
- if(!isSuperAdmin()||!settingsEditing)return;
- const button=$('settingsDone');
- button.disabled=true;
+ if(!signedIn()||!settingsEditing)return;
+ const button=$('settingsDone');button.disabled=true;
  try{
-  if(stations.length===0)throw Error('يلزم الإبقاء على محطة فعالة واحدة.');
+  if(stations.length===0)throw Error('يجب الإبقاء على محطة واحدة على الأقل.');
+  if(currentRole==='station'&&(stations.length!==1||stations[0]?.id!==currentStationId||pendingInactiveIds.length))
+   throw Error('التعديل متاح لمحطتك فقط.');
   for(const item of stations){
-   if(item.name.trim().length<2||item.name.length>200)throw Error('اسم محطة غير صالح: '+item.id);
-   if(!Array.isArray(item.metrics)||!Array.isArray(item.groups)||!Array.isArray(item.noteFields))throw Error('إعدادات المحطة غير مكتملة: '+item.id);
-   const p=new URLSearchParams({on_conflict:'id'});
-   const response=await authedFetch('/rest/v1/stations?'+p,{method:'POST',
-      headers:{Prefer:'resolution=merge-duplicates,return=representation'},
-      body:JSON.stringify({id:item.id,config:item,active:true})});
-   if(!response.ok){const err=await response.json().catch(()=>({}));throw Error('فشل حفظ '+item.name+': '+(err.message||response.status))}
+   if(item.name.trim().length<2||item.name.length>200)throw Error('اسم محطة غير صالح.');
+   if(!Array.isArray(item.metrics)||!Array.isArray(item.groups)||!Array.isArray(item.noteFields))
+    throw Error('إعدادات المحطة غير مكتملة: '+item.id);
+   const previous=settingsBackup?.find(s=>s.id===item.id);
+   if(previous&&JSON.stringify(previous)===JSON.stringify(item))continue;
+   const response=await authedFetch('/functions/v1/station-settings',{
+    method:'POST',body:JSON.stringify({
+     action:'save',config:item,expectedUpdatedAt:stationVersions[item.id]||null
+    })
+   });
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok){
+    if(response.status===409)throw Error('تغيّرت إعدادات '+item.name+' من حساب آخر. أغلق النافذة وحدّث الصفحة ثم حاول مجددًا.');
+    throw Error('تعذر حفظ '+item.name+' ('+(result.error||response.status)+').');
+   }
+   stationVersions[item.id]=result.station?.updated_at||stationVersions[item.id];
   }
+  if(pendingInactiveIds.length&&!isAdmin())throw Error('تعطيل المحطات متاح للإدارة فقط.');
   for(const id of pendingInactiveIds){
-   const response=await authedFetch('/rest/v1/stations?id=eq.'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({active:false})});
-   if(!response.ok)throw Error('فشل تعطيل المحطة: '+id);
+   const response=await authedFetch('/functions/v1/station-settings',{
+    method:'POST',body:JSON.stringify({
+     action:'deactivate',stationId:id,expectedUpdatedAt:stationVersions[id]||null
+    })
+   });
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error('تعذر تعطيل المحطة ('+(result.error||response.status)+').');
+   delete stationVersions[id];
   }
-  settingsEditing=false;pendingInactiveIds=[];settingsBackup=null;
+  settingsEditing=false;
+  pendingInactiveIds=[];
+  settingsBackup=null;
   $('modalBackdrop').classList.add('hidden');
   await loadCloudStations();
-  toast('تم حفظ إعدادات المحطات مركزيًا، والصلاحيات محدثة.');
- }catch(err){toast('تعذر الحفظ: '+err.message,true)}
+  toast('تم حفظ إعدادات المحطة.');
+ }catch(err){toast(err.message||'تعذر الحفظ.',true)}
  finally{button.disabled=false}
 }
 function setAttr(e,object,key,value){object[key]=value;saveStations();if(['visible','kind','auto'].includes(key))renderSettings()}
-function renderSettings(){let s=editStation();let options=stations.map(x=>`<option value="${esc(x.id)}" ${x.id===s.id?'selected':''}>${esc(x.name)}</option>`).join('');let html=`<div class="settings-controls"><div class="field" style="flex:1;min-width:200px"><label>المحطة الجاري إعدادها</label><select class="control" id="editStationSelect">${options}</select></div><button class="btn primary" data-action="addStation">＋ إضافة محطة</button></div><div class="settings-controls"><div class="field" style="flex:1"><label>الاسم الرسمي للمحطة</label><input class="control" data-settings-name="1" value="${esc(s.name)}"></div></div>`;
+function renderSettings(){let s=editStation();let options=stations.map(x=>`<option value="${esc(x.id)}" ${x.id===s.id?'selected':''}>${esc(x.name)}</option>`).join('');let html=(isAdmin()?`<div class="settings-controls"><div class="field" style="flex:1;min-width:200px"><label>المحطة الجاري إعدادها</label><select class="control" id="editStationSelect">${options}</select></div><button class="btn primary" data-action="addStation">＋ إضافة محطة</button></div>`:`<div class="settings-controls"><strong>${esc(s.name)}</strong></div>`)+`<div class="settings-controls"><div class="field" style="flex:1"><label>الاسم الرسمي للمحطة</label><input class="control" data-settings-name="1" value="${esc(s.name)}"></div></div>`;
 html+=`<div class="setting-group"><h3>المؤشرات التشغيلية (${s.metrics.length})</h3><p class="setting-subtitle">تغيير الاسم والوحدة والترتيب، وإخفاء المؤشر، وتفعيل الحساب الآلي.</p>`;
 for(let [i,m] of s.metrics.entries()){
 let opts=[['','يدوي'],['lines','مجموع الخطوط'],['gates','مجموع البوابات'],['pumps','مجموع محطات الضخ'],['meter','فرق العداد'],['wtp','مجموع WTP']].map(([v,l])=>`<option value="${v}" ${m.auto===v?'selected':''}>${l}</option>`).join('');
@@ -878,10 +894,10 @@ html+=`<button class="btn" data-action="addItem" data-gi="${gi}">＋ إضافة 
 html+='<div class="setting-group"><h3>حقول الملاحظات</h3>';for(let [i,f] of (s.noteFields||[]).entries())html+=`<div class="setting-item"><input class="control" data-note-setting="label" data-ni="${i}" value="${esc(f.label)}"><button class="btn danger icon-btn" data-action="removeNote" data-ni="${i}">×</button></div>`;html+='<button class="btn" data-action="addNote">＋ إضافة حقل ملاحظات</button></div>';
 $('settingsBody').innerHTML=html;
 }
-$('settingsBody').addEventListener('change',e=>{let t=e.target,s=editStation();if(t.id==='editStationSelect'){editorStationId=t.value;renderSettings();return}if(t.dataset.settingsName){s.name=t.value.trim()||s.name;saveStations();renderSettings();return}if(t.dataset.mSetting){let m=s.metrics[Number(t.dataset.index)];m[t.dataset.mSetting]=t.type==='checkbox'?t.checked:t.value;saveStations();return}if(t.dataset.gSetting){let g=s.groups[Number(t.dataset.gi)];g[t.dataset.gSetting]=t.type==='checkbox'?t.checked:t.dataset.gSetting==='units'?Number(t.value):t.value;saveStations();if(t.dataset.gSetting==='kind')renderSettings();return}if(t.dataset.itSetting){let i=s.groups[Number(t.dataset.gi)].items[Number(t.dataset.ii)];i[t.dataset.itSetting]=t.type==='checkbox'?t.checked:t.value;saveStations();return}if(t.dataset.noteSetting){s.noteFields[Number(t.dataset.ni)].label=t.value;saveStations()}});
+$('settingsBody').addEventListener('change',e=>{let t=e.target,s=editStation();if(t.id==='editStationSelect'){if(!isAdmin())return;editorStationId=t.value;renderSettings();return}if(t.dataset.settingsName){s.name=t.value.trim()||s.name;saveStations();renderSettings();return}if(t.dataset.mSetting){let m=s.metrics[Number(t.dataset.index)];m[t.dataset.mSetting]=t.type==='checkbox'?t.checked:t.value;saveStations();return}if(t.dataset.gSetting){let g=s.groups[Number(t.dataset.gi)];g[t.dataset.gSetting]=t.type==='checkbox'?t.checked:t.dataset.gSetting==='units'?Number(t.value):t.value;saveStations();if(t.dataset.gSetting==='kind')renderSettings();return}if(t.dataset.itSetting){let i=s.groups[Number(t.dataset.gi)].items[Number(t.dataset.ii)];i[t.dataset.itSetting]=t.type==='checkbox'?t.checked:t.value;saveStations();return}if(t.dataset.noteSetting){s.noteFields[Number(t.dataset.ni)].label=t.value;saveStations()}});
 $('settingsBody').addEventListener('click',e=>{let b=e.target.closest('[data-action]');if(!b)return;let action=b.dataset.action,s=editStation(),idx=Number(b.dataset.index),gi=Number(b.dataset.gi),ii=Number(b.dataset.ii),ni=Number(b.dataset.ni);
 const unique=(prefix,arr)=>{let id;do{id=prefix+'_'+Math.random().toString(36).slice(2,7)}while(arr.some(x=>x.id===id));return id};
-if(action==='addStation'){let name=prompt('اسم المحطة الجديدة:');if(!name?.trim())return;let id=unique('station',stations);stations.push({id,name:name.trim(),metrics:[metric('production','الإنتاج')],groups:[],noteFields:notes('حالة التشغيل','سبب التوقف','ملاحظات التشغيل')});editorStationId=id}
+if(action==='addStation'){if(!isAdmin())return;let name=prompt('اسم المحطة الجديدة:');if(!name?.trim())return;let id=unique('station',stations);stations.push({id,name:name.trim(),metrics:[metric('production','الإنتاج')],groups:[],noteFields:notes('حالة التشغيل','سبب التوقف','ملاحظات التشغيل')});editorStationId=id}
 if(action==='addMetric'){let label=prompt('اسم المؤشر الجديد:');if(!label?.trim())return;let unit=prompt('وحدة القياس (اتركه فارغًا إذا لا توجد وحدة):',numberUnit)||'';s.metrics.push(metric(unique('metric',s.metrics),label.trim(),unit))}
 if(action==='removeMetric'){if(confirm('حذف المؤشر من إعدادات هذه المحطة؟'))s.metrics.splice(idx,1)}
 if(action==='moveMetricUp'&&idx>0)[s.metrics[idx-1],s.metrics[idx]]=[s.metrics[idx],s.metrics[idx-1]];
@@ -895,7 +911,7 @@ if(action==='removeNote'){if(confirm('حذف حقل الملاحظات؟'))s.not
 saveStations();renderSettings();});
 $('settingsBtn').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('settingsDone').onclick=closeSettings;
 $('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')discardSettings()});
-$('deleteStationBtn').onclick=()=>{if(!isSuperAdmin())return;let s=editStation();if(stations.length<=1){toast('يجب الإبقاء على محطة واحدة على الأقل',true);return}if(!confirm('تعطيل محطة «'+s.name+'» وإخفاؤها من الدخول والتقارير الجديدة؟ ستبقى السجلات السابقة محفوظة.'))return;
+$('deleteStationBtn').onclick=()=>{if(!isAdmin())return;let s=editStation();if(stations.length<=1){toast('يجب الإبقاء على محطة واحدة على الأقل',true);return}if(!confirm('تعطيل محطة «'+s.name+'» وإخفاؤها من الدخول والتقارير الجديدة؟ ستبقى السجلات السابقة محفوظة.'))return;
  if(settingsBackup?.some(x=>x.id===s.id))pendingInactiveIds.push(s.id);
  stations=stations.filter(x=>x.id!==s.id);editorStationId=stations[0].id;if(stationId===s.id)stationId=editorStationId;saveStations();renderSettings()};
 $('resetStationsBtn').onclick=discardSettings;
@@ -971,11 +987,12 @@ async function archiveShow(id,editable=false){
 async function loadCloudStations(){
  if(!signedIn())throw Error('يرجى تسجيل الدخول أولًا.');
  cloudReady=false;cloudNotice('جاري تحميل المحطات المصرح بها…');
- const response=await authedFetch('/rest/v1/stations?select=id,config&active=eq.true');
+ const response=await authedFetch('/rest/v1/stations?select=id,config,updated_at&active=eq.true');
  if(!response.ok)throw Error('تعذر قراءة المحطات: '+response.status);
  const rows=await response.json();
  const valid=rows.filter(r=>r&&typeof r.id==='string'&&r.config&&r.config.id===r.id&&Array.isArray(r.config.metrics)&&Array.isArray(r.config.groups));
  const indexed=new Map(valid.map(r=>[r.id,r.config]));
+ stationVersions=Object.fromEntries(valid.map(r=>[r.id,r.updated_at]));
  stations=isAdmin()?[...allowedStationIds.map(id=>indexed.get(id)).filter(Boolean),...valid.filter(r=>!allowedStationIds.includes(r.id)).map(r=>r.config)]:[indexed.get(currentStationId)].filter(Boolean);
  if(!stations.length)throw Error('لا توجد محطة مفعلة مرتبطة بهذا الحساب.');
  stationId=isAdmin()&&stations.some(s=>s.id===stationId)?stationId:stations[0].id;
@@ -1034,10 +1051,10 @@ async function enterApplication(){
  await getCurrentProfile();
  await loadCloudStations();
  $('dashboardBtn').classList.toggle('hidden',!isAdmin());
- $('accountsBtn').classList.toggle('hidden',!isAdmin());
+ $('accountsBtn').classList.toggle('hidden',!isSuperAdmin());
  $('auditBtn').classList.toggle('hidden',!isSuperAdmin());
- $('settingsBtn').classList.toggle('hidden',!isSuperAdmin());
- $('stationMetricBtn').classList.toggle('hidden',currentRole!=='station');
+ $('settingsBtn').classList.remove('hidden');
+ $('settingsBtn').textContent=currentRole==='station'?'⚙ إدارة المحطة':'⚙ إدارة المحطات';
  $('changeOwnPasswordBtn').classList.remove('hidden');
  $('accountRole').classList.remove('hidden');
  $('accountRole').textContent=isSuperAdmin()?'سوبر أدمن':isAdmin()?'أدمن':'محطة '+currentLoginName;
@@ -1081,8 +1098,7 @@ async function logout(){
  sessionAssignedPasswords.clear();
  sessionStorage.removeItem(AUTH_KEY);
  stations=allowedStations();drafts={};receipts={};requestIds={};
- for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal','passwordModal','stationMetricModal'])$(m).classList.add('hidden');
- $('stationMetricBtn').classList.add('hidden');
+ for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal','passwordModal'])$(m).classList.add('hidden');
  $('changeOwnPasswordBtn').classList.add('hidden');
  for(const id of ['selfPasswordOld','selfPasswordNew','selfPasswordConfirm'])$(id).value='';
  document.body.dataset.auth='locked';$('loginScreen').classList.remove('hidden');
@@ -1148,44 +1164,8 @@ async function dashboardRefresh(){
 
 
 
-function openStationMetric(){
- if(currentRole!=='station'||!signedIn())return;
- $('stationMetricName').textContent=selected().name;
- $('stationMetricLabel').value='';
- $('stationMetricUnit').value='';
- $('stationMetricStatus').textContent='';
- $('stationMetricModal').classList.remove('hidden');
- $('stationMetricLabel').focus();
-}
-function closeStationMetric(){
- $('stationMetricModal').classList.add('hidden');
- $('stationMetricLabel').value='';
- $('stationMetricUnit').value='';
- $('stationMetricStatus').textContent='';
-}
-async function saveStationMetric(event){
- event.preventDefault();
- if(currentRole!=='station'||!signedIn())return;
- const label=$('stationMetricLabel').value.trim(),unit=$('stationMetricUnit').value.trim();
- if(label.length<2||label.length>70||unit.length>20){$('stationMetricStatus').textContent='تحقق من اسم الباراميتر ووحدة القياس.';return}
- const button=$('stationMetricSave');button.disabled=true;
- try{
-  const response=await authedFetch('/functions/v1/station-parameters',{method:'POST',body:JSON.stringify({label,unit})});
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok){
-   throw Error(result.error==='duplicate_metric'?'هذا الباراميتر موجود بالفعل.':
-    result.error==='metric_limit_reached'?'وصلت المحطة للحد الأعلى للمؤشرات.':'تعذرت إضافة الباراميتر.');
-  }
-  preserveDraft();
-  closeStationMetric();
-  await loadCloudStations();
-  toast('تمت إضافة الباراميتر إلى '+selected().name);
- }catch(err){$('stationMetricStatus').textContent=err.message||'تعذرت إضافة الباراميتر.'}
- finally{button.disabled=false}
-}
-
 async function accountAdminRequest(action,params={}){
- if(!isAdmin())throw Error('يتطلب هذا الإجراء صلاحية أدمن');
+ if(!isSuperAdmin())throw Error('يتطلب هذا الإجراء صلاحية أدمن');
  const resp=await authedFetch('/functions/v1/account-admin',{
   method:'POST',body:JSON.stringify({action,...params})
  });
@@ -1203,7 +1183,7 @@ async function accountAdminRequest(action,params={}){
  return out;
 }
 function accountsOpen(){
- if(!isAdmin())return;
+ if(!isSuperAdmin())return;
  $('accountsModal').classList.remove('hidden');
  $('accountType').value='station';
  for(const role of ['admin','superadmin']){
@@ -1233,7 +1213,7 @@ function accountTypeChanged(){
 }
 const sessionAssignedPasswords=new Map();
 async function accountsRefresh(){
- if(!isAdmin())return;
+ if(!isSuperAdmin())return;
  $('accountList').innerHTML='<div class="archive-empty">جاري تحميل الحسابات…</div>';
  try{
   const result=await accountAdminRequest('list');
@@ -1269,7 +1249,7 @@ function accountMessage(message){
  $('accountResponse').classList.remove('hidden');
 }
 async function userWrite(){
- if(!isAdmin())return;
+ if(!isSuperAdmin())return;
  const role=$('accountType').value;
  const username=$('accountUsername').value.trim().toLowerCase();
  const password=$('accountPassword').value;
@@ -1305,7 +1285,7 @@ function closePasswordReset(){
  $('accountResetPanel').classList.add('hidden');
 }
 async function savePasswordReset(){
- if(!resettingAccount||!isAdmin())return;
+ if(!resettingAccount||!isSuperAdmin())return;
  const password=$('accountResetPassword').value;
  if(!isValidAccountPassword(password)){toast('كلمة المرور يجب أن تكون من رمزين على الأقل.',true);return}
  const btn=$('accountResetSave');btn.disabled=true;
@@ -1321,7 +1301,7 @@ async function savePasswordReset(){
 }
 async function accountListAction(e){
  const button=e.target.closest('[data-user-action]');
- if(!button||!isAdmin())return;
+ if(!button||!isSuperAdmin())return;
  const action=button.dataset.userAction,id=button.dataset.id,name=button.dataset.name;
  if(action==='reset_password'){preparePasswordReset(id,name);return}
  if(action==='show_session_password'){
@@ -1352,7 +1332,7 @@ async function accountListAction(e){
 }
 
 async function createStationAccounts(){
- if(!isAdmin())return;
+ if(!isSuperAdmin())return;
  const available=stations.filter(s=>STATION_PLANT_CODES[s.id]);
  if(!available.length)return toast('لا توجد محطات ذات رموز معتمدة لإنشاء حساباتها.',true);
  if(!confirm('إنشاء حسابات المحطات برمز PLANT نفسه لاسم المستخدم وكلمة المرور؟\n'+available.map(s=>s.name+' ('+STATION_PLANT_CODES[s.id]+')').join('، ')))return;
@@ -1633,10 +1613,6 @@ function setupPasswordEye(inputId,buttonId){
 }
 setupPasswordEye('accountPassword','accountPasswordToggle');
 setupPasswordEye('accountResetPassword','accountResetToggle');
-$('stationMetricBtn').onclick=openStationMetric;
-$('stationMetricClose').onclick=closeStationMetric;
-$('stationMetricForm').onsubmit=saveStationMetric;
-$('stationMetricModal').addEventListener('click',e=>{if(e.target.id==='stationMetricModal')closeStationMetric()});
 $('closeOwnPassword').onclick=closeOwnPassword;
 $('selfPasswordForm').onsubmit=changeOwnPassword;
 $('passwordModal').addEventListener('click',event=>{if(event.target.id==='passwordModal')closeOwnPassword()});
