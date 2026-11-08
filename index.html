@@ -206,6 +206,12 @@ body[data-auth="ready"]{overflow:auto}
 .recovery-card .login-form-field{margin:14px 0}
 .recovery-card .login-form-field label{display:block;font-size:13px;font-weight:800;color:#2a4f69;margin-bottom:5px}
 .recovery-card h2{font-size:22px;color:#0362af}
+.recovery-link-panel{margin:19px 0 11px;padding:16px;background:#f2f9fe;border:1px solid #daecf8;border-radius:13px}
+.recovery-link-panel h4{margin:0 0 9px;color:#0362af;font-size:14px}
+.recovery-link-panel .login-input{width:100%;height:46px;border:1.5px solid #d9e5ee;border-radius:9px;padding:9px 12px;background:#fff;direction:ltr;text-align:left;font:inherit}
+.recovery-link-panel .recovery-use-link{width:100%;margin:12px 0 0!important;justify-content:center}
+.recovery-link-panel .recovery-message{margin:6px 0 0}
+
 .recovery-card #backFromRecovery{display:block;margin:8px auto}
 </style></head>
 <body data-auth="locked">
@@ -253,6 +259,14 @@ body[data-auth="ready"]{overflow:auto}
       <div class="login-form-field"><label for="forgotEmail">البريد الإلكتروني</label><input class="login-input" id="forgotEmail" type="email" autocomplete="email" required dir="ltr" placeholder="email@example.com"></div>
       <button id="sendRecoveryButton" class="btn primary login-submit" type="submit">إرسال رابط استعادة</button>
       <div id="forgotNotice" class="recovery-message" role="status" aria-live="polite"></div>
+      <div class="recovery-link-panel">
+       <h4>الرابط يفتح localhost:3000؟</h4>
+       <p class="recovery-hint">يمكنك إكمال الاستعادة دون تعديل الرابط. من رسالة البريد اضغط مطولًا على رابط الاستعادة واختر «نسخ الرابط» بدل فتحه، ثم الصقه أدناه. تتم معالجة الرابط داخل متصفحك فقط ولا يتم حفظه أو إرساله إلينا.</p>
+       <label for="brokenRecoveryUrl" style="display:block;font-size:12px;font-weight:750;margin-bottom:7px">رابط الاستعادة من البريد</label>
+       <input id="brokenRecoveryUrl" type="password" class="login-input" dir="ltr" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ألصق رابط الاستعادة هنا" aria-label="ألصق رابط استعادة كلمة المرور" />
+       <button id="useBrokenRecoveryUrl" type="button" class="btn primary recovery-use-link">استعادة كلمة المرور بهذا الرابط</button>
+       <div id="brokenRecoveryMessage" class="recovery-message" role="status" aria-live="polite"></div>
+      </div>
       <button id="backFromForgot" type="button" class="recovery-link">العودة إلى تسجيل الدخول</button>
     </form>
     <div class="login-help" id="loginUserHint">
@@ -1378,6 +1392,70 @@ async function sendRecovery(event){
  }catch(err){showResetNotice('forgotNotice',err.message||'حدث خطأ عند إرسال البريد.',true)}
  finally{btn.disabled=false}
 }
+
+/* Secure recovery from a misdirected localhost URL.
+   Never follow, store or forward the pasted URL. Extract one-time token locally.
+   Only Supabase's project URL, this site and localhost are accepted. */
+async function completeRecoveryFromToken(accessToken='',tokenHash=''){
+ let token=accessToken;
+ if(!token&&tokenHash){
+  const check=await fetch(CLOUD_AUTH+'/verify',{
+    method:'POST',
+    headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({type:'recovery',token_hash:tokenHash})
+  });
+  const verified=await check.json().catch(()=>({}));
+  if(!check.ok||!verified.access_token)throw Error('رابط الاستعادة منتهي أو سبق استخدامه. اطلب رابطًا جديدًا، ثم انسخه من البريد دون الضغط عليه.');
+  token=verified.access_token;
+ }
+ if(!token)throw Error('رابط الاستعادة لا يحتوي على رمز صالح.');
+ const resp=await fetch(CLOUD_AUTH+'/user',{
+  headers:{apikey:CLOUD_PUBLIC_KEY,Authorization:'Bearer '+token}
+ });
+ if(!resp.ok)throw Error('انتهت صلاحية رابط الاستعادة. اطلب رابطًا جديدًا.');
+ const identity=await resp.json();
+ if(!identity?.id||!identity?.email)throw Error('تعذر التحقق من هوية صاحب الرابط.');
+ resetBearer=token;
+ resetEmail=identity.email;
+ $('loginScreen').classList.add('hidden');
+ $('recoveryScreen').classList.remove('hidden');
+ $('recoveryForm').classList.remove('hidden');
+ showResetNotice('recoveryNotice','تم التحقق من الرابط لحساب '+identity.email+'. يمكنك تعيين كلمة المرور الجديدة الآن.');
+}
+function parsePastedRecoveryLink(raw){
+ if(typeof raw!=='string'||raw.length>9000||raw.length<30)throw Error('الرابط الذي تم لصقه غير صحيح.');
+ let url;
+ try{url=new URL(raw.trim())}catch{throw Error('انسخ رابط الاستعادة كاملًا من رسالة البريد، وليس جزءًا منه.')}
+ const allowedOrigins=new Set([CLOUD_URL,location.origin,'http://localhost:3000','https://localhost:3000','http://127.0.0.1:3000']);
+ if(!allowedOrigins.has(url.origin))throw Error('هذا الرابط ليس صادرًا من نظام التقارير أو Supabase الخاص به.');
+ const fragment=new URLSearchParams(url.hash.replace(/^#/,''));
+ const query=url.searchParams;
+ const incomingType=query.get('type')||fragment.get('type');
+ if(incomingType!=='recovery')throw Error('هذا الرابط ليس رابط استعادة كلمة مرور.');
+ const token=fragment.get('access_token')||query.get('access_token');
+ const hashedToken=query.get('token_hash')||(
+   url.origin===CLOUD_URL&&url.pathname.startsWith('/auth/v1/verify')?query.get('token'):null
+ );
+ if(!token&&!hashedToken)throw Error('الرابط لا يحتوي على رمز استعادة. جرّب نسخه من الرسالة الجديدة مباشرة.');
+ if(token&&token.length>8000||hashedToken&&hashedToken.length>8000)throw Error('رمز الاستعادة غير صالح.');
+ return {accessToken:token||'',tokenHash:hashedToken||''};
+}
+async function usePastedRecoveryLink(){
+ const input=$('brokenRecoveryUrl'),button=$('useBrokenRecoveryUrl');
+ const pasted=input.value;
+ // Immediately clear the sensitive link even if verification fails.
+ input.value='';
+ button.disabled=true;
+ showResetNotice('brokenRecoveryMessage','جاري التحقق من الرابط…');
+ try{
+  const details=parsePastedRecoveryLink(pasted);
+  await completeRecoveryFromToken(details.accessToken,details.tokenHash);
+  showResetNotice('brokenRecoveryMessage','');
+ }catch(error){
+  showResetNotice('brokenRecoveryMessage',error.message||'تعذر التحقق من الرابط.',true);
+ }finally{button.disabled=false}
+}
+
 async function checkRecoveryLink(){
  const frag=new URLSearchParams(location.hash.replace(/^#/,'')),q=new URLSearchParams(location.search);
  const recovery=frag.get('type')==='recovery'||q.get('type')==='recovery';
@@ -1390,18 +1468,7 @@ async function checkRecoveryLink(){
   forgotFormOpen('رابط الاستعادة غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.',true);return true;
  }
  try{
-  let token=access;
-  if(!token&&hash){
-   const res=await fetch(CLOUD_AUTH+'/verify',{method:'POST',headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},body:JSON.stringify({type:'recovery',token_hash:hash})});
-   const data=await res.json().catch(()=>({}));
-   if(!res.ok||!data.access_token)throw Error('الرابط منتهي أو غير صالح. اطلب رابطًا جديدًا.');
-   token=data.access_token;
-  }
-  const res=await fetch(CLOUD_AUTH+'/user',{headers:{apikey:CLOUD_PUBLIC_KEY,Authorization:'Bearer '+token}});
-  if(!res.ok)throw Error('انتهت صلاحية رابط الاستعادة. اطلب رابطًا جديدًا.');
-  const identity=await res.json();resetBearer=token;resetEmail=identity.email||'';
-  $('loginScreen').classList.add('hidden');$('recoveryScreen').classList.remove('hidden');
-  $('recoveryForm').classList.remove('hidden');showResetNotice('recoveryNotice','');
+  await completeRecoveryFromToken(access||'',hash||'');
  }catch(err){forgotFormOpen(err.message||'تعذر التحقق من الرابط.',true)}
  return true;
 }
@@ -1427,6 +1494,8 @@ $('forgotButton').onclick=()=>forgotFormOpen();
 $('backFromForgot').onclick=resetToLogin;
 $('backFromRecovery').onclick=resetToLogin;
 $('forgotForm').onsubmit=sendRecovery;
+$('useBrokenRecoveryUrl').onclick=usePastedRecoveryLink;
+$('brokenRecoveryUrl').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();usePastedRecoveryLink()}});
 $('recoveryForm').onsubmit=applyRecoveredPassword;
 
 void (async()=>{if(!(await checkRecoveryLink()))await restoreSession()})();
