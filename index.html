@@ -611,9 +611,46 @@ $('saveBtn').onclick=saveReport;$('restoreBtn').onclick=restoreReport;$('newBtn'
 $('fullscreenOverlay').addEventListener('click',e=>{if(e.target.id==='fullscreenOverlay')closeFullscreen()});
 // Settings editor: all changes are made through the interface; no code edits necessary.
 const editStation=()=>stations.find(s=>s.id===editorStationId)||stations[0];
-function saveStations(){store(KEY_STATIONS,stations);refreshSelects()}
-function openSettings(){preserveDraft();editorStationId=stationId;renderSettings();$('modalBackdrop').classList.remove('hidden')}
-function closeSettings(){saveStations();$('modalBackdrop').classList.add('hidden');record=fetchRecord();renderInputs();renderReport();updateSaveStatus()}
+let settingsBackup=null;
+function saveStations(){refreshSelects()}
+function openSettings(){
+ if(!isSuperAdmin())return;
+ preserveDraft();settingsEditing=true;settingsBackup=clone(stations);pendingInactiveIds=[];
+ editorStationId=stationId;renderSettings();$('modalBackdrop').classList.remove('hidden');
+}
+function discardSettings(){
+ if(!isSuperAdmin())return;
+ if(settingsBackup)stations=clone(settingsBackup);
+ pendingInactiveIds=[];settingsEditing=false;
+ $('modalBackdrop').classList.add('hidden');refreshSelects();renderInputs();renderReport();updateSaveStatus();
+ toast('تم إلغاء التغييرات غير المحفوظة.');
+}
+async function closeSettings(){
+ if(!isSuperAdmin()||!settingsEditing)return;
+ const button=$('settingsDone');
+ button.disabled=true;
+ try{
+  if(stations.length===0)throw Error('يلزم الإبقاء على محطة فعالة واحدة.');
+  for(const item of stations){
+   if(item.name.trim().length<2||item.name.length>200)throw Error('اسم محطة غير صالح: '+item.id);
+   if(!Array.isArray(item.metrics)||!Array.isArray(item.groups)||!Array.isArray(item.noteFields))throw Error('إعدادات المحطة غير مكتملة: '+item.id);
+   const p=new URLSearchParams({on_conflict:'id'});
+   const response=await authedFetch('/rest/v1/stations?'+p,{method:'POST',
+      headers:{Prefer:'resolution=merge-duplicates,return=representation'},
+      body:JSON.stringify({id:item.id,config:item,active:true})});
+   if(!response.ok){const err=await response.json().catch(()=>({}));throw Error('فشل حفظ '+item.name+': '+(err.message||response.status))}
+  }
+  for(const id of pendingInactiveIds){
+   const response=await authedFetch('/rest/v1/stations?id=eq.'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({active:false})});
+   if(!response.ok)throw Error('فشل تعطيل المحطة: '+id);
+  }
+  settingsEditing=false;pendingInactiveIds=[];settingsBackup=null;
+  $('modalBackdrop').classList.add('hidden');
+  await loadCloudStations();
+  toast('تم حفظ إعدادات المحطات مركزيًا، والصلاحيات محدثة.');
+ }catch(err){toast('تعذر الحفظ: '+err.message,true)}
+ finally{button.disabled=false}
+}
 function setAttr(e,object,key,value){object[key]=value;saveStations();if(['visible','kind','auto'].includes(key))renderSettings()}
 function renderSettings(){let s=editStation();let options=stations.map(x=>`<option value="${esc(x.id)}" ${x.id===s.id?'selected':''}>${esc(x.name)}</option>`).join('');let html=`<div class="settings-controls"><div class="field" style="flex:1;min-width:200px"><label>المحطة الجاري إعدادها</label><select class="control" id="editStationSelect">${options}</select></div><button class="btn primary" data-action="addStation">＋ إضافة محطة</button></div><div class="settings-controls"><div class="field" style="flex:1"><label>الاسم الرسمي للمحطة</label><input class="control" data-settings-name="1" value="${esc(s.name)}"></div></div>`;
 html+=`<div class="setting-group"><h3>المؤشرات التشغيلية (${s.metrics.length})</h3><p class="setting-subtitle">تغيير الاسم والوحدة والترتيب، وإخفاء المؤشر، وتفعيل الحساب الآلي.</p>`;
@@ -646,10 +683,12 @@ if(action==='addNote'){let label=prompt('عنوان حقل الملاحظات ا
 if(action==='removeNote'){if(confirm('حذف حقل الملاحظات؟'))s.noteFields.splice(ni,1)}
 saveStations();renderSettings();});
 $('settingsBtn').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('settingsDone').onclick=closeSettings;
-$('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeSettings()});
-$('deleteStationBtn').onclick=()=>{let s=editStation();if(stations.length<=1){toast('يجب الإبقاء على محطة واحدة على الأقل',true);return}if(!confirm('هل تريد حذف إعدادات محطة «'+s.name+'»؟ لن تُحذف التقارير المحفوظة في نسخة JSON السابقة.'))return;stations=stations.filter(x=>x.id!==s.id);editorStationId=stations[0].id;if(stationId===s.id)stationId=editorStationId;saveStations();renderSettings()};
-$('resetStationsBtn').onclick=()=>{if(!confirm('استعادة إعدادات المحطات العشر الأصلية؟ سيؤدي ذلك إلى إلغاء تعديلات الإعدادات والمحطات الجديدة، دون حذف التقارير المحفوظة.'))return;stations=clone(defaults);editorStationId=stations[0].id;stationId=editorStationId;saveStations();renderSettings();toast('تمت استعادة إعدادات المحطات الأصلية')};
-window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('fullscreenOverlay').classList.contains('hidden'))closeFullscreen();else if(!$('modalBackdrop').classList.contains('hidden'))closeSettings()}});
+$('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')discardSettings()});
+$('deleteStationBtn').onclick=()=>{if(!isSuperAdmin())return;let s=editStation();if(stations.length<=1){toast('يجب الإبقاء على محطة واحدة على الأقل',true);return}if(!confirm('تعطيل محطة «'+s.name+'» وإخفاؤها من الدخول والتقارير الجديدة؟ ستبقى السجلات السابقة محفوظة.'))return;
+ if(settingsBackup?.some(x=>x.id===s.id))pendingInactiveIds.push(s.id);
+ stations=stations.filter(x=>x.id!==s.id);editorStationId=stations[0].id;if(stationId===s.id)stationId=editorStationId;saveStations();renderSettings()};
+$('resetStationsBtn').onclick=discardSettings;
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('fullscreenOverlay').classList.contains('hidden'))closeFullscreen();else if(!$('modalBackdrop').classList.contains('hidden'))discardSettings()}});
 window.addEventListener('resize',scalePreview);
 // Boot
 refreshSelects();$('reportDate').value=date;record=fetchRecord();renderInputs();renderReport();updateSaveStatus();
@@ -682,6 +721,24 @@ async function archiveSearch(){
  }catch(e){out.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
  finally{button.disabled=false}
 }
+
+async function archiveDelete(id){
+ if(!isSuperAdmin())return;
+ if(!confirm('حذف التقرير نهائيًا من قاعدة البيانات؟ لا يمكن التراجع عن هذا الإجراء.'))return;
+ try{
+  const result=await authedFetch('/rest/v1/reports?id=eq.'+encodeURIComponent(id),{
+    method:'DELETE',headers:{Prefer:'return=representation'}
+  });
+  if(!result.ok)throw Error('الصلاحية أو الاتصال لا يسمح بالحذف: '+result.status);
+  const deleted=await result.json();
+  if(!Array.isArray(deleted)||!deleted.length)throw Error('لم يتم العثور على التقرير لحذفه.');
+  for(const x of deleted){const key=x.station_id+'@'+x.report_date;delete receipts[key];delete requestIds[key]}
+  store(perUserKey(RECEIPTS_KEY),receipts);store(perUserKey(REQUESTS_KEY),requestIds);
+  await archiveSearch();
+  toast('تم حذف التقرير، مع الإبقاء على باقي السجلات.');
+ }catch(err){toast(err.message,true)}
+}
+
 async function archiveShow(id,editable=false){
  if(!signedIn())return;
  try{
@@ -870,48 +927,118 @@ async function dashboardRefresh(){
    '<div class="sec-panel"><h3>حالة المحطات وتوزيع الإنتاج — '+esc(date)+'</h3>'+lines+'</div>';
  }catch(e){view.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
 }
+
+async function accountAdminRequest(action,params={}){
+ if(!isSuperAdmin())throw Error('هذا الإجراء خاص بالسوبر أدمن');
+ const resp=await authedFetch('/functions/v1/account-admin',{method:'POST',
+   body:JSON.stringify({action,...params})});
+ const out=await resp.json().catch(()=>({}));
+ if(!resp.ok){
+  const problems={superadmin_required:'يتطلب الأمر صلاحية سوبر أدمن',username_unavailable:'اسم المستخدم مستخدم بالفعل',
+    invalid_username:'اسم المستخدم غير صحيح',invalid_account_data:'تحقق من اسم المستخدم وكلمة المرور',
+    protected_superadmin:'هذا الحساب محمي ولا يجوز حذفه',weak_password:'كلمة المرور ضعيفة',
+    user_not_found:'الحساب المطلوب غير موجود',station_not_active:'المحطة غير مفعّلة'};
+  throw Error(problems[out.error]||('تعذر تنفيذ العملية: '+(out.error||resp.status)));
+ }
+ return out;
+}
 function accountsOpen(){
- if(!isAdmin())return;
+ if(!isSuperAdmin())return;
  $('accountsModal').classList.remove('hidden');
+ $('accountType').value='station';
  $('accountStation').innerHTML=stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('');
- $('accountStation').value=stations[0].id;
- $('accountUsername').value=stations[0].id;
+ $('accountStation').value=stations[0]?.id||'';
+ $('accountUsername').value=stations[0]?.id||'';
+ $('accountPassword').value='';
  $('accountResponse').classList.add('hidden');
+ accountTypeChanged();
  accountsRefresh();
 }
+function accountTypeChanged(){
+ const station=$('accountType').value==='station';
+ $('accountStationField').classList.toggle('hidden',!station);
+ $('accountUsername').placeholder=station?'مثال: jizan':'مثال: office';
+ if(!station&&stations.some(s=>s.id===$('accountUsername').value))$('accountUsername').value='office';
+}
 async function accountsRefresh(){
+ if(!isSuperAdmin())return;
+ $('accountList').innerHTML='<div class="archive-empty">جاري تحميل حسابات المستخدمين…</div>';
  try{
-  const resp=await authedFetch('/rest/v1/station_users?select=username,station_id,created_at&order=station_id.asc');
-  if(!resp.ok)throw Error('تعذر قراءة الحسابات');
-  const rows=await resp.json();
-  $('accountList').innerHTML=rows.length?rows.map(x=>'<div class="sec-row"><div><strong>'+esc(x.username)+'</strong><small>'+esc((stations.find(s=>s.id===x.station_id)||{}).name||x.station_id)+'</small></div><span class="role-chip">حساب محطة</span></div>').join('')
-   :'<div class="archive-empty">لا توجد حسابات محطات حتى الآن. أنشئ حسابًا لكل محطة.</div>';
- }catch(e){$('accountList').textContent=e.message}
+  const result=await accountAdminRequest('list');
+  const accounts=result.accounts||[];
+  $('accountList').innerHTML=accounts.length?accounts.map(acc=>{
+   const type=acc.role==='superadmin'?'سوبر أدمن':acc.role==='admin'?'أدمن — عرض فقط':'موظف محطة';
+   const name=acc.username||acc.email||'حساب إداري';
+   const station=acc.stationId?stations.find(s=>s.id===acc.stationId)?.name||acc.stationId:'كل المحطات';
+   const protectedRole=acc.role==='superadmin';
+   return '<div class="sec-row" data-account-id="'+esc(acc.id)+'"><div><span class="account-username">'+esc(name)+'</span><small>'+esc(type)+' • '+esc(station)+'</small></div>'+
+    '<div class="admin-row-btns">'+(protectedRole?'<span class="role-chip">محمي</span>':
+     '<button class="btn" data-user-action="reset_password" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">تغيير كلمة المرور</button>'+
+     (acc.role==='station'?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">تغيير المحطة</button>':'')+
+     '<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">حذف الحساب</button>')+
+   '</div></div>'
+  }).join(''):'<div class="archive-empty">لا توجد حسابات بعد.</div>';
+ }catch(err){$('accountList').innerHTML='<div class="archive-empty">'+esc(err.message)+'</div>'}
 }
-function strongPassword(){
- const abc='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+function makePassword(){
+ const charset='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
  const bytes=new Uint32Array(22);crypto.getRandomValues(bytes);
- const value=Array.from(bytes,v=>abc[v%abc.length]).join('');
- $('accountPassword').value=value;
+ return Array.from(bytes,b=>charset[b%charset.length]).join('');
 }
-async function userWrite(action){
- if(!isAdmin())return;
- const username=$('accountUsername').value.trim().toLowerCase(),stationId=$('accountStation').value,
- password=$('accountPassword').value;
- if(!/^[a-z][a-z0-9_-]{2,24}$/.test(username)){toast('اسم المستخدم: أحرف إنجليزية صغيرة وأرقام وشرطة فقط.',true);return}
- if(password.length<12){toast('كلمة المرور يجب أن تكون 12 رمزًا على الأقل.',true);return}
- if(action==='reset_password'&&!confirm('تغيير كلمة مرور حساب '+username+'؟'))return;
+function strongPassword(){$('accountPassword').value=makePassword()}
+function accountMessage(message){
+ $('accountResponse').textContent=message;
+ $('accountResponse').classList.remove('hidden');
+}
+async function userWrite(){
+ if(!isSuperAdmin())return;
+ const role=$('accountType').value;
+ const username=$('accountUsername').value.trim().toLowerCase();
+ const password=$('accountPassword').value;
+ const stationId=$('accountStation').value;
+ if(!/^[a-z][a-z0-9_-]{2,24}$/.test(username)){toast('اسم المستخدم يجب أن يكون أحرفًا إنجليزية صغيرة وأرقامًا وشرطة.',true);return}
+ if(password.length<12||!/[A-Z]/.test(password)||!/[a-z]/.test(password)||!/[0-9]/.test(password)){toast('كلمة المرور: 12 رمزًا على الأقل وأحرف كبيرة وصغيرة وأرقام.',true);return}
+ const button=$('createAccount');button.disabled=true;
  try{
-  const resp=await authedFetch('/functions/v1/account-admin',{method:'POST',body:JSON.stringify({action,stationId,username,password})});
-  const out=await resp.json().catch(()=>({}));
-  if(!resp.ok)throw Error(resp.status===409?'اسم المستخدم مستخدم مسبقًا.':'تعذّر تنفيذ الطلب ('+(out.error||resp.status)+').');
-  const label=action==='create'?'تم إنشاء الحساب':'تم تغيير كلمة المرور';
-  $('accountResponse').textContent=label+' بنجاح\nالمحطة: '+(stations.find(s=>s.id===stationId)?.name||stationId)+
-    '\nاسم المستخدم: '+username+'\nكلمة المرور الجديدة: '+password+'\nاحتفظ بها وسلّمها لموظف المحطة بشكل آمن. لن تُعرض مرة أخرى.';
-  $('accountResponse').classList.remove('hidden');$('accountPassword').value='';
-  toast(label+' بنجاح');accountsRefresh();
- }catch(e){toast(e.message,true)}
+  const output=await accountAdminRequest('create',{role,username,password,stationId});
+  accountMessage('تم إنشاء الحساب بنجاح.\nالصلاحية: '+(role==='admin'?'أدمن (قراءة وطباعة)':'محطة '+(stations.find(s=>s.id===stationId)?.name||stationId))+
+   '\nاسم الدخول: '+output.username+
+   '\nكلمة المرور المؤقتة: '+password+
+   '\n\nانسخها وسلمها لصاحب الحساب بشكل آمن. لن تحفظ داخل النظام.');
+  $('accountPassword').value='';
+  await accountsRefresh();
+  toast('تم إنشاء الحساب والصلاحيات بنجاح');
+ }catch(err){toast(err.message,true)}finally{button.disabled=false}
 }
+async function accountListAction(e){
+ const button=e.target.closest('[data-user-action]');
+ if(!button||!isSuperAdmin())return;
+ const action=button.dataset.userAction,id=button.dataset.id,name=button.dataset.name;
+ try{
+  let params={id};
+  if(action==='reset_password'){
+   if(!confirm('تعيين كلمة مرور جديدة لحساب '+name+'؟'))return;
+   params.password=makePassword();
+  }else if(action==='delete'){
+   if(!confirm('حذف حساب '+name+' نهائيًا؟ يفقد المستخدم الدخول فورًا، وتبقى التقارير المحفوظة.'))return;
+  }else if(action==='move_station'){
+   const promptStr=stations.map(s=>s.id+' : '+s.name).join('\n');
+   const stationId=prompt('اختر رمز المحطة الجديدة لحساب '+name+':\n'+promptStr,stations[0]?.id||'');
+   if(stationId===null)return;
+   if(!stations.some(s=>s.id===stationId.trim()))throw Error('المحطة غير موجودة أو غير مفعّلة.');
+   params.stationId=stationId.trim();
+  }else return;
+  button.disabled=true;
+  await accountAdminRequest(action,params);
+  if(action==='reset_password')accountMessage('تم تعيين كلمة المرور الجديدة.\nالحساب: '+name+'\nكلمة المرور: '+params.password+'\nسلمها للمستخدم الآن بطريقة آمنة.');
+  else if(action==='delete')accountMessage('تم حذف حساب '+name+' بنجاح.');
+  else accountMessage('تم نقل حساب '+name+' إلى المحطة المحددة.');
+  await accountsRefresh();
+  toast('تم تنفيذ العملية');
+ }catch(err){toast(err.message,true)}
+ finally{button.disabled=false}
+}
+
 $('loginForm').addEventListener('submit',loginSubmit);
 $('loginTogglePassword').addEventListener('click',()=>{
  const fld=$('loginPassword'),revealed=fld.type==='password';
@@ -927,10 +1054,12 @@ $('dashboardClose').onclick=()=>{$('dashboardModal').classList.add('hidden')};
 $('dashboardRefresh').onclick=dashboardRefresh;
 $('accountsBtn').addEventListener('click',accountsOpen);
 $('accountsClose').onclick=()=>{$('accountsModal').classList.add('hidden')};
-$('accountStation').addEventListener('change',e=>{$('accountUsername').value=e.target.value});
+$('accountType').addEventListener('change',accountTypeChanged);
+$('accountStation').addEventListener('change',e=>{if($('accountType').value==='station')$('accountUsername').value=e.target.value;});
 $('generatePassword').onclick=strongPassword;
-$('createAccount').onclick=()=>userWrite('create');
-$('resetAccount').onclick=()=>userWrite('reset_password');
+$('createAccount').onclick=userWrite;
+$('refreshAccounts').onclick=accountsRefresh;
+$('accountList').addEventListener('click',accountListAction);
 
 $('archiveBtn').onclick=archiveOpen;
 $('archiveClose').onclick=archiveClose;
