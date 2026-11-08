@@ -344,7 +344,7 @@ body[data-auth="ready"]{overflow:auto}
     <div class="field"><label for="auditScope">القسم</label><select class="control" id="auditScope">
       <option value="">كل الأقسام</option><option value="reports">التقارير</option>
       <option value="stations">إعدادات المحطات</option><option value="users">حسابات المستخدمين</option>
-      <option value="auth">تسجيل الدخول والأمان</option></select></div>
+      <option value="auth">تسجيل الدخول والأمان</option><option value="activity">التصدير والطباعة والعرض</option></select></div>
     <div class="field"><label for="auditOperation">نوع العملية</label><select class="control" id="auditOperation">
       <option value="">جميع العمليات</option><option value="INSERT">إضافة</option>
       <option value="UPDATE">تعديل</option><option value="DELETE">حذف</option>
@@ -352,7 +352,7 @@ body[data-auth="ready"]{overflow:auto}
       <option value="RESET_PASSWORD">تغيير كلمة المرور</option>
       <option value="MOVE_STATION">نقل مستخدم</option>
       <option value="DELETE_ACCOUNT">حذف حساب</option>
-      <option value="login">تسجيل دخول</option><option value="logout">تسجيل خروج</option>
+      <option value="login">تسجيل دخول</option><option value="logout">تسجيل خروج</option><option value="PRINT_REQUESTED">طلب طباعة</option><option value="IMAGE_EXPORTED">تصدير PNG</option><option value="SHARE_REQUESTED">مشاركة</option><option value="VIEW_REPORT">عرض من الأرشيف</option><option value="DASHBOARD_VIEW">عرض الداشبورد</option>
       </select></div>
     <div class="field"><label for="auditFrom">من تاريخ</label><input class="control" type="date" id="auditFrom"></div>
     <div class="field"><label for="auditTo">إلى تاريخ</label><input class="control" type="date" id="auditTo"></div>
@@ -672,13 +672,13 @@ async function renderDomToCanvas(){
   return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('تعذر تحويل لوحة التقرير إلى صورة')),'image/png'));
 }
 
-async function exportPNG(){let btn=$('exportBtn');btn.disabled=true;try{let png=await reportBlob();downloadBlob(png,fileStem()+'.png');toast('تم تجهيز صورة PNG بدقة 2x')}catch(e){console.error(e);toast('تعذر تصدير الصورة على هذا المتصفح: '+e.message,true)}finally{btn.disabled=false}}
-async function sharePNG(){let b=$('shareBtn');b.disabled=true;try{let image=await reportBlob(),file=new File([image],fileStem()+'.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'تقرير التشغيل اليومي - '+selected().name});toast('تم فتح نافذة مشاركة الصورة')}else{downloadBlob(image,file.name);toast('تم حفظ الصورة؛ افتح واتساب وأرفق الصورة من جهازك.') }}catch(e){if(e.name!=='AbortError'){console.error(e);toast('تعذرت المشاركة المباشرة؛ استخدم زر حفظ PNG ثم أرسل الصورة في واتساب.',true)}}finally{b.disabled=false}}
+async function exportPNG(){let btn=$('exportBtn');btn.disabled=true;try{let png=await reportBlob();downloadBlob(png,fileStem()+'.png');logActivity('IMAGE_EXPORTED');toast('تم تجهيز صورة PNG بدقة 2x')}catch(e){console.error(e);toast('تعذر تصدير الصورة على هذا المتصفح: '+e.message,true)}finally{btn.disabled=false}}
+async function sharePNG(){let b=$('shareBtn');b.disabled=true;try{let image=await reportBlob(),file=new File([image],fileStem()+'.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'تقرير التشغيل اليومي - '+selected().name});logActivity('SHARE_REQUESTED');toast('تم فتح نافذة مشاركة الصورة')}else{downloadBlob(image,file.name);logActivity('IMAGE_EXPORTED');toast('تم حفظ الصورة؛ افتح واتساب وأرفق الصورة من جهازك.') }}catch(e){if(e.name!=='AbortError'){console.error(e);toast('تعذرت المشاركة المباشرة؛ استخدم زر حفظ PNG ثم أرسل الصورة في واتساب.',true)}}finally{b.disabled=false}}
 function backup(){let data={format:'wsc-water-daily-v2',exportedAt:new Date().toISOString(),stations,reports};downloadBlob(new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'}),'نسخة_التقارير_التشغيلية_'+currentDate+'.json');toast('تم تصدير نسخة احتياطية للإعدادات والتقارير')}
 async function importBackup(file){try{let data=JSON.parse(await file.text());if(data.format!=='wsc-water-daily-v2'||!Array.isArray(data.stations)||typeof data.reports!=='object'||!data.reports)throw Error('الملف ليس نسخة احتياطية من هذا النظام');if(!confirm('سيتم استبدال بيانات المحطات والتقارير الحالية بالنسخة المستوردة. هل تريد المتابعة؟'))return;stations=data.stations;reports=data.reports;store(KEY_STATIONS,stations);store(KEY_REPORTS,reports);drafts={};stationId=stations[0].id;date=currentDate;refreshSelects();record=fetchRecord();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();toast('تم استيراد النسخة الاحتياطية بنجاح')}catch(e){toast('تعذر استيراد الملف: '+e.message,true)}}
 function openFullscreen(){let overlay=$('fullscreenOverlay');let copy=$('reportSheet').cloneNode(true);copy.removeAttribute('id');copy.style.transform='none';copy.style.width='1280px';$('fullscreenContent').replaceChildren(copy);overlay.classList.remove('hidden');document.body.style.overflow='hidden'}
 function closeFullscreen(){$('fullscreenOverlay').classList.add('hidden');$('fullscreenContent').replaceChildren();document.body.style.overflow=''}
-$('saveBtn').onclick=saveReport;$('restoreBtn').onclick=restoreReport;$('newBtn').onclick=newReport;$('clearBtn').onclick=clearFields;$('sampleBtn').onclick=loadSample;$('exportBtn').onclick=exportPNG;$('shareBtn').onclick=sharePNG;$('printBtn').onclick=()=>window.print();$('fullBtn').onclick=openFullscreen;$('exitFullBtn').onclick=closeFullscreen;$('exportFullBtn').onclick=exportPNG;$('backupBtn').onclick=backup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{let file=e.target.files[0];if(file)importBackup(file);e.target.value=''};
+$('saveBtn').onclick=saveReport;$('restoreBtn').onclick=restoreReport;$('newBtn').onclick=newReport;$('clearBtn').onclick=clearFields;$('sampleBtn').onclick=loadSample;$('exportBtn').onclick=exportPNG;$('shareBtn').onclick=sharePNG;$('printBtn').onclick=()=>{logActivity('PRINT_REQUESTED');window.print()};$('fullBtn').onclick=openFullscreen;$('exitFullBtn').onclick=closeFullscreen;$('exportFullBtn').onclick=exportPNG;$('backupBtn').onclick=backup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{let file=e.target.files[0];if(file)importBackup(file);e.target.value=''};
 $('fullscreenOverlay').addEventListener('click',e=>{if(e.target.id==='fullscreenOverlay')closeFullscreen()});
 // Settings editor: all changes are made through the interface; no code edits necessary.
 const editStation=()=>stations.find(s=>s.id===editorStationId)||stations[0];
@@ -823,7 +823,7 @@ async function archiveShow(id,editable=false){
   sampleMode=false;record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
   $('reportDate').disabled=editable;$('stationSelect').disabled=editable||!isAdmin();
-  archiveClose();toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':'عرض التقرير المحفوظ — للقراءة فقط.');
+  archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':'عرض التقرير المحفوظ — للقراءة فقط.');
  }catch(e){toast(e.message,true)}
 }
 
@@ -967,6 +967,7 @@ async function restoreSession(){
 function dashboardOpen(){
  if(!isAdmin())return;
  $('dashboardModal').classList.remove('hidden');
+ logActivity('DASHBOARD_VIEW');
  $('dashboardDate').value=currentDate;
  dashboardRefresh();
 }
@@ -1113,14 +1114,24 @@ async function accountListAction(e){
 }
 
 
+
+/* These logs indicate requested interface actions, not proof of a completed physical print. */
+function logActivity(action,reportId=''){
+ if(!signedIn())return;
+ const payload={action,stationId,reportDate:date,reportId:reportId||''};
+ authedFetch('/functions/v1/activity-log',{method:'POST',body:JSON.stringify(payload)})
+  .then(response=>{if(!response.ok)console.warn('Activity audit log unavailable',response.status)})
+  .catch(error=>console.warn('Activity audit request failed',error));
+}
+
 let auditPage=0,auditPageSize=60,auditLastRows=[],auditTotal=0,auditBusy=false;
 const auditOperationLabel={
  INSERT:'إضافة',UPDATE:'تعديل',DELETE:'حذف',
  CREATE_ACCOUNT:'إنشاء حساب',RESET_PASSWORD:'تغيير كلمة مرور',MOVE_STATION:'نقل حساب إلى محطة',DELETE_ACCOUNT:'حذف حساب',
- login:'تسجيل دخول',logout:'تسجيل خروج',user_signedup:'إنشاء مستخدم',user_deleted:'حذف مستخدم',
+ login:'تسجيل دخول',logout:'تسجيل خروج',PRINT_REQUESTED:'طلب طباعة',IMAGE_EXPORTED:'تصدير PNG',SHARE_REQUESTED:'مشاركة تقرير',VIEW_REPORT:'فتح تقرير مؤرشف',DASHBOARD_VIEW:'فتح الداشبورد',user_signedup:'إنشاء مستخدم',user_deleted:'حذف مستخدم',
  token_refreshed:'تجديد جلسة',token_revoked:'إنهاء جلسة',user_updated_password:'تحديث كلمة مرور',AUTH_EVENT:'حدث مصادقة'
 };
-const auditScopeLabel={reports:'التقارير',stations:'المحطات',users:'إدارة الحسابات',auth:'تسجيل الدخول'};
+const auditScopeLabel={reports:'التقارير',stations:'المحطات',users:'إدارة الحسابات',auth:'تسجيل الدخول',activity:'التصدير والطباعة والعرض'};
 function auditFilters(offset=0){
  const from=$('auditFrom').value,to=$('auditTo').value;
  let until=null;
