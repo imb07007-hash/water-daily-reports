@@ -443,18 +443,18 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
      <div class="field"><label>نوع الحساب</label><select class="control" id="accountType"><option value="station">حساب محطة</option><option value="admin">أدمن</option><option value="superadmin">سوبر أدمن</option></select></div>
      <div class="field" id="accountStationField"><label>المحطة المخصصة</label><select class="control" id="accountStation"></select></div>
      <div class="field"><label>اسم المستخدم</label><input class="control" id="accountUsername" spellcheck="false" autocomplete="off" maxlength="64" placeholder="اسم المستخدم أو رمز المحطة"></div>
-     <div class="field"><label>كلمة المرور</label><input class="control" id="accountPassword" type="text" autocomplete="off" maxlength="128" placeholder="كلمة المرور التي تختارها"></div>
+     <div class="field"><label>كلمة المرور</label><input class="control" id="accountPassword" type="password" autocomplete="new-password" maxlength="128" placeholder="كلمة المرور التي تختارها"><button class="btn" id="accountPasswordToggle" type="button" style="margin-top:5px;width:fit-content">إظهار كلمة المرور المدخلة</button></div>
     </div>
     <div class="sec-actions"><button class="btn" id="generatePassword">توليد كلمة مرور</button><button class="btn primary" id="createAccount">＋ إنشاء الحساب</button><button class="btn" id="createStationAccounts">تجهيز حسابات المحطات الخمس</button></div>
     <p style="font-size:11px;color:#907a5d;margin:10px 0 0">كلمات المرور القصيرة سهلة التخمين. يُفضّل استخدام كلمة مرور أقوى.</p>
     <div id="accountResponse" class="sec-response hidden"></div>
    </div>
    <div class="sec-panel">
-    <div class="sec-row"><h3>جميع الحسابات والصلاحيات</h3><button class="btn" id="refreshAccounts">↻ تحديث</button></div>
+    <div class="sec-row"><h3>جميع الحسابات والصلاحيات</h3><button class="btn" id="refreshAccounts">↻ تحديث</button></div><p style="font-size:11px;color:#697e8c">لا يمكن عرض كلمات المرور السابقة. يمكن عرض كلمات المرور التي عيّنتها خلال الجلسة الحالية أو استبدالها.</p>
     <div id="accountResetPanel" class="sec-panel hidden" style="background:#fff">
      <div class="sec-row"><h3>تعيين كلمة المرور</h3><strong id="accountResetName" dir="auto"></strong></div>
      <div class="sec-fields">
-      <div class="field"><label for="accountResetPassword">كلمة المرور الجديدة</label><input class="control" id="accountResetPassword" type="text" autocomplete="off" maxlength="128" placeholder="أدخل كلمة المرور"></div>
+      <div class="field"><label for="accountResetPassword">كلمة المرور الجديدة</label><input class="control" id="accountResetPassword" type="password" autocomplete="new-password" maxlength="128" placeholder="أدخل كلمة المرور"><button class="btn" id="accountResetToggle" type="button" style="margin-top:5px;width:fit-content">إظهار كلمة المرور المدخلة</button></div>
      </div>
      <div class="sec-actions"><button class="btn primary" id="accountResetSave">حفظ كلمة المرور</button><button class="btn" id="accountResetCancel">إلغاء</button></div>
     </div>
@@ -1089,6 +1089,7 @@ async function logout(){
  preserveDraft();
  const token=authSession?.access_token;
  authSession=null;currentRole='';currentStationId='';currentUserId='';cloudReady=false;
+ sessionAssignedPasswords.clear();
  sessionStorage.removeItem(AUTH_KEY);
  stations=allowedStations();drafts={};receipts={};requestIds={};
  for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal','passwordModal','stationMetricModal'])$(m).classList.add('hidden');
@@ -1241,6 +1242,7 @@ function accountTypeChanged(){
  }
  $('createAccount').disabled=false;
 }
+const sessionAssignedPasswords=new Map();
 async function accountsRefresh(){
  if(!isAdmin())return;
  $('accountList').innerHTML='<div class="archive-empty">جاري تحميل الحسابات…</div>';
@@ -1256,6 +1258,7 @@ async function accountsRefresh(){
    return '<div class="sec-row" data-account-id="'+esc(acc.id)+'"><div><span class="account-username">'+esc(name)+'</span><small>'+esc(type)+' • '+esc(station)+'</small></div>'+
     '<div class="admin-row-btns">'+
      (canManage?'<button class="btn" data-user-action="reset_password" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">تغيير كلمة المرور</button>':'')+
+     (isSuperAdmin()&&sessionAssignedPasswords.has(acc.id)?'<button class="btn" data-user-action="show_session_password" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">عرض كلمة المرور المعينة</button>':'')+
      (isSuperAdmin()&&acc.role==='station'?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">نقل المحطة</button>':'')+
      (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
     '</div></div>';
@@ -1291,6 +1294,7 @@ async function userWrite(){
   const output=await accountAdminRequest('create',{role,username,password,stationId});
   accountMessage('تم إنشاء الحساب.\nنوع الحساب: '+(role==='superadmin'?'سوبر أدمن':role==='admin'?'أدمن':'محطة '+(stations.find(s=>s.id===stationId)?.name||stationId))+
    '\nاسم المستخدم: '+output.username+'\nكلمة المرور: '+password);
+  if(isSuperAdmin())sessionAssignedPasswords.set(output.id,password);
   $('accountUsername').value='';
   $('accountPassword').value='';
   await accountsRefresh();
@@ -1318,7 +1322,8 @@ async function savePasswordReset(){
  const btn=$('accountResetSave');btn.disabled=true;
  try{
   await accountAdminRequest('reset_password',{id:resettingAccount.id,password});
-  accountMessage('تم تغيير كلمة المرور لحساب '+resettingAccount.name+'.');
+  if(isSuperAdmin())sessionAssignedPasswords.set(resettingAccount.id,password);
+  accountMessage('تم تعيين كلمة المرور لحساب '+resettingAccount.name+'.\nكلمة المرور الجديدة: '+password);
   closePasswordReset();
   await accountsRefresh();
   toast('تم حفظ كلمة المرور');
@@ -1330,6 +1335,11 @@ async function accountListAction(e){
  if(!button||!isAdmin())return;
  const action=button.dataset.userAction,id=button.dataset.id,name=button.dataset.name;
  if(action==='reset_password'){preparePasswordReset(id,name);return}
+ if(action==='show_session_password'){
+  if(!isSuperAdmin()||!sessionAssignedPasswords.has(id))return;
+  accountMessage('الحساب: '+name+'\nكلمة المرور التي عيّنتها خلال الجلسة: '+sessionAssignedPasswords.get(id)+'\nقد تتغير إذا عدّلها صاحب الحساب.');
+  return;
+ }
  try{
   const params={id};
   if(action==='delete'){
@@ -1623,6 +1633,17 @@ $('accountResetSave').onclick=savePasswordReset;
 $('accountResetCancel').onclick=closePasswordReset;
 $('createStationAccounts').onclick=createStationAccounts;
 $('changeOwnPasswordBtn').onclick=openOwnPassword;
+function setupPasswordEye(inputId,buttonId){
+ const field=$(inputId),button=$(buttonId);
+ if(!field||!button)return;
+ button.onclick=()=>{
+  const visible=field.type==='password';
+  field.type=visible?'text':'password';
+  button.textContent=visible?'إخفاء كلمة المرور':'إظهار كلمة المرور المدخلة';
+ };
+}
+setupPasswordEye('accountPassword','accountPasswordToggle');
+setupPasswordEye('accountResetPassword','accountResetToggle');
 $('stationMetricBtn').onclick=openStationMetric;
 $('stationMetricClose').onclick=closeStationMetric;
 $('stationMetricForm').onsubmit=saveStationMetric;
