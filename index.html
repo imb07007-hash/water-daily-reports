@@ -2256,7 +2256,13 @@ for(const id of ['archiveFrom','archiveTo','archiveMonth','archiveYear']){
 document.querySelector('.archive-modes').addEventListener('click',e=>{
  const button=e.target.closest('[data-archive-mode]');if(button)archiveSetMode(button.dataset.archiveMode);
 });
-$('archiveStation').onchange=()=>{$('archiveExports').classList.add('hidden');archiveQueryInfo=null;archiveRows=[];$('archiveResults').innerHTML='<div class="archive-empty">اضغط عرض التقارير لتحديث النتائج.</div>'};
+$('archiveStation').onchange=()=>{
+ archiveSearchVersion++;archiveRows=[];archiveQueryInfo=null;
+ $('archiveSearch').disabled=false;
+ $('archiveResults').setAttribute('aria-busy','false');
+ $('archiveExports').classList.add('hidden');
+ $('archiveResults').innerHTML='<div class="archive-empty">اضغط عرض التقارير لتحديث النتائج.</div>';
+};
 $('archiveResults').onclick=e=>{
  const more=e.target.closest('[data-archive-more]'),month=e.target.closest('[data-archive-month]');
  const see=e.target.closest('[data-archive-id]'),edit=e.target.closest('[data-archive-edit]'),del=e.target.closest('[data-archive-delete]');
