@@ -385,6 +385,58 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  .dashboard-week-date{font-size:9px}
 }
 
+
+/* Consolidated daily, monthly, yearly archive: same existing entry point. */
+.cloud-archive .modal{width:min(1160px,97vw)!important}
+.archive-modes{display:flex;align-items:center;gap:4px;background:#f0f6fb;border:1px solid #e0ebf4;border-radius:11px;padding:4px;margin-bottom:15px}
+.archive-mode{flex:1;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:#52718a;font-size:13px;font-weight:850}
+.archive-mode.active{color:#fff;background:#0362AF;box-shadow:0 3px 8px #0362af22}
+.cloud-archive .archive-criteria{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.archive-criteria #archiveStationField{flex:2;min-width:190px}
+.archive-dates{flex:2;display:flex;gap:9px;align-items:end;min-width:255px}
+.archive-dates .field{flex:1;min-width:130px}
+.archive-criteria #archiveMonthField,.archive-criteria #archiveYearField{flex:1;min-width:155px}
+.archive-criteria #archiveSearch{min-height:38px}
+.archive-exports{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:9px 0 14px;padding:10px 12px;border:1px solid #dfebf3;border-radius:10px;background:#f8fbfd}
+.archive-exports-caption{color:#476b84;font-size:11px;font-weight:800;flex:1;line-height:1.8}
+.archive-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 16px}
+.archive-kpi{padding:13px 15px;background:linear-gradient(155deg,#fff,#f6fbff);border:1px solid #e0eaf2;border-radius:11px;display:flex;flex-direction:column;gap:5px}
+.archive-kpi strong{font-size:22px;color:#0362AF;font-weight:900;direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+.archive-kpi small{color:#658096;font-size:11px;font-weight:750}
+.archive-block{border:1px solid #e0eaf2;background:#fff;border-radius:12px;padding:13px;margin:13px 0}
+.archive-block h3{font-size:15px;color:#0362AF;font-weight:900;margin:1px 0 11px}
+.archive-hint{font-size:11px;color:#70859a;line-height:1.8}
+.archive-chart-scroll{overflow-x:auto;padding:9px 5px 5px}
+.archive-barset{display:flex;align-items:end;justify-content:space-around;gap:7px;min-height:155px;direction:ltr}
+.archive-baritem{min-width:31px;flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;justify-content:end}
+.archive-bartrack{height:115px;width:min(100%,50px);background:#f1f6fa;border-radius:7px 7px 3px 3px;display:flex;align-items:end;overflow:hidden}
+.archive-barfill{width:100%;background:linear-gradient(180deg,#50B4F2,#0362AF);border-radius:6px 6px 0 0}
+.archive-barvalue{font-size:10px;color:#375f79;font-weight:750;min-height:24px;display:flex;align-items:end;white-space:nowrap}
+.archive-barlabel{font-size:11px;color:#677f92;white-space:nowrap;min-height:18px}
+.archive-table-scroll{width:100%;overflow:auto}
+.archive-table{border-collapse:collapse;width:100%;font-size:12px;min-width:530px}
+.archive-table th{background:#eef6fc;color:#305c7e;text-align:right;font-size:11px;font-weight:850}
+.archive-table td,.archive-table th{border-bottom:1px solid #eaf0f5;padding:10px 8px}
+.archive-table tr:last-child td{border-bottom:0}
+.archive-table td{color:#3a5b72;vertical-align:middle}
+.archive-table .archive-num{text-align:left;direction:ltr;font-variant-numeric:tabular-nums}
+.archive-table .archive-row-action{padding:3px 8px;min-height:28px;font-size:11px}
+.archive-report-list{margin-top:8px}
+.archive-entry small{display:block;color:#72879b;line-height:1.8;margin-top:5px}
+.archive-more{display:block;margin:15px auto}
+.archive-station-tag{display:inline-flex;padding:4px 9px;background:#ebf6ff;color:#0362AF;border-radius:9px;font-size:12px;font-weight:850;margin:0 0 10px}
+.archive-missing-note{font-size:11px;color:#6a8092;margin:0 0 11px;line-height:1.85}
+@media(max-width:680px){
+ .archive-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .archive-kpi{padding:10px 11px}
+ .archive-kpi strong{font-size:19px}
+ .archive-dates{flex-basis:100%;min-width:0}
+ .archive-criteria #archiveStationField{min-width:100%}
+ .archive-criteria #archiveSearch{width:100%}
+ .archive-entry{flex-wrap:wrap}
+ .archive-entry .sec-actions{width:100%}
+}
+
 </style></head>
 <body data-auth="locked">
 
@@ -449,18 +501,32 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2 id="settingsTitle">إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
- <div class="modal">
+ <div class="modal" style="width:min(1160px,97vw)">
   <div class="modal-head"><h2>أرشيف التقارير</h2><button class="btn" id="archiveClose">✕ إغلاق</button></div>
   <div class="modal-body">
-      <div class="rowfilters">
-    <div class="field"><label>المحطة</label><select class="control" id="archiveStation"><option value="">جميع المحطات</option></select></div>
-    <div class="field"><label>من تاريخ</label><input class="control" type="date" id="archiveFrom"></div>
-    <div class="field"><label>إلى تاريخ</label><input class="control" type="date" id="archiveTo"></div>
-    <button class="btn primary" id="archiveSearch">بحث</button>
+   <div class="archive-modes" role="tablist" aria-label="نوع التقرير">
+    <button type="button" class="archive-mode active" role="tab" aria-selected="true" data-archive-mode="daily">يومي</button>
+    <button type="button" class="archive-mode" role="tab" aria-selected="false" data-archive-mode="monthly">شهري</button>
+    <button type="button" class="archive-mode" role="tab" aria-selected="false" data-archive-mode="yearly">سنوي</button>
    </div>
-   <div id="archiveResults" class="archive-empty">اضغط بحث لاستعراض التقارير.</div>
+   <div class="rowfilters archive-criteria">
+    <div class="field" id="archiveStationField"><label for="archiveStation">المحطة</label><select class="control" id="archiveStation"><option value="">جميع المحطات</option></select></div>
+    <div class="archive-dates" id="archiveDailyFields">
+     <div class="field"><label for="archiveFrom">من تاريخ</label><input class="control" type="date" id="archiveFrom"></div>
+     <div class="field"><label for="archiveTo">إلى تاريخ</label><input class="control" type="date" id="archiveTo"></div>
+    </div>
+    <div class="field hidden" id="archiveMonthField"><label for="archiveMonth">الشهر</label><input class="control" type="month" id="archiveMonth"></div>
+    <div class="field hidden" id="archiveYearField"><label for="archiveYear">السنة</label><input class="control" type="number" id="archiveYear" min="2020" max="2100" step="1" inputmode="numeric"></div>
+    <button type="button" class="btn primary" id="archiveSearch">عرض التقارير</button>
+   </div>
+   <div class="archive-exports hidden" id="archiveExports">
+    <span class="archive-exports-caption" id="archiveScopeLabel"></span>
+    <button type="button" class="btn" id="archiveExcel">تنزيل Excel</button>
+    <button type="button" class="btn" id="archivePdf">طباعة / PDF</button>
+   </div>
+   <div id="archiveResults" aria-live="polite" aria-busy="false" class="archive-empty">اختر نوع التقرير ثم اضغط عرض التقارير.</div>
   </div>
-   </div>
+ </div>
 </div>
 <div class="modal-backdrop hidden" id="dashboardModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(1180px,97vw)">
@@ -1000,32 +1066,266 @@ window.addEventListener('resize',scalePreview);
 refreshSelects();$('reportDate').value=date;record=fetchRecord();renderInputs();renderReport();updateSaveStatus();
 
 
+
+const ARCHIVE_PAGE_SIZE=1000;
+const ARCHIVE_SHOW_STEP=60;
+let archiveMode='daily',archiveRows=[],archiveVisibleCount=ARCHIVE_SHOW_STEP;
+let archiveQueryInfo=null,archiveSearchVersion=0;
+
+function archiveChosenStation(){
+ if(!signedIn())throw Error('سجّل الدخول أولًا.');
+ if(!isAdmin())return currentStationId;
+ const chosen=$('archiveStation').value;
+ if(chosen&&!stations.some(s=>s.id===chosen))throw Error('المحطة المحددة غير متاحة.');
+ return chosen;
+}
+function archivePeriod(){
+ const mode=archiveMode;
+ if(mode==='monthly'){
+  const month=$('archiveMonth').value;
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('اختر شهرًا صحيحًا.');
+  const [year,mm]=month.split('-').map(Number);
+  const last=new Date(Date.UTC(year,mm,0)).toISOString().slice(0,10);
+  return {mode,from:month+'-01',to:last,month,year};
+ }
+ if(mode==='yearly'){
+  const year=Number($('archiveYear').value);
+  if(!Number.isInteger(year)||year<2020||year>2100)throw Error('اختر سنة صحيحة.');
+  return {mode,from:year+'-01-01',to:year+'-12-31',year};
+ }
+ const from=$('archiveFrom').value,to=$('archiveTo').value;
+ if(from&&!/^\d{4}-\d{2}-\d{2}$/.test(from))throw Error('تاريخ البداية غير صحيح.');
+ if(to&&!/^\d{4}-\d{2}-\d{2}$/.test(to))throw Error('تاريخ النهاية غير صحيح.');
+ if(from&&to&&from>to)throw Error('تاريخ البداية أكبر من تاريخ النهاية.');
+ return {mode,from,to,year:from?Number(from.slice(0,4)):null};
+}
+function archiveSetMode(mode){
+ if(!['daily','monthly','yearly'].includes(mode))return;
+ archiveMode=mode;
+ for(const el of document.querySelectorAll('[data-archive-mode]')){
+  const active=el.dataset.archiveMode===mode;
+  el.classList.toggle('active',active);
+  el.setAttribute('aria-selected',String(active));
+ }
+ $('archiveDailyFields').classList.toggle('hidden',mode!=='daily');
+ $('archiveMonthField').classList.toggle('hidden',mode!=='monthly');
+ $('archiveYearField').classList.toggle('hidden',mode!=='yearly');
+ $('archiveResults').innerHTML='<div class="archive-empty">اضغط «عرض التقارير» لعرض البيانات.</div>';
+ $('archiveExports').classList.add('hidden');
+ archiveRows=[];archiveQueryInfo=null;archiveVisibleCount=ARCHIVE_SHOW_STEP;
+ archiveSearchVersion++;
+}
 function archiveOpen(){
  if(!signedIn())return;
  $('archiveModal').classList.remove('hidden');
- $('archiveStation').innerHTML=(isAdmin()?'<option value="">جميع المحطات</option>':'')+stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('');
+ if(!isAdmin()&&!stations.some(s=>s.id===currentStationId))return;
+ $('archiveStation').innerHTML=isAdmin()
+  ?'<option value="">جميع المحطات</option>'+stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('')
+  :'<option value="'+esc(currentStationId)+'">'+esc(stations.find(s=>s.id===currentStationId)?.name||currentStationId)+'</option>';
  $('archiveStation').value=isAdmin()?'':currentStationId;
  $('archiveStation').disabled=!isAdmin();
- $('archiveResults').innerHTML='<div class="archive-empty">اختر الفترة واضغط بحث.</div>';
+ $('archiveStationField').classList.toggle('hidden',!isAdmin());
+ $('archiveMonth').value=dashboardSaudiDate().slice(0,7);
+ $('archiveYear').value=dashboardSaudiDate().slice(0,4);
+ archiveSetMode('daily');
 }
-function archiveClose(){$('archiveModal').classList.add('hidden');}
+function archiveClose(){
+ archiveSearchVersion++;
+ $('archiveModal').classList.add('hidden');
+}
+async function archiveFetchAll(scope,period,searchVersion){
+ const results=[];
+ for(let offset=0;offset<=20000;offset+=ARCHIVE_PAGE_SIZE){
+  if(searchVersion!==archiveSearchVersion)throw Error('تم تغيير البحث.');
+  const p=new URLSearchParams({
+   select:'id,station_id,report_date,data,created_at,source,source_sent_at',
+   order:'report_date.desc,created_at.desc',limit:String(ARCHIVE_PAGE_SIZE),offset:String(offset)
+  });
+  if(scope)p.set('station_id','eq.'+scope);
+  if(period.from)p.append('report_date','gte.'+period.from);
+  if(period.to)p.append('report_date','lte.'+period.to);
+  const resp=await authedFetch('/rest/v1/reports?'+p.toString());
+  if(!resp.ok)throw Error(resp.status===403?'ليس لديك صلاحية الوصول لهذه التقارير.':'تعذر تحميل التقارير ('+resp.status+').');
+  const page=await resp.json();
+  if(!Array.isArray(page))throw Error('البيانات المسترجعة غير صحيحة.');
+  // Defense in depth: only use rows within account scope, even if a backend policy changes.
+  const allowed=new Set((scope?[scope]:stations.map(s=>s.id)));
+  results.push(...page.filter(r=>allowed.has(r.station_id)));
+  if(page.length<ARCHIVE_PAGE_SIZE)return results;
+ }
+ throw Error('نتائج كثيرة جدًا. حدد محطة أو فترة زمنية أقصر.');
+}
+function archiveAggregate(rows,metric){
+ const values=rows.map(r=>dashboardNumeric(r.data?.metrics?.[metric])).filter(n=>n!==null);
+ return {total:values.length?values.reduce((a,b)=>a+b,0):null,count:values.length};
+}
+function archiveFormatNum(n){return n===null?'غير مسجل':fmt(n)}
+function archiveExpectedDays(from,to){
+ const now=dashboardSaudiDate();
+ const end=to&&to<now?to:now;
+ if(!from||!to||end<from)return null;
+ const beginMs=Date.parse(from+'T12:00:00Z'),endMs=Date.parse(end+'T12:00:00Z');
+ if(!Number.isFinite(beginMs)||!Number.isFinite(endMs))return null;
+ return Math.floor((endMs-beginMs)/86400000)+1;
+}
+function archiveSummary(rows,period,scope){
+ const chosenCount=scope?1:stations.length;
+ const expected=archiveExpectedDays(period.from,period.to);
+ const days=new Set(rows.map(r=>r.report_date)).size;
+ const kpis=[
+  ['التقارير المحفوظة',rows.length],
+  ['الأيام المسجلة',days],
+  ['إجمالي الإنتاج (م³)',archiveAggregate(rows,'production').total],
+  ['المياه الخام (م³)',archiveAggregate(rows,'raw').total],
+  ['التصدير (م³)',archiveAggregate(rows,'export').total]
+ ];
+ if(expected!==null&&chosenCount){
+  const allDays=expected*chosenCount;
+  kpis.splice(2,0,['اكتمال التقارير',fmt(100*rows.length/Math.max(1,allDays))+'%']);
+ }
+ return '<div class="archive-overview">'+kpis.map(([label,value])=>
+  '<div class="archive-kpi"><strong>'+esc(value===null?'—':typeof value==='number'?fmt(value):value)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>'+
+  (expected!==null?'<p class="archive-missing-note">أيام دون تقرير: '+esc(fmt(Math.max(0,expected*chosenCount-rows.length)))+
+   ' (ضمن الفترة المنقضية فقط). البيانات الفارغة لا تُحتسب صفرًا.</p>':'');
+}
+function archiveTimeLabel(r){
+ if(r.source==='migration'){
+  const d=r.source_sent_at?dashboardSubmitTime(r.source_sent_at):null;
+  return d?'رسالة واتساب: '+d.date+'، '+d.time:'تقرير واتساب مستورد (وقت الرسالة غير متاح)';
+ }
+ const d=dashboardSubmitTime(r.created_at);
+ return 'إرسال الموقع: '+d.date+'، '+d.time;
+}
+function archiveReportEntries(rows){
+ const subset=rows.slice(0,archiveVisibleCount);
+ const list=subset.map(r=>{
+  const station=stations.find(s=>s.id===r.station_id);
+  return '<div class="archive-entry"><div><strong>'+esc(station?.name||r.station_id)+'</strong>'+
+   '<small>تاريخ التقرير: '+esc(dashboardShortDate(r.report_date))+' — '+esc(archiveTimeLabel(r))+'</small></div>'+
+   '<div class="sec-actions"><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+
+   (isSuperAdmin()?'<button class="btn" data-archive-edit="'+esc(r.id)+'">تعديل</button>'+
+   '<button class="btn danger" data-archive-delete="'+esc(r.id)+'">حذف</button>':'')+'</div></div>';
+ }).join('');
+ return '<div class="archive-report-list">'+(list||'<div class="archive-empty">لا توجد تقارير ضمن الفترة المحددة.</div>')+'</div>'+
+  (rows.length>archiveVisibleCount?'<button class="btn archive-more" data-archive-more="1">عرض المزيد ('+
+   esc(fmt(rows.length-archiveVisibleCount))+' متبقية)</button>':'');
+}
+function archivePeriodGroups(rows,period){
+ const key=period.mode==='yearly'?'month':'day';
+ const buckets=[];
+ if(key==='month'){
+  for(let i=1;i<=12;i++){
+   const month=period.year+'-'+String(i).padStart(2,'0');
+   buckets.push({id:month,label:new Intl.DateTimeFormat('ar-SA-u-ca-gregory',{month:'short',timeZone:'UTC'}).format(new Date(month+'-15T12:00:00Z'))});
+  }
+ }else{
+  const n=new Date(period.year,Number(period.month.slice(5,7)),0).getDate();
+  for(let i=1;i<=n;i++){
+   const id=period.month+'-'+String(i).padStart(2,'0');
+   buckets.push({id,label:String(i)});
+  }
+ }
+ return buckets.map(b=>{
+  const subset=rows.filter(r=>key==='month'?r.report_date.startsWith(b.id):r.report_date===b.id);
+  return {...b,reports:subset.length,production:archiveAggregate(subset,'production').total};
+ });
+}
+function archiveChart(groups){
+ const max=Math.max(0,...groups.map(g=>g.production??0));
+ const width=groups.length>12?Math.max(690,groups.length*32):0;
+ const bars=groups.map(g=>{
+  const height=g.production===null?0:g.production===0?2:Math.max(4,Math.round(g.production/Math.max(max,1)*100));
+  return '<div class="archive-baritem" title="'+esc(g.id+' — '+archiveFormatNum(g.production))+'">'+
+   '<div class="archive-barvalue">'+esc(g.production===null?'—':fmt(g.production))+'</div>'+
+   '<div class="archive-bartrack"><div class="archive-barfill" style="height:'+height+'%"></div></div>'+
+   '<div class="archive-barlabel">'+esc(g.label)+'</div></div>';
+ }).join('');
+ return '<div class="archive-block"><h3>اتجاه الإنتاج</h3><div class="archive-chart-scroll">'+
+  '<div class="archive-barset"'+(width?' style="min-width:'+width+'px"':'')+'>'+bars+'</div></div>'+
+  '<p class="archive-hint">القيم المعروضة مجموع قراءات الإنتاج المسجلة لكل فترة. (—) تعني عدم توفر قراءة.</p></div>';
+}
+function archiveGroupTable(groups,period){
+ const annual=period.mode==='yearly';
+ const table='<div class="archive-block"><h3>'+ (annual?'تفاصيل الأشهر':'تفاصيل الأيام')+'</h3>'+
+ '<div class="archive-table-scroll"><table class="archive-table"><thead><tr><th>الفترة</th><th>التقارير</th>'+
+ '<th>إجمالي الإنتاج (م³)</th>'+(annual?'<th>التفاصيل</th>':'')+'</tr></thead><tbody>'+
+ groups.map(g=>'<tr><td>'+esc(annual?g.label:dashboardShortDate(g.id))+'</td>'+
+ '<td class="archive-num">'+esc(fmt(g.reports))+'</td><td class="archive-num">'+
+ esc(g.production===null?'—':fmt(g.production))+'</td>'+
+ (annual?'<td><button type="button" class="btn archive-row-action" data-archive-month="'+esc(g.id)+'">عرض الشهر</button></td>':'')+
+ '</tr>').join('')+'</tbody></table></div></div>';
+ return table;
+}
+function archiveStationTable(rows){
+ if(!isAdmin())return '';
+ const table=stations.map(s=>{
+  const filtered=rows.filter(r=>r.station_id===s.id);
+  const total=archiveAggregate(filtered,'production');
+  return '<tr><td>'+esc(s.name)+'</td><td class="archive-num">'+esc(fmt(filtered.length))+
+    '</td><td class="archive-num">'+esc(total.total===null?'—':fmt(total.total))+'</td></tr>';
+ }).join('');
+ return '<div class="archive-block"><h3>ملخص المحطات</h3><div class="archive-table-scroll">'+
+  '<table class="archive-table"><thead><tr><th>المحطة</th><th>عدد التقارير</th><th>إجمالي الإنتاج (م³)</th></tr></thead>'+
+  '<tbody>'+table+'</tbody></table></div></div>';
+}
+function archiveCustomMetrics(rows,scope){
+ if(!scope)return '';
+ const st=stations.find(s=>s.id===scope);
+ if(!st?.metrics?.length)return '';
+ const entries=st.metrics.map(metric=>{
+  const nums=rows.map(r=>dashboardNumeric(r.data?.metrics?.[metric.id])).filter(n=>n!==null);
+  if(!nums.length)return null;
+  const avg=nums.reduce((a,b)=>a+b,0)/nums.length;
+  return '<tr><td>'+esc(metric.label)+'</td><td>'+esc(metric.unit||'—')+'</td>'+
+   '<td class="archive-num">'+esc(fmt(avg))+'</td><td class="archive-num">'+esc(fmt(nums.length))+'</td></tr>';
+ }).filter(Boolean);
+ if(!entries.length)return '';
+ return '<div class="archive-block"><h3>متوسط المؤشرات المسجلة — '+esc(st.name)+'</h3>'+
+  '<p class="archive-hint">متوسط القراءات اليومية المتاحة لكل مؤشر، دون اعتبار الخانات الفارغة صفرًا.</p>'+
+  '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+
+  '<th>المؤشر</th><th>الوحدة</th><th>متوسط القراءات</th><th>أيام القراءة</th></tr></thead>'+
+  '<tbody>'+entries.join('')+'</tbody></table></div></div>';
+}
+function archiveRender(){
+ const rows=archiveRows,scope=archiveQueryInfo?.scope,period=archiveQueryInfo?.period;
+ if(!period){$('archiveResults').innerHTML='<div class="archive-empty">اختر الفترة واضغط عرض التقارير.</div>';return}
+ const name=scope?stations.find(s=>s.id===scope)?.name||scope:'جميع المحطات';
+ const header='<div class="archive-station-tag">'+esc(name)+'</div>';
+ let content=header;
+ if(period.mode==='daily'){
+  content+='<p class="archive-missing-note">عدد التقارير: '+esc(fmt(rows.length))+'</p>'+archiveReportEntries(rows);
+ }else{
+  const groups=archivePeriodGroups(rows,period);
+  content+=archiveSummary(rows,period,scope)+archiveChart(groups)+archiveGroupTable(groups,period)+
+   archiveStationTable(rows)+archiveCustomMetrics(rows,scope)+
+   '<div class="archive-block"><h3>التقارير اليومية المحفوظة</h3>'+archiveReportEntries(rows)+'</div>';
+ }
+ $('archiveResults').classList.remove('archive-empty');
+ $('archiveResults').innerHTML=content;
+ $('archiveScopeLabel').textContent=name+' — '+(period.mode==='yearly'?'عام '+period.year:
+  period.mode==='monthly'?'شهر '+period.month:'التقارير اليومية');
+ $('archiveExports').classList.toggle('hidden',rows.length===0);
+}
 async function archiveSearch(){
+ if(!signedIn())return;
  const out=$('archiveResults'),button=$('archiveSearch');
- button.disabled=true;out.innerHTML='<div class="archive-empty">يتم جلب التقارير المصرّح بها…</div>';
+ const searchVersion=++archiveSearchVersion;
+ archiveRows=[];archiveQueryInfo=null;archiveVisibleCount=ARCHIVE_SHOW_STEP;
+ button.disabled=true;out.setAttribute('aria-busy','true');
+ out.innerHTML='<div class="archive-empty">جاري تحميل التقارير…</div>';
+ $('archiveExports').classList.add('hidden');
  try{
-  const filter=new URLSearchParams({select:'id,station_id,report_date,created_at,source,source_sent_at',order:'report_date.desc,created_at.desc',limit:'1000'});
-  const chosen=isAdmin() ? $('archiveStation').value : currentStationId;
-  if(chosen)filter.set('station_id','eq.'+chosen);
-  if($('archiveFrom').value)filter.append('report_date','gte.'+$('archiveFrom').value);
-  if($('archiveTo').value)filter.append('report_date','lte.'+$('archiveTo').value);
-  const resp=await authedFetch('/rest/v1/reports?'+filter.toString());
-  if(!resp.ok)throw Error('تعذر قراءة التقارير: '+resp.status);
-  const rows=await resp.json();
-  out.innerHTML=Array.isArray(rows)&&rows.length
-   ?rows.map(r=>'<div class="archive-entry"><div><strong>'+esc((stations.find(s=>s.id===r.station_id)||{}).name||r.station_id)+'</strong><small>'+esc(r.report_date)+' — '+(r.source==='migration'?'رسالة واتساب: ':'إرسال الموقع: ')+esc(dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at).date)+'، '+esc(dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at).time)+'</small></div><div class="sec-actions"><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+(isSuperAdmin()?'<button class="btn" data-archive-edit="'+esc(r.id)+'">تعديل</button><button class="btn danger" data-archive-delete="'+esc(r.id)+'">حذف</button>':'')+'</div></div>').join('')
-   :'<div class="archive-empty">لا توجد تقارير لهذا الاختيار.</div>';
- }catch(e){out.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
- finally{button.disabled=false}
+  const scope=archiveChosenStation(),period=archivePeriod();
+  const rows=await archiveFetchAll(scope,period,searchVersion);
+  if(searchVersion!==archiveSearchVersion)return;
+  archiveRows=rows;archiveQueryInfo={scope,period};
+  archiveRender();
+ }catch(e){
+  if(searchVersion!==archiveSearchVersion)return;
+  out.innerHTML='<div class="archive-empty">'+esc(e.message||'تعذر تحميل الأرشيف.')+'</div>';
+ }finally{
+  if(searchVersion===archiveSearchVersion){button.disabled=false;out.setAttribute('aria-busy','false')}
+ }
 }
 
 async function archiveDelete(id){
@@ -1828,9 +2128,16 @@ $('accountList').addEventListener('click',accountListAction);
 $('archiveBtn').onclick=archiveOpen;
 $('archiveClose').onclick=archiveClose;
 $('archiveSearch').onclick=archiveSearch;
+document.querySelector('.archive-modes').addEventListener('click',e=>{
+ const button=e.target.closest('[data-archive-mode]');if(button)archiveSetMode(button.dataset.archiveMode);
+});
+$('archiveStation').onchange=()=>{$('archiveExports').classList.add('hidden');archiveQueryInfo=null;archiveRows=[];$('archiveResults').innerHTML='<div class="archive-empty">اضغط عرض التقارير لتحديث النتائج.</div>'};
 $('archiveResults').onclick=e=>{
+ const more=e.target.closest('[data-archive-more]'),month=e.target.closest('[data-archive-month]');
  const see=e.target.closest('[data-archive-id]'),edit=e.target.closest('[data-archive-edit]'),del=e.target.closest('[data-archive-delete]');
- if(see)archiveShow(see.dataset.archiveId);
+ if(more){archiveVisibleCount+=ARCHIVE_SHOW_STEP;archiveRender()}
+ else if(month){archiveSetMode('monthly');$('archiveMonth').value=month.dataset.archiveMonth;archiveSearch()}
+ else if(see)archiveShow(see.dataset.archiveId);
  else if(edit&&isSuperAdmin())archiveShow(edit.dataset.archiveEdit,true);
  else if(del&&isSuperAdmin())archiveDelete(del.dataset.archiveDelete);
 };
