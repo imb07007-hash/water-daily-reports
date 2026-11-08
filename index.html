@@ -404,14 +404,14 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 
 <div class="modal-backdrop hidden" id="passwordModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(520px,95vw)">
-  <div class="modal-head"><h2>تغيير كلمة مرور المحطة</h2><button class="btn" id="closeOwnPassword">✕ إغلاق</button></div>
+  <div class="modal-head"><h2>تغيير كلمة المرور</h2><button class="btn" id="closeOwnPassword">✕ إغلاق</button></div>
   <div class="modal-body">
    <p style="line-height:2;color:#536e83;font-size:13px">اسم المستخدم: <strong id="fixedStationUsername" dir="ltr"></strong></p>
    <form id="selfPasswordForm" autocomplete="off">
     <div class="field"><label for="selfPasswordOld">كلمة المرور الحالية</label><input class="control" id="selfPasswordOld" type="password" autocomplete="current-password" required></div>
-    <div class="field" style="margin-top:12px"><label for="selfPasswordNew">كلمة المرور الجديدة (12 رمزًا على الأقل)</label><input class="control" id="selfPasswordNew" type="password" autocomplete="new-password" minlength="12" required></div>
-    <div class="field" style="margin-top:12px"><label for="selfPasswordConfirm">تأكيد كلمة المرور الجديدة</label><input class="control" id="selfPasswordConfirm" type="password" autocomplete="new-password" minlength="12" required></div>
-    <p style="font-size:12px;color:#607889;line-height:2">12 رمزًا على الأقل، تشمل حرفًا كبيرًا وصغيرًا ورقمًا.</p>
+    <div class="field" style="margin-top:12px"><label for="selfPasswordNew">كلمة المرور الجديدة</label><input class="control" id="selfPasswordNew" type="password" autocomplete="new-password" minlength="2" maxlength="128" required></div>
+    <div class="field" style="margin-top:12px"><label for="selfPasswordConfirm">تأكيد كلمة المرور الجديدة</label><input class="control" id="selfPasswordConfirm" type="password" autocomplete="new-password" minlength="2" maxlength="128" required></div>
+    <p style="font-size:11px;color:#907a5d;line-height:1.8">يمكن اختيار كلمة مرور من رقمين، لكنها أقل أمانًا.</p>
     <div id="selfPasswordFeedback" role="alert" aria-live="polite" style="font-size:12px;color:#b43142;min-height:22px"></div>
     <div class="sec-actions"><button class="btn primary" id="saveOwnPassword" type="submit">حفظ كلمة المرور الجديدة</button></div>
    </form>
@@ -423,21 +423,28 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  <div class="modal" style="width:min(1020px,97vw)">
   <div class="modal-head"><h2>إدارة الحسابات</h2><button class="btn" id="accountsClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p style="font-size:12px;color:#607889;line-height:1.9">اسم المستخدم وكلمة المرور الأولية: رمز المحطة. يمكن تغيير كلمة المرور من داخل الحساب.</p>
+   <p style="font-size:12px;color:#607889;line-height:1.9">يمكن إضافة حسابات متعددة لكل محطة وتحديد اسم المستخدم وكلمة المرور لكل حساب.</p>
    <div class="sec-panel" id="accountCreatePanel">
     <h3>إضافة حساب جديد</h3>
     <div class="sec-fields">
-     <div class="field"><label>نوع الحساب</label><select class="control" id="accountType"><option value="station">موظف / مدير محطة</option><option value="admin">أدمن — متابعة وتقارير فقط</option></select></div>
+     <div class="field"><label>نوع الحساب</label><select class="control" id="accountType"><option value="station">حساب محطة</option><option value="admin">أدمن</option><option value="superadmin">سوبر أدمن</option></select></div>
      <div class="field" id="accountStationField"><label>المحطة المخصصة</label><select class="control" id="accountStation"></select></div>
-     <div class="field"><label>اسم المستخدم (رمز PLANT للمحطة، ثابت)</label><input class="control" id="accountUsername" dir="ltr" spellcheck="false" autocomplete="off" placeholder="مثال: 8061" readonly></div>
-     <div class="field"><label>كلمة المرور الأولية (رمز المحطة)</label><input class="control" id="accountPassword" dir="ltr" type="text" autocomplete="off" readonly placeholder="رمز PLANT"></div>
+     <div class="field"><label>اسم المستخدم</label><input class="control" id="accountUsername" spellcheck="false" autocomplete="off" maxlength="64" placeholder="اسم المستخدم أو رمز المحطة"></div>
+     <div class="field"><label>كلمة المرور</label><input class="control" id="accountPassword" type="text" autocomplete="off" maxlength="128" placeholder="كلمة المرور التي تختارها"></div>
     </div>
-    <div class="sec-actions"><button class="btn hidden" id="generatePassword">توليد كلمة مرور قوية</button><button class="btn primary" id="createAccount">＋ إنشاء الحساب</button><button class="btn" id="createStationAccounts">تجهيز حسابات المحطات الخمس</button></div>
-    <p style="font-size:11px;color:#667b8b;margin:12px 0 0">رموز المحطات: بيش 8053، الماطري 8054، ضمد 8056، محايل 8058، وادي جيزان 8061. رمز مربة غير متوفر.</p>
+    <div class="sec-actions"><button class="btn" id="generatePassword">توليد كلمة مرور</button><button class="btn primary" id="createAccount">＋ إنشاء الحساب</button><button class="btn" id="createStationAccounts">تجهيز حسابات المحطات الخمس</button></div>
+    <p style="font-size:11px;color:#907a5d;margin:10px 0 0">كلمات المرور القصيرة سهلة التخمين. يُفضّل استخدام كلمة مرور أقوى.</p>
     <div id="accountResponse" class="sec-response hidden"></div>
    </div>
    <div class="sec-panel">
     <div class="sec-row"><h3>جميع الحسابات والصلاحيات</h3><button class="btn" id="refreshAccounts">↻ تحديث</button></div>
+    <div id="accountResetPanel" class="sec-panel hidden" style="background:#fff">
+     <div class="sec-row"><h3>تعيين كلمة المرور</h3><strong id="accountResetName" dir="auto"></strong></div>
+     <div class="sec-fields">
+      <div class="field"><label for="accountResetPassword">كلمة المرور الجديدة</label><input class="control" id="accountResetPassword" type="text" autocomplete="off" maxlength="128" placeholder="أدخل كلمة المرور"></div>
+     </div>
+     <div class="sec-actions"><button class="btn primary" id="accountResetSave">حفظ كلمة المرور</button><button class="btn" id="accountResetCancel">إلغاء</button></div>
+    </div>
     <div id="accountList" class="archive-empty">جاري التحميل…</div>
    </div>
   </div>
@@ -519,7 +526,8 @@ const CLOUD_STATION_LOGIN=CLOUD_URL+'/functions/v1/station-login';
 const AUTH_KEY='wsc_supabase_auth_v1';
 const STATION_EMAIL_SUFFIX='@wsc-ops.example';
 const STATION_PLANT_CODES=Object.freeze({bish:'8053',matari:'8054',damad:'8056',muhayil:'8058',jizan:'8061'});
-const isValidAccountPassword=password=>typeof password==='string'&&password.length>=12&&password.length<=128&&/[A-Z]/.test(password)&&/[a-z]/.test(password)&&/[0-9]/.test(password);
+const isValidAccountPassword=password=>typeof password==='string'&&password.length>=2&&password.length<=128;
+const isValidLoginName=name=>typeof name==='string'&&name.length>=1&&[...name].length<=64&&!/[@\u0000-\u001f\u007f]/.test(name);
 let authSession=null,currentRole='',currentUserId='',currentStationId='',currentLoginName='';
 const signedIn=()=>!!authSession&&!!authSession.access_token&&!!currentUserId;
 const isAdmin=()=>currentRole==='admin'||currentRole==='superadmin';
@@ -1028,9 +1036,9 @@ async function enterApplication(){
  $('accountsBtn').classList.toggle('hidden',!isAdmin());
  $('auditBtn').classList.toggle('hidden',!isSuperAdmin());
  $('settingsBtn').classList.toggle('hidden',!isSuperAdmin());
- $('changeOwnPasswordBtn').classList.toggle('hidden',currentRole!=='station');
+ $('changeOwnPasswordBtn').classList.remove('hidden');
  $('accountRole').classList.remove('hidden');
- $('accountRole').textContent=isSuperAdmin()?'سوبر أدمن':isAdmin()?'أدمن — متابعة':'محطة '+currentLoginName;
+ $('accountRole').textContent=isSuperAdmin()?'سوبر أدمن':isAdmin()?'أدمن':'محطة '+currentLoginName;
  document.body.dataset.auth='ready';
  $('loginScreen').classList.add('hidden');
  $('loginPassword').value='';
@@ -1048,11 +1056,9 @@ async function loginSubmit(e){
  $('loginButtonLabel').textContent='جارٍ التحقق…';
  error.textContent='';
  try{
-   const email=raw.includes('@')?raw:(raw.startsWith('admin_')?'admin-'+raw.slice(6)+STATION_EMAIL_SUFFIX:'station-'+raw+STATION_EMAIL_SUFFIX);
-   const pinAttempt=/^\d{4}$/.test(raw)&&pwd===raw&&Object.values(STATION_PLANT_CODES).includes(raw);
-   const r=await fetch(pinAttempt?CLOUD_STATION_LOGIN:CLOUD_AUTH+'/token?grant_type=password',{method:'POST',
+   const r=await fetch(CLOUD_STATION_LOGIN,{method:'POST',
      headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},
-     body:JSON.stringify(pinAttempt?{username:raw,password:pwd}:{email,password:pwd})});
+     body:JSON.stringify({username:raw,password:pwd})});
    const data=await r.json().catch(()=>({}));
    if(!r.ok||!data.access_token)throw Error('بيانات الدخول غير صحيحة، أو الحساب غير مفعّل.');
    authSession={...data,expires_at:Math.floor(Date.now()/1000)+data.expires_in};
@@ -1136,74 +1142,72 @@ async function dashboardRefresh(){
  }catch(e){view.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
 }
 
+
 async function accountAdminRequest(action,params={}){
- if(!isAdmin())throw Error('هذا الإجراء يتطلب صلاحية أدمن أو سوبر أدمن');
- const resp=await authedFetch('/functions/v1/account-admin',{method:'POST',
-   body:JSON.stringify({action,...params})});
+ if(!isAdmin())throw Error('يتطلب هذا الإجراء صلاحية أدمن');
+ const resp=await authedFetch('/functions/v1/account-admin',{
+  method:'POST',body:JSON.stringify({action,...params})
+ });
  const out=await resp.json().catch(()=>({}));
  if(!resp.ok){
-  const problems={superadmin_required:'يتطلب الأمر صلاحية سوبر أدمن',username_unavailable:'اسم المستخدم مستخدم بالفعل',
-    invalid_username:'اسم المستخدم غير صحيح',invalid_account_data:'تحقق من اسم المستخدم وكلمة المرور',
-    protected_superadmin:'هذا الحساب محمي ولا يجوز حذفه',weak_password:'كلمة المرور ضعيفة',
-    user_not_found:'الحساب المطلوب غير موجود',station_not_active:'المحطة غير مفعّلة'};
-  throw Error(problems[out.error]||('تعذر تنفيذ العملية: '+(out.error||resp.status)));
+  const messages={superadmin_required:'هذه العملية متاحة للسوبر أدمن فقط',
+   username_unavailable:'اسم المستخدم مستخدم بالفعل',
+   invalid_account_data:'تحقق من اسم المستخدم وكلمة المرور',
+   invalid_password:'أدخل كلمة مرور من رمزين على الأقل',
+   user_not_found:'الحساب غير موجود',station_not_active:'المحطة غير مفعّلة',
+   last_superadmin:'لا يمكن حذف آخر حساب سوبر أدمن',
+   cannot_delete_current_account:'لا يمكن حذف الحساب المستخدم حاليًا'};
+  throw Error(messages[out.error]||'تعذر تنفيذ العملية: '+(out.error||resp.status));
  }
- if(out.audit_logged===false)toast('تم تنفيذ العملية لكن تعذر حفظ سجل التدقيق الخاص بها؛ راجع Supabase.',true);
  return out;
 }
 function accountsOpen(){
  if(!isAdmin())return;
  $('accountsModal').classList.remove('hidden');
  $('accountType').value='station';
- $('accountType').querySelector('option[value="admin"]').disabled=!isSuperAdmin();
- $('accountCreatePanel').classList.remove('hidden');
+ for(const role of ['admin','superadmin']){
+  $('accountType').querySelector('option[value="'+role+'"]').disabled=!isSuperAdmin();
+ }
  $('accountStation').innerHTML=stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('');
  $('accountStation').value=stations[0]?.id||'';
  $('accountUsername').value=STATION_PLANT_CODES[stations[0]?.id]||'';
  $('accountPassword').value=STATION_PLANT_CODES[stations[0]?.id]||'';
  $('accountResponse').classList.add('hidden');
+ $('accountResetPanel').classList.add('hidden');
  accountTypeChanged();
  accountsRefresh();
 }
 function accountTypeChanged(){
  const station=$('accountType').value==='station';
  $('accountStationField').classList.toggle('hidden',!station);
- $('accountUsername').readOnly=station;
- $('accountUsername').placeholder=station?'رمز PLANT':'مثال: office';
- if(station){
-  const code=STATION_PLANT_CODES[$('accountStation').value]||'';
-  $('accountUsername').value=code;
-  $('accountPassword').value=code;
-  $('accountPassword').readOnly=true;
-  $('generatePassword').classList.add('hidden');
-  $('createAccount').disabled=!code;
- }else{
-  $('accountUsername').value='office';
+ $('accountUsername').readOnly=false;
+ $('accountPassword').readOnly=false;
+ $('generatePassword').classList.remove('hidden');
+ $('accountUsername').placeholder=station?'رمز المحطة أو اسم مخصص':'اسم المستخدم';
+ if(!station&&Object.values(STATION_PLANT_CODES).includes($('accountUsername').value)){
+  $('accountUsername').value='';
   $('accountPassword').value='';
-  $('accountPassword').readOnly=false;
-  $('generatePassword').classList.remove('hidden');
-  $('createAccount').disabled=false;
  }
+ $('createAccount').disabled=false;
 }
 async function accountsRefresh(){
  if(!isAdmin())return;
- $('accountList').innerHTML='<div class="archive-empty">جاري تحميل حسابات المستخدمين…</div>';
+ $('accountList').innerHTML='<div class="archive-empty">جاري تحميل الحسابات…</div>';
  try{
   const result=await accountAdminRequest('list');
   const accounts=result.accounts||[];
   $('accountList').innerHTML=accounts.length?accounts.map(acc=>{
-   const type=acc.role==='superadmin'?'سوبر أدمن':acc.role==='admin'?'أدمن — عرض فقط':'موظف محطة';
+   const type=acc.role==='superadmin'?'سوبر أدمن':acc.role==='admin'?'أدمن':'حساب محطة';
    const name=acc.username||acc.email||'حساب إداري';
-   const station=acc.stationId?stations.find(s=>s.id===acc.stationId)?.name||acc.stationId:'كل المحطات';
-   const protectedRole=acc.role==='superadmin';
-   const canReset=!protectedRole||isSuperAdmin();
-   const canDelete=isSuperAdmin()&&!protectedRole||acc.role==='station';
+   const station=acc.stationId?stations.find(s=>s.id===acc.stationId)?.name||acc.stationId:'جميع المحطات';
+   const canManage=acc.role==='station'||isSuperAdmin();
+   const canDelete=canManage&&acc.id!==currentUserId;
    return '<div class="sec-row" data-account-id="'+esc(acc.id)+'"><div><span class="account-username">'+esc(name)+'</span><small>'+esc(type)+' • '+esc(station)+'</small></div>'+
     '<div class="admin-row-btns">'+
-      (canReset?'<button class="btn" data-user-action="reset_password" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-idstation="'+esc(acc.stationId||'')+'" data-name="'+esc(name)+'">إعادة تعيين كلمة المرور</button>':'<span class="role-chip">سوبر أدمن محمي</span>')+
-      (isSuperAdmin()&&acc.role==='station'&&!STATION_PLANT_CODES[acc.stationId]?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">تغيير المحطة</button>':'')+
-      (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
-   '</div></div>'
+     (canManage?'<button class="btn" data-user-action="reset_password" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">تغيير كلمة المرور</button>':'')+
+     (isSuperAdmin()&&acc.role==='station'?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">نقل المحطة</button>':'')+
+     (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
+    '</div></div>';
   }).join(''):'<div class="archive-empty">لا توجد حسابات بعد.</div>';
  }catch(err){$('accountList').innerHTML='<div class="archive-empty">'+esc(err.message)+'</div>'}
 }
@@ -1211,13 +1215,12 @@ function makePassword(){
  const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
  const bytes=new Uint32Array(26);crypto.getRandomValues(bytes);
  const chars=Array.from(bytes,x=>alphabet[x%alphabet.length]);
- // Password policy guaranteed for every generated credential.
  chars[0]='ABCDEFGHJKLMNPQRSTUVWXYZ'[bytes[0]%24];
  chars[1]='abcdefghijkmnopqrstuvwxyz'[bytes[1]%25];
  chars[2]='23456789'[bytes[2]%8];
  return chars.join('');
 }
-function strongPassword(){if($('accountType').value==='admin')$('accountPassword').value=makePassword()}
+function strongPassword(){$('accountPassword').value=makePassword()}
 function accountMessage(message){
  $('accountResponse').textContent=message;
  $('accountResponse').classList.remove('hidden');
@@ -1228,54 +1231,75 @@ async function userWrite(){
  const username=$('accountUsername').value.trim().toLowerCase();
  const password=$('accountPassword').value;
  const stationId=$('accountStation').value;
- if(role==='station'&&username!==STATION_PLANT_CODES[stationId]){toast('رمز PLANT لهذه المحطة غير موجود أو لا يطابق الملف.',true);return}
- if(role==='admin'&&!/^[a-z][a-z0-9_-]{2,24}$/.test(username)){toast('اسم الأدمن يجب أن يبدأ بحرف إنجليزي ويحتوي أحرفًا وأرقامًا فقط.',true);return}
- if(role==='admin'&&!isSuperAdmin()){toast('إنشاء حسابات الأدمن خاص بالسوبر أدمن.',true);return}
- if(!(role==='station'?password===username:isValidAccountPassword(password))){toast('كلمة المرور غير مطابقة لرمز المحطة أو لا تستوفي شروط حساب الأدمن.',true);return}
+ if(!isValidLoginName(username)){toast('أدخل اسم مستخدم صحيحًا (حتى 64 حرفًا).',true);return}
+ if(!isValidAccountPassword(password)){toast('كلمة المرور يجب أن تكون من رمزين على الأقل.',true);return}
+ if(role!=='station'&&!isSuperAdmin()){toast('إضافة الحسابات الإدارية متاحة للسوبر أدمن.',true);return}
+ if(role==='superadmin'&&!confirm('إنشاء حساب بصلاحية سوبر أدمن كاملة؟'))return;
  const button=$('createAccount');button.disabled=true;
  try{
   const output=await accountAdminRequest('create',{role,username,password,stationId});
-  accountMessage('تم إنشاء الحساب بنجاح.\nالصلاحية: '+(role==='admin'?'أدمن (قراءة وطباعة)':'محطة '+(stations.find(s=>s.id===stationId)?.name||stationId))+
-   '\nاسم الدخول: '+output.username+
-   '\nكلمة المرور الأولية: '+password+
-   '\n\nيمكن للموظف تغيير كلمة مروره، ويستطيع الأدمن والسوبر أدمن إعادة تعيينها.');
+  accountMessage('تم إنشاء الحساب.\nنوع الحساب: '+(role==='superadmin'?'سوبر أدمن':role==='admin'?'أدمن':'محطة '+(stations.find(s=>s.id===stationId)?.name||stationId))+
+   '\nاسم المستخدم: '+output.username+'\nكلمة المرور: '+password);
+  $('accountUsername').value='';
   $('accountPassword').value='';
   await accountsRefresh();
-  toast('تم إنشاء الحساب والصلاحيات بنجاح');
- }catch(err){toast(err.message,true)}finally{button.disabled=false}
+  toast('تم إنشاء الحساب');
+ }catch(err){toast(err.message,true)}
+ finally{button.disabled=false}
+}
+let resettingAccount=null;
+function preparePasswordReset(id,name){
+ resettingAccount={id,name};
+ $('accountResetName').textContent=name;
+ $('accountResetPassword').value='';
+ $('accountResetPanel').classList.remove('hidden');
+ $('accountResetPassword').focus();
+}
+function closePasswordReset(){
+ resettingAccount=null;
+ $('accountResetPassword').value='';
+ $('accountResetPanel').classList.add('hidden');
+}
+async function savePasswordReset(){
+ if(!resettingAccount||!isAdmin())return;
+ const password=$('accountResetPassword').value;
+ if(!isValidAccountPassword(password)){toast('كلمة المرور يجب أن تكون من رمزين على الأقل.',true);return}
+ const btn=$('accountResetSave');btn.disabled=true;
+ try{
+  await accountAdminRequest('reset_password',{id:resettingAccount.id,password});
+  accountMessage('تم تغيير كلمة المرور لحساب '+resettingAccount.name+'.');
+  closePasswordReset();
+  await accountsRefresh();
+  toast('تم حفظ كلمة المرور');
+ }catch(err){toast(err.message,true)}
+ finally{btn.disabled=false}
 }
 async function accountListAction(e){
  const button=e.target.closest('[data-user-action]');
  if(!button||!isAdmin())return;
  const action=button.dataset.userAction,id=button.dataset.id,name=button.dataset.name;
+ if(action==='reset_password'){preparePasswordReset(id,name);return}
  try{
-  let params={id};
-  if(action==='reset_password'){
-   if(!confirm('تعيين كلمة مرور جديدة لحساب '+name+'؟'))return;
-   params.password=button.dataset.role==='station'&&STATION_PLANT_CODES[button.dataset.idstation]?STATION_PLANT_CODES[button.dataset.idstation]:makePassword();
-  }else if(action==='delete'){
-   if(!isSuperAdmin()&&button.dataset.role!=='station')throw Error('حذف حسابات الأدمن متاح للسوبر أدمن فقط.');
-   if(!confirm('حذف حساب '+name+' نهائيًا؟ يفقد المستخدم الدخول فورًا، وتبقى التقارير المحفوظة.'))return;
+  const params={id};
+  if(action==='delete'){
+   if(!isSuperAdmin()&&button.dataset.role!=='station')throw Error('هذه العملية متاحة للسوبر أدمن فقط.');
+   if(!confirm('حذف حساب '+name+'؟'))return;
   }else if(action==='move_station'){
-   const promptStr=stations.map(s=>s.id+' : '+s.name).join('\n');
-   const stationId=prompt('اختر رمز المحطة الجديدة لحساب '+name+':\n'+promptStr,stations[0]?.id||'');
+   if(!isSuperAdmin())return;
+   const choices=stations.map(s=>s.id+' : '+s.name).join('\n');
+   const stationId=prompt('اختر رمز المحطة:\n'+choices,stations[0]?.id||'');
    if(stationId===null)return;
-   if(!stations.some(s=>s.id===stationId.trim()))throw Error('المحطة غير موجودة أو غير مفعّلة.');
+   if(!stations.some(s=>s.id===stationId.trim()))throw Error('المحطة غير موجودة.');
    params.stationId=stationId.trim();
   }else return;
   button.disabled=true;
   await accountAdminRequest(action,params);
-  if(action==='reset_password')accountMessage('تم تعيين كلمة المرور الجديدة.\nالحساب: '+name+'\nكلمة المرور: '+params.password+'\nسلمها للمستخدم الآن بطريقة آمنة.');
-  else if(action==='delete')accountMessage('تم حذف حساب '+name+' بنجاح.');
-  else accountMessage('تم نقل حساب '+name+' إلى المحطة المحددة.');
+  accountMessage(action==='delete'?'تم حذف حساب '+name+'.':'تم تحديث محطة الحساب '+name+'.');
   await accountsRefresh();
   toast('تم تنفيذ العملية');
  }catch(err){toast(err.message,true)}
  finally{button.disabled=false}
 }
-
-
-
 
 async function createStationAccounts(){
  if(!isAdmin())return;
@@ -1311,9 +1335,10 @@ async function createStationAccounts(){
  }catch(err){toast(err.message,true)}
  finally{button.disabled=false}
 }
+
 function openOwnPassword(){
- if(currentRole!=='station'||!signedIn())return;
- $('fixedStationUsername').textContent=currentLoginName;
+ if(!signedIn())return;
+ $('fixedStationUsername').textContent=currentRole==='station'?currentLoginName:(authSession?.user?.email||currentLoginName);
  for(const id of ['selfPasswordOld','selfPasswordNew','selfPasswordConfirm'])$(id).value='';
  $('selfPasswordFeedback').textContent='';
  $('passwordModal').classList.remove('hidden');
@@ -1325,32 +1350,30 @@ function closeOwnPassword(){
 }
 async function changeOwnPassword(event){
  event.preventDefault();
- if(currentRole!=='station'||!signedIn())return;
- const oldPassword=$('selfPasswordOld').value;
- const password=$('selfPasswordNew').value,again=$('selfPasswordConfirm').value;
- const error=$('selfPasswordFeedback');
- error.textContent='';
- if(!isValidAccountPassword(password)){error.textContent='كلمة المرور الجديدة يجب أن تحتوي 12 رمزًا على الأقل مع حرف كبير وحرف صغير ورقم.';return}
- if(password!==again){error.textContent='تأكيد كلمة المرور غير مطابق.';return}
- if(oldPassword===password){error.textContent='اختر كلمة مرور مختلفة عن الحالية.';return}
- const button=$('saveOwnPassword');button.disabled=true;
+ if(!signedIn())return;
+ const oldPassword=$('selfPasswordOld').value,password=$('selfPasswordNew').value,
+  confirmPassword=$('selfPasswordConfirm').value;
+ const feedback=$('selfPasswordFeedback');feedback.textContent='';
+ if(!isValidAccountPassword(password)){feedback.textContent='أدخل كلمة مرور من رمزين على الأقل.';return}
+ if(password!==confirmPassword){feedback.textContent='تأكيد كلمة المرور غير مطابق.';return}
+ if(oldPassword===password){feedback.textContent='اختر كلمة مرور مختلفة عن الحالية.';return}
+ const btn=$('saveOwnPassword');btn.disabled=true;
  try{
-  const email='station-'+currentLoginName+STATION_EMAIL_SUFFIX;
-  const pinAttempt=oldPassword===currentLoginName&&/^\d{4}$/.test(oldPassword);
-  const check=await fetch(pinAttempt?CLOUD_STATION_LOGIN:CLOUD_AUTH+'/token?grant_type=password',{
-   method:'POST',headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},
-   body:JSON.stringify(pinAttempt?{username:currentLoginName,password:oldPassword}:{email,password:oldPassword})
+  const resp=await authedFetch('/functions/v1/account-admin',{
+   method:'POST',body:JSON.stringify({action:'change_own_password',oldPassword,password})
   });
-  if(!check.ok)throw Error('كلمة المرور الحالية غير صحيحة.');
-  // Current authenticated station identity is unchanged; only the password is updated.
-  const result=await authedFetch('/auth/v1/user',{method:'PUT',body:JSON.stringify({password})});
-  const response=await result.json().catch(()=>({}));
-  if(!result.ok)throw Error(response.msg||response.message||'تعذر تغيير كلمة المرور.');
+  const result=await resp.json().catch(()=>({}));
+  if(!resp.ok){
+   const error=result.error==='incorrect_current_password'?'كلمة المرور الحالية غير صحيحة.':
+    result.error==='same_password'?'اختر كلمة مرور مختلفة.':
+    'تعذّر تغيير كلمة المرور ('+(result.error||resp.status)+').';
+   throw Error(error);
+  }
   closeOwnPassword();
   await logout();
-  $('loginError').textContent='تم تغيير كلمة المرور بنجاح. سجّل دخولك برمز المحطة وكلمة المرور الجديدة.';
- }catch(err){error.textContent=err.message||'تعذر تغيير كلمة المرور.'}
- finally{button.disabled=false}
+  $('loginError').textContent='تم تغيير كلمة المرور بنجاح. سجّل الدخول بكلمة المرور الجديدة.';
+ }catch(err){feedback.textContent=err.message||'تعذّر تغيير كلمة المرور.'}
+ finally{btn.disabled=false}
 }
 
 /* These logs indicate requested interface actions, not proof of a completed physical print. */
@@ -1534,10 +1557,19 @@ $('auditActor').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefa
 
 $('accountsClose').onclick=()=>{$('accountsModal').classList.add('hidden')};
 $('accountType').addEventListener('change',accountTypeChanged);
-$('accountStation').addEventListener('change',accountTypeChanged);
+$('accountStation').addEventListener('change',()=>{
+ const code=STATION_PLANT_CODES[$('accountStation').value]||'';
+ if($('accountType').value!=='station')return;
+ if(!$('accountUsername').value||Object.values(STATION_PLANT_CODES).includes($('accountUsername').value)){
+  $('accountUsername').value=code;
+  $('accountPassword').value=code;
+ }
+});
 $('generatePassword').onclick=strongPassword;
 $('createAccount').onclick=userWrite;
 $('refreshAccounts').onclick=accountsRefresh;
+$('accountResetSave').onclick=savePasswordReset;
+$('accountResetCancel').onclick=closePasswordReset;
 $('createStationAccounts').onclick=createStationAccounts;
 $('changeOwnPasswordBtn').onclick=openOwnPassword;
 $('closeOwnPassword').onclick=closeOwnPassword;
