@@ -197,6 +197,16 @@ body[data-auth="ready"]{overflow:auto}
 @media(max-width:750px){.audit-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-row-main{flex-direction:column;gap:8px}.audit-change{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.audit-change strong{grid-column:span 2}}
 @media(max-width:430px){.audit-filters{grid-template-columns:1fr}}
 
+.recovery-link{background:none;border:0;font:inherit;font-size:13px;color:#0362af;font-weight:800;text-decoration:underline;cursor:pointer;padding:8px}
+.recovery-hint{font-size:12px;color:#526d81;line-height:1.9;margin:12px 0}
+.recovery-message{font-size:12px;font-weight:750;white-space:pre-wrap;line-height:1.8;color:#137b50;margin:12px 0}
+.recovery-message.error{color:#b43142}
+.recovery-card{max-width:470px;width:100%;padding:34px}
+.recovery-card .login-input{width:100%;border:1px solid #cadcea;background:#fff;border-radius:11px;padding:14px;font:inherit;text-align:left;direction:ltr}
+.recovery-card .login-form-field{margin:14px 0}
+.recovery-card .login-form-field label{display:block;font-size:13px;font-weight:800;color:#2a4f69;margin-bottom:5px}
+.recovery-card h2{font-size:22px;color:#0362af}
+.recovery-card #backFromRecovery{display:block;margin:8px auto}
 </style></head>
 <body data-auth="locked">
 
@@ -235,7 +245,16 @@ body[data-auth="ready"]{overflow:auto}
      </div>
      <button id="loginButton" class="btn primary login-submit" type="submit"><span id="loginButtonLabel">دخول النظام</span><span class="login-submit-arrow" aria-hidden="true">←</span></button>
     </form>
+    <div style="text-align:center;margin:10px 0"><button id="forgotButton" type="button" class="recovery-link">نسيت كلمة المرور؟</button></div>
     <div id="loginError" class="login-error" role="alert" aria-live="polite"></div>
+    <form id="forgotForm" class="hidden">
+      <h3 style="color:#0362af">استعادة كلمة المرور</h3>
+      <p class="recovery-hint">أدخل بريدك الإلكتروني المسجل في نظام التقارير. سيصلك رابط جديد لتعيين كلمة مرور.</p>
+      <div class="login-form-field"><label for="forgotEmail">البريد الإلكتروني</label><input class="login-input" id="forgotEmail" type="email" autocomplete="email" required dir="ltr" placeholder="email@example.com"></div>
+      <button id="sendRecoveryButton" class="btn primary login-submit" type="submit">إرسال رابط استعادة</button>
+      <div id="forgotNotice" class="recovery-message" role="status" aria-live="polite"></div>
+      <button id="backFromForgot" type="button" class="recovery-link">العودة إلى تسجيل الدخول</button>
+    </form>
     <div class="login-help" id="loginUserHint">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
      <span>يُفتح نموذج المحطة المرتبطة بحسابك تلقائيًا. يمكن للمدير استخدام بريده الإلكتروني للوصول إلى لوحة جميع المحطات.</span>
@@ -274,6 +293,21 @@ body[data-auth="ready"]{overflow:auto}
    </div>
   </div>
  </div>
+</section>
+
+<section id="recoveryScreen" class="login-screen hidden" aria-label="تغيير كلمة المرور">
+  <div class="login-card recovery-card">
+    <h2>🔐 تعيين كلمة المرور الجديدة</h2>
+    <p class="recovery-hint">تم فتح رابط الاستعادة. اختر كلمة مرور جديدة للدخول إلى نظام تقارير المحطات.</p>
+    <form id="recoveryForm">
+      <div class="login-form-field"><label for="newRecoveryPassword">كلمة المرور الجديدة</label><input class="login-input" type="password" id="newRecoveryPassword" autocomplete="new-password" minlength="12" required dir="ltr"></div>
+      <div class="login-form-field"><label for="confirmRecoveryPassword">تأكيد كلمة المرور</label><input class="login-input" type="password" id="confirmRecoveryPassword" autocomplete="new-password" minlength="12" required dir="ltr"></div>
+      <p class="recovery-hint">12 رمزًا على الأقل، تشمل حرفًا إنجليزيًا كبيرًا وصغيرًا ورقمًا.</p>
+      <button id="saveRecoveryButton" type="submit" class="btn primary login-submit">حفظ كلمة المرور الجديدة</button>
+    </form>
+    <div id="recoveryNotice" class="recovery-message" role="alert" aria-live="polite"></div>
+    <button type="button" class="recovery-link" id="backFromRecovery">العودة إلى تسجيل الدخول</button>
+  </div>
 </section>
 
 <header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="brand-mark">◈</div><div><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | الدخول المخصص للمحطات</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" style="text-align:center;color:#556c82;background:#eaf6ff;border-bottom:1px solid #d9eaf7;padding:8px 12px;font-size:12px;font-weight:700">لكل محطة اسم مستخدم وكلمة مرور مستقلة. لا يظهر لموظف المحطة إلا نموذجها وتقاريرها، بينما يتمكن الأدمن من متابعة جميع المحطات.</aside>
@@ -1314,7 +1348,88 @@ $('archiveResults').onclick=e=>{
 $('archiveModal').addEventListener('click',e=>{if(e.target.id==='archiveModal')archiveClose()});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('archiveModal').classList.contains('hidden'))archiveClose()});
 
-restoreSession();
+
+let resetBearer='',resetEmail='';
+function showResetNotice(el,text,error=false){$(el).textContent=text;$(el).classList.toggle('error',error)}
+function resetToLogin(){
+ resetBearer='';$('newRecoveryPassword').value='';$('confirmRecoveryPassword').value='';
+ $('recoveryScreen').classList.add('hidden');$('loginScreen').classList.remove('hidden');
+ $('forgotForm').classList.add('hidden');$('loginForm').classList.remove('hidden');
+ $('forgotButton').classList.remove('hidden');$('loginPassword').value='';
+ if(resetEmail)$('loginUsername').value=resetEmail;
+}
+function forgotFormOpen(message='',error=false){
+ $('loginForm').classList.add('hidden');$('forgotButton').classList.add('hidden');
+ $('forgotForm').classList.remove('hidden');$('loginError').textContent='';
+ const raw=$('loginUsername').value.trim();if(raw.includes('@'))$('forgotEmail').value=raw;
+ showResetNotice('forgotNotice',message,error);
+}
+async function sendRecovery(event){
+ event.preventDefault();const btn=$('sendRecoveryButton'),email=$('forgotEmail').value.trim().toLowerCase();
+ if(!email.includes('@'))return showResetNotice('forgotNotice','أدخل البريد الإلكتروني.',true);
+ btn.disabled=true;showResetNotice('forgotNotice','جارٍ إرسال الرسالة…');
+ try{
+  const resp=await fetch(CLOUD_AUTH+'/recover?redirect_to='+encodeURIComponent(location.origin+'/'),{
+   method:'POST',headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},body:JSON.stringify({email})
+  });
+  const data=await resp.json().catch(()=>({}));
+  if(!resp.ok)throw Error(resp.status===429?'أرسلت طلبات متكررة، جرّب بعد قليل.':data.msg||data.message||'تعذر إرسال البريد. راجع إعدادات Supabase.');
+  showResetNotice('forgotNotice','إذا كان البريد مسجلًا، ستصلك رسالة. افتح أحدث رسالة واضغط رابط الاستعادة.');
+ }catch(err){showResetNotice('forgotNotice',err.message||'حدث خطأ عند إرسال البريد.',true)}
+ finally{btn.disabled=false}
+}
+async function checkRecoveryLink(){
+ const frag=new URLSearchParams(location.hash.replace(/^#/,'')),q=new URLSearchParams(location.search);
+ const recovery=frag.get('type')==='recovery'||q.get('type')==='recovery';
+ const failure=frag.get('error')||q.get('error');
+ if(!recovery&&!failure)return false;
+ const access=frag.get('access_token'),hash=q.get('token_hash');
+ // Clear sensitive bearer tokens from URL before async calls.
+ history.replaceState(null,document.title,location.origin+location.pathname);
+ if(failure||(!access&&!hash)){
+  forgotFormOpen('رابط الاستعادة غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا.',true);return true;
+ }
+ try{
+  let token=access;
+  if(!token&&hash){
+   const res=await fetch(CLOUD_AUTH+'/verify',{method:'POST',headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},body:JSON.stringify({type:'recovery',token_hash:hash})});
+   const data=await res.json().catch(()=>({}));
+   if(!res.ok||!data.access_token)throw Error('الرابط منتهي أو غير صالح. اطلب رابطًا جديدًا.');
+   token=data.access_token;
+  }
+  const res=await fetch(CLOUD_AUTH+'/user',{headers:{apikey:CLOUD_PUBLIC_KEY,Authorization:'Bearer '+token}});
+  if(!res.ok)throw Error('انتهت صلاحية رابط الاستعادة. اطلب رابطًا جديدًا.');
+  const identity=await res.json();resetBearer=token;resetEmail=identity.email||'';
+  $('loginScreen').classList.add('hidden');$('recoveryScreen').classList.remove('hidden');
+  $('recoveryForm').classList.remove('hidden');showResetNotice('recoveryNotice','');
+ }catch(err){forgotFormOpen(err.message||'تعذر التحقق من الرابط.',true)}
+ return true;
+}
+async function applyRecoveredPassword(event){
+ event.preventDefault();
+ const a=$('newRecoveryPassword').value,b=$('confirmRecoveryPassword').value;
+ if(!resetBearer)return showResetNotice('recoveryNotice','انتهت جلسة الاستعادة. اطلب رابطًا جديدًا.',true);
+ if(a.length<12||!/[a-z]/.test(a)||!/[A-Z]/.test(a)||!/\d/.test(a))
+   return showResetNotice('recoveryNotice','كلمة المرور: 12 رمزًا على الأقل مع أحرف كبيرة وصغيرة ورقم.',true);
+ if(a!==b)return showResetNotice('recoveryNotice','كلمتا المرور غير متطابقتين.',true);
+ const btn=$('saveRecoveryButton');btn.disabled=true;
+ try{
+  const resp=await fetch(CLOUD_AUTH+'/user',{method:'PUT',headers:{apikey:CLOUD_PUBLIC_KEY,Authorization:'Bearer '+resetBearer,'Content-Type':'application/json'},body:JSON.stringify({password:a})});
+  const data=await resp.json().catch(()=>({}));
+  if(!resp.ok)throw Error(data.msg||data.message||'تعذر تحديث كلمة المرور. أعد طلب الرابط.');
+  resetBearer='';$('newRecoveryPassword').value='';$('confirmRecoveryPassword').value='';
+  $('recoveryForm').classList.add('hidden');
+  showResetNotice('recoveryNotice','تم تغيير كلمة المرور بنجاح. اضغط العودة إلى تسجيل الدخول واستخدم كلمة المرور الجديدة.');
+ }catch(err){showResetNotice('recoveryNotice',err.message||'تعذر حفظ كلمة المرور.',true)}
+ finally{btn.disabled=false}
+}
+$('forgotButton').onclick=()=>forgotFormOpen();
+$('backFromForgot').onclick=resetToLogin;
+$('backFromRecovery').onclick=resetToLogin;
+$('forgotForm').onsubmit=sendRecovery;
+$('recoveryForm').onsubmit=applyRecoveredPassword;
+
+void (async()=>{if(!(await checkRecoveryLink()))await restoreSession()})();
 })();
 
 </script></body></html>
