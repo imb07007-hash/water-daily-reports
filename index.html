@@ -310,6 +310,71 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 .report-company-logo{border-radius:7px!important;object-fit:contain!important;clip-path:inset(3% 3% 6% 3%);padding:2px!important}
 @media(max-width:500px){.login-form-side{padding:24px 20px 30px!important}.login-logo-shell{width:165px!important;height:88px!important}.login-logo-shell img{width:187px!important;height:99px!important}.login-brand-name{font-size:15px!important}}
 
+
+/* Operations dashboard — Water Solutions Company */
+.dashboard-filters{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px}
+.dashboard-filters>.field{width:min(245px,100%)}
+.dashboard-quick{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.dashboard-section{margin-top:17px}
+.dashboard-section-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 11px}
+.dashboard-section-head h3{font-size:15px;color:#0362AF;font-weight:900;margin:0}
+.dashboard-section-head small{font-size:11px;color:#677d91}
+.dashboard-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.dashboard-kpi{border:1px solid #deeaf3;background:linear-gradient(155deg,#fff,#f7fbff);border-radius:12px;padding:16px 15px;display:flex;flex-direction:column;min-height:104px;gap:6px}
+.dashboard-kpi strong{font-size:25px;line-height:1.4;color:#0362AF;font-weight:900;direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+.dashboard-kpi small{font-size:12px;color:#60758b;font-weight:700}
+.dashboard-kpi.pending strong{color:#a15b20}
+.dashboard-kpi.good strong{color:#166b56}
+.dashboard-plant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.dashboard-plant{border:1px solid #dce8f2;border-radius:13px;background:#fff;padding:15px;min-width:0;box-shadow:0 2px 10px #0c44700c}
+.dashboard-plant.pending{border-right:4px solid #d8a04b}
+.dashboard-plant.received{border-right:4px solid #3f9c80}
+.dashboard-plant-head{display:flex;align-items:start;justify-content:space-between;gap:9px;margin-bottom:12px}
+.dashboard-plant-name{font-size:13px;color:#24465e;font-weight:900;line-height:1.8;margin:0;overflow-wrap:anywhere}
+.dashboard-status{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap;flex:none}
+.dashboard-status.received{background:#e9f8f1;color:#176b51}
+.dashboard-status.pending{background:#fff6e8;color:#986222}
+.dashboard-submission{border-top:1px solid #ecf1f5;padding-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dashboard-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dashboard-field small{font-size:10px;color:#788796}
+.dashboard-field strong{font-size:12px;color:#284f6b;font-weight:800}
+.dashboard-station-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;background:#f5f9fc;padding:10px 9px;border-radius:9px;margin-top:12px}
+.dashboard-station-value{display:flex;flex-direction:column;gap:5px;min-width:0}
+.dashboard-station-value+.dashboard-station-value{border-right:1px solid #dfebf3;padding-right:8px}
+.dashboard-station-value small{font-size:10px;color:#6d8193}
+.dashboard-station-value strong{font-size:13px;font-weight:900;color:#0362AF;font-variant-numeric:tabular-nums}
+.dashboard-plant-actions{margin-top:12px}
+.dashboard-week{border:1px solid #e0eaf2;border-radius:13px;background:#fff;padding:15px}
+.dashboard-week-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;align-items:end;min-height:180px;margin-top:8px;direction:ltr}
+.dashboard-week-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;min-width:0;height:180px}
+.dashboard-week-value{font-size:10px;color:#425e74;min-height:25px;display:grid;place-items:end center;font-weight:800;white-space:nowrap}
+.dashboard-week-track{height:115px;width:min(100%,55px);background:#f0f5f9;border:1px solid #e3edf5;border-radius:7px 7px 3px 3px;display:flex;align-items:end;overflow:hidden}
+.dashboard-week-fill{background:linear-gradient(180deg,#50B4F2,#0362AF);width:100%;border-radius:5px 5px 1px 1px;min-height:0}
+.dashboard-week-date{font-size:11px;color:#657b8c;direction:ltr;white-space:nowrap}
+.dashboard-week-today .dashboard-week-date{font-weight:900;color:#0362AF}
+.dashboard-recent{border:1px solid #e0eaf2;border-radius:13px;background:#fff;overflow:hidden}
+.dashboard-recent-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1.45fr);align-items:center;gap:12px;padding:12px 14px;border-top:1px solid #eef1f5}
+.dashboard-recent-row:first-child{border-top:0}
+.dashboard-recent-station{font-size:12px;font-weight:800;color:#315069;overflow-wrap:anywhere}
+.dashboard-recent-label{font-size:10px;color:#81909f}
+.dashboard-recent-value{font-size:12px;font-weight:700;color:#315069;direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+.dashboard-empty{padding:20px 14px;color:#7b8c9b;text-align:center;font-size:12px}
+@media(max-width:740px){
+ .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .dashboard-plant-grid{grid-template-columns:1fr}
+ .dashboard-kpi{padding:12px;min-height:90px}
+ .dashboard-kpi strong{font-size:21px}
+ .dashboard-recent-row{grid-template-columns:1fr 1fr;gap:7px}
+ .dashboard-recent-station{grid-column:1/-1}
+}
+@media(max-width:420px){
+ .dashboard-filters>.field{width:100%}
+ .dashboard-submission{gap:6px}
+ .dashboard-week-bars{gap:3px}
+ .dashboard-week-value{font-size:9px}
+ .dashboard-week-date{font-size:9px}
+}
+
 </style></head>
 <body data-auth="locked">
 
@@ -388,14 +453,18 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
    </div>
 </div>
 <div class="modal-backdrop hidden" id="dashboardModal" role="dialog" aria-modal="true">
- <div class="modal" style="width:min(1080px,96vw)">
-  <div class="modal-head"><h2>لوحة متابعة جميع المحطات</h2><button class="btn" id="dashboardClose">✕ إغلاق</button></div>
+ <div class="modal" style="width:min(1180px,97vw)">
+  <div class="modal-head"><h2>لوحة متابعة التشغيل</h2><button class="btn" id="dashboardClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <div class="sec-fields">
-    <div class="field"><label>تاريخ التقارير</label><input class="control" id="dashboardDate" type="date"></div>
-    <div class="field"><label>تحديث البيانات</label><button class="btn primary" id="dashboardRefresh">تحديث الداشبورد</button></div>
+   <div class="dashboard-filters">
+    <div class="field"><label for="dashboardDate">تاريخ التقرير</label><input class="control" id="dashboardDate" type="date"></div>
+    <div class="dashboard-quick">
+     <button class="btn" id="dashboardToday" type="button">اليوم</button>
+     <button class="btn" id="dashboardYesterday" type="button">أمس</button>
+     <button class="btn primary" id="dashboardRefresh" type="button">تحديث البيانات</button>
+    </div>
    </div>
-   <div id="dashboardContent" class="archive-empty">اختر التاريخ لعرض المؤشرات.</div>
+   <div id="dashboardContent" aria-live="polite" aria-busy="false"><div class="archive-empty">جاري تحميل البيانات…</div></div>
   </div>
  </div>
 </div>
@@ -1125,41 +1194,159 @@ async function restoreSession(){
   $('loginError').textContent='أعد تسجيل الدخول للمتابعة.';
  }
 }
+
+const DASHBOARD_TIME_ZONE='Asia/Riyadh';
+let dashboardUpdating=false;
+function dashboardSaudiDate(value=new Date()){
+ const fields=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+  timeZone:DASHBOARD_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'
+ }).formatToParts(value).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ return fields.year+'-'+fields.month+'-'+fields.day;
+}
+function dashboardShiftDate(value,days){
+ const stamp=new Date(value+'T12:00:00Z');
+ if(!Number.isFinite(stamp.getTime()))return value;
+ stamp.setUTCDate(stamp.getUTCDate()+days);
+ return stamp.toISOString().slice(0,10);
+}
+function dashboardShortDate(value){
+ const parts=String(value||'').split('-');
+ return parts.length===3?parts[2]+'/'+parts[1]+'/'+parts[0]:'—';
+}
+function dashboardSubmitTime(value){
+ const d=new Date(value);
+ if(!value||!Number.isFinite(d.getTime()))return {date:'—',time:'—'};
+ return {
+  date:new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn',{
+   timeZone:DASHBOARD_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'
+  }).format(d),
+  time:new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn',{
+   timeZone:DASHBOARD_TIME_ZONE,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true
+  }).format(d)
+ };
+}
+function dashboardNumeric(value){
+ const n=num(value);
+ return n===null?null:n;
+}
+function dashboardTotal(rows,metric){
+ const present=rows.map(row=>dashboardNumeric(row?.data?.metrics?.[metric])).filter(x=>x!==null);
+ return present.length?present.reduce((a,b)=>a+b,0):null;
+}
+function dashboardMetricLabel(value){
+ return value===null?'غير مسجل':fmt(value);
+}
 function dashboardOpen(){
  if(!isAdmin())return;
  $('dashboardModal').classList.remove('hidden');
  logActivity('DASHBOARD_VIEW');
- $('dashboardDate').value=currentDate;
+ $('dashboardDate').value=dashboardSaudiDate();
  dashboardRefresh();
 }
 async function dashboardRefresh(){
- if(!isAdmin())return;
- const date=$('dashboardDate').value||currentDate,view=$('dashboardContent');
- view.innerHTML='<div class="archive-empty">جاري تحميل المؤشرات…</div>';
+ if(!isAdmin()||dashboardUpdating)return;
+ dashboardUpdating=true;
+ const view=$('dashboardContent');
+ const button=$('dashboardRefresh');
+ const date=$('dashboardDate').value||dashboardSaudiDate();
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){dashboardUpdating=false;return}
+ button.disabled=true;
+ view.setAttribute('aria-busy','true');
+ if(!view.querySelector('.dashboard-summary'))view.innerHTML='<div class="archive-empty">جارٍ تحميل بيانات التشغيل…</div>';
  try{
-  const q=new URLSearchParams({select:'id,station_id,report_date,data,created_at',
-    report_date:'eq.'+date,limit:'200'});
-  const resp=await authedFetch('/rest/v1/reports?'+q);
-  if(!resp.ok)throw Error('تعذر تحميل التقارير.');
-  const rows=await resp.json(), byId=new Map(rows.map(r=>[r.station_id,r]));
-  const sum=(name)=>rows.reduce((a,r)=>a+(Number(r.data?.metrics?.[name])||0),0);
-  const received=stations.filter(s=>byId.has(s.id)).length;
-  const lines=stations.map(s=>{
-    const r=byId.get(s.id),metrics=r?.data?.metrics||{};
-    const production=Number(metrics.production)||0;
-    const pct=Math.max(0,Math.min(100,(production/Math.max(1,...rows.map(x=>Number(x.data?.metrics?.production)||0)))*100));
-    return '<div class="sec-row"><div><strong>'+esc(s.name)+'</strong><small>'+(r?'تم استلام التقرير':'لم يُرسل تقرير في هذا التاريخ')+'</small></div>'+
-       '<div style="width:min(280px,36%);text-align:left"><span style="font-weight:900;color:'+(r?'#13754e':'#b95b36')+'">'+(r?fmt(production)+' م³':'لم يرسل')+'</span>'+
-       '<div style="height:7px;border-radius:8px;background:#e0e9f1;margin-top:5px"><div style="height:7px;border-radius:8px;background:#50b4f2;width:'+pct+'%"></div></div></div></div>';
+  const begin=dashboardShiftDate(date,-6);
+  const windowQuery=new URLSearchParams({
+   select:'id,station_id,report_date,data,created_at,updated_at',
+   order:'report_date.desc,created_at.desc',limit:String(Math.max(300,stations.length*8))
+  });
+  windowQuery.append('report_date','gte.'+begin);
+  windowQuery.append('report_date','lte.'+date);
+  const latestQuery=new URLSearchParams({
+   select:'id,station_id,report_date,created_at',order:'created_at.desc',limit:'50'
+  });
+  const [rangeResponse,latestResponse]=await Promise.all([
+   authedFetch('/rest/v1/reports?'+windowQuery.toString()),
+   authedFetch('/rest/v1/reports?'+latestQuery.toString())
+  ]);
+  if(!rangeResponse.ok||!latestResponse.ok)throw Error('تعذّر تحميل تقارير المحطات.');
+  const [rangeItems,latestItems]=await Promise.all([rangeResponse.json(),latestResponse.json()]);
+  if(!Array.isArray(rangeItems)||!Array.isArray(latestItems))throw Error('تعذّر قراءة بيانات التقارير.');
+  const ids=new Set(stations.map(s=>s.id));
+  const reports=rangeItems.filter(r=>ids.has(r.station_id));
+  const byDayStation=new Map();
+  for(const r of reports){
+   const k=r.station_id+'@'+r.report_date;
+   if(!byDayStation.has(k)||Date.parse(r.created_at)>Date.parse(byDayStation.get(k).created_at))byDayStation.set(k,r);
+  }
+  const selectedRows=stations.map(s=>byDayStation.get(s.id+'@'+date)).filter(Boolean);
+  const received=selectedRows.length;
+  const readyRate=stations.length?Math.round(100*received/stations.length):0;
+  const totals=[['إجمالي المحطات',stations.length],['التقارير المستلمة',received],['لم تُرسل',stations.length-received],
+    ['إجمالي الإنتاج (م³)',dashboardTotal(selectedRows,'production')],
+    ['إجمالي المياه الخام (م³)',dashboardTotal(selectedRows,'raw')],
+    ['إجمالي التصدير (م³)',dashboardTotal(selectedRows,'export')]];
+  const summary='<section class="dashboard-summary" aria-label="ملخص التقارير">'+
+   totals.map(([label,value],i)=>'<div class="dashboard-kpi'+(i===1?' good':i===2?' pending':'')+'"><strong>'+
+     esc(value===null?'—':i<3?String(value):fmt(value))+'</strong><small>'+esc(label)+'</small></div>').join('')+
+   '</section>';
+  const sorted=stations.slice().sort((a,b)=>Number(!byDayStation.has(b.id+'@'+date))-Number(!byDayStation.has(a.id+'@'+date)));
+  const cards=sorted.map(s=>{
+   const r=byDayStation.get(s.id+'@'+date);
+   const submit=r?dashboardSubmitTime(r.created_at):null;
+   const metrics=r?.data?.metrics||{};
+   const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)]];
+   const status=r?'تم الاستلام':'لم يُرسل';
+   return '<div class="dashboard-plant '+(r?'received':'pending')+'">'+
+    '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+'</h4>'+
+     '<span class="dashboard-status '+(r?'received':'pending')+'">'+status+'</span></div>'+
+    '<div class="dashboard-submission">'+
+     '<div class="dashboard-field"><small>تاريخ إرسال التقرير</small><strong>'+esc(submit?.date||'—')+'</strong></div>'+
+     '<div class="dashboard-field"><small>وقت الإرسال — السعودية</small><strong dir="auto">'+esc(submit?.time||'—')+'</strong></div>'+
+    '</div>'+
+    '<div class="dashboard-station-values">'+present.map(([label,value])=>
+     '<div class="dashboard-station-value"><small>'+esc(label)+'</small><strong>'+esc(dashboardMetricLabel(value))+'</strong></div>').join('')+'</div>'+
+    (r?'<div class="dashboard-plant-actions"><button type="button" class="btn" data-dashboard-report="'+esc(r.id)+'">عرض التقرير</button></div>':'')+
+    '</div>';
   }).join('');
-  view.innerHTML='<div class="sec-grid"><div class="sec-stat"><strong>'+stations.length+'</strong><small>إجمالي المحطات</small></div>'+
-   '<div class="sec-stat"><strong>'+received+'</strong><small>تقارير مستلمة</small></div>'+
-   '<div class="sec-stat"><strong>'+ (stations.length-received)+'</strong><small>لم تُرسل</small></div>'+
-   '<div class="sec-stat"><strong>'+fmt(sum('production'))+'</strong><small>إجمالي الإنتاج (م³)</small></div>'+
-   '<div class="sec-stat"><strong>'+fmt(sum('raw'))+'</strong><small>إجمالي المياه الخام (م³)</small></div>'+
-   '<div class="sec-stat"><strong>'+fmt(sum('export'))+'</strong><small>إجمالي التصدير (م³)</small></div></div>'+
-   '<div class="sec-panel"><h3>حالة المحطات وتوزيع الإنتاج — '+esc(date)+'</h3>'+lines+'</div>';
- }catch(e){view.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
+  const stationSection='<section class="dashboard-section"><div class="dashboard-section-head">'+
+   '<h3>تقارير المحطات — '+esc(dashboardShortDate(date))+'</h3><small>نسبة الاستلام: '+readyRate+'%</small></div>'+
+   '<div class="dashboard-plant-grid">'+cards+'</div></section>';
+  const days=Array.from({length:7},(_,i)=>dashboardShiftDate(begin,i));
+  const history=days.map(day=>{
+   const selected=stations.map(s=>byDayStation.get(s.id+'@'+day)).filter(Boolean);
+   return {day,total:dashboardTotal(selected,'production'),reports:selected.length};
+  });
+  const maxima=Math.max(0,...history.map(r=>r.total===null?0:r.total));
+  const bars=history.map(v=>{
+   const height=v.total===null?0:v.total===0?3:Math.max(5,Math.round(v.total/Math.max(maxima,1)*100));
+   return '<div class="dashboard-week-col'+(v.day===date?' dashboard-week-today':'')+'" title="'+
+    esc(dashboardShortDate(v.day)+' — '+(v.total===null?'لا توجد قراءة إنتاج':fmt(v.total)+' م³'))+'">'+
+    '<span class="dashboard-week-value">'+esc(v.total===null?'—':fmt(v.total))+'</span>'+
+    '<div class="dashboard-week-track"><div class="dashboard-week-fill" style="height:'+height+'%"></div></div>'+
+    '<span class="dashboard-week-date">'+esc(dashboardShortDate(v.day).slice(0,5))+'</span></div>';
+  }).join('');
+  const historySection='<section class="dashboard-section"><div class="dashboard-section-head"><h3>اتجاه الإنتاج خلال 7 أيام</h3>'+
+   '<small>إجمالي الإنتاج المسجل يوميًا (م³)</small></div><div class="dashboard-week">'+
+   '<div class="dashboard-week-bars" role="img" aria-label="إنتاج المحطات في الأيام السبعة">'+bars+'</div>'+
+   '<div class="dashboard-section-head" style="margin:12px 0 0"><small>الشرطة (—) تعني عدم وجود قراءة إنتاج، ولا تُحسب صفرًا.</small></div></div></section>';
+  const recent=latestItems.filter(r=>ids.has(r.station_id)).slice(0,10);
+  const recentRows=recent.length?recent.map(r=>{
+   const station=stations.find(s=>s.id===r.station_id);
+   const stamp=dashboardSubmitTime(r.created_at);
+   return '<div class="dashboard-recent-row"><div class="dashboard-recent-station">'+esc(station?.name||r.station_id)+'</div>'+
+    '<div><span class="dashboard-recent-label">تاريخ التقرير</span><div class="dashboard-recent-value">'+esc(dashboardShortDate(r.report_date))+'</div></div>'+
+    '<div><span class="dashboard-recent-label">أُرسل بتاريخ / الساعة</span><div class="dashboard-recent-value">'+esc(stamp.date)+' — '+esc(stamp.time)+'</div></div></div>';
+  }).join(''):'<div class="dashboard-empty">لا توجد تقارير مرسلة حتى الآن.</div>';
+  const recentSection='<section class="dashboard-section"><div class="dashboard-section-head"><h3>آخر عمليات إرسال التقارير</h3>'+
+   '<small>توقيت السعودية (UTC+3)</small></div><div class="dashboard-recent">'+recentRows+'</div></section>';
+  view.innerHTML=summary+stationSection+historySection+recentSection;
+ }catch(e){
+  view.innerHTML='<div class="archive-empty">'+esc(e.message||'تعذّر تحميل الداشبورد.')+'</div>';
+ }finally{
+  view.setAttribute('aria-busy','false');
+  button.disabled=false;
+  dashboardUpdating=false;
+ }
 }
 
 
@@ -1575,6 +1762,16 @@ $('signoutBtn').addEventListener('click',logout);
 $('dashboardBtn').addEventListener('click',dashboardOpen);
 $('dashboardClose').onclick=()=>{$('dashboardModal').classList.add('hidden')};
 $('dashboardRefresh').onclick=dashboardRefresh;
+$('dashboardDate').addEventListener('change',dashboardRefresh);
+$('dashboardToday').onclick=()=>{$('dashboardDate').value=dashboardSaudiDate();dashboardRefresh()};
+$('dashboardYesterday').onclick=()=>{$('dashboardDate').value=dashboardShiftDate(dashboardSaudiDate(),-1);dashboardRefresh()};
+$('dashboardContent').addEventListener('click',event=>{
+ const button=event.target.closest('[data-dashboard-report]');
+ if(button&&isAdmin())archiveShow(button.dataset.dashboardReport);
+});
+setInterval(()=>{
+ if(isAdmin()&&!$('dashboardModal').classList.contains('hidden')&&document.visibilityState!=='hidden')dashboardRefresh();
+},60000);
 $('accountsBtn').addEventListener('click',accountsOpen);
 $('auditBtn').addEventListener('click',auditOpen);
 $('auditClose').onclick=auditClose;
