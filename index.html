@@ -1130,7 +1130,7 @@ async function accountsRefresh(){
     '<div class="admin-row-btns">'+
       (canReset?'<button class="btn" data-user-action="reset_password" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-idstation="'+esc(acc.stationId||'')+'" data-name="'+esc(name)+'">إعادة تعيين كلمة المرور</button>':'<span class="role-chip">سوبر أدمن محمي</span>')+
       (isSuperAdmin()&&acc.role==='station'&&!STATION_PLANT_CODES[acc.stationId]?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">تغيير المحطة</button>':'')+
-      (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
+      (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
    '</div></div>'
   }).join(''):'<div class="archive-empty">لا توجد حسابات بعد.</div>';
  }catch(err){$('accountList').innerHTML='<div class="archive-empty">'+esc(err.message)+'</div>'}
