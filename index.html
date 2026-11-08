@@ -166,6 +166,37 @@ body[data-auth="ready"]{overflow:auto}
 #accountList .sec-row{align-items:flex-start}
 @media(max-width:650px){#accountList .sec-row{display:block}#accountList .admin-row-btns{justify-content:flex-start;margin-top:10px}}
 
+
+/* Secure superadmin audit timeline */
+.audit-panel .modal{width:min(1120px,97vw);max-height:94vh}
+.audit-intro{font-size:12px;color:#647b8c;line-height:1.95;margin:3px 0 18px}
+.audit-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.audit-filters .field{min-width:0}
+.audit-filters .control{width:100%;min-height:38px}
+.audit-toolbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;margin:7px 0 12px}
+.audit-list{border:1px solid #e0eaf1;border-radius:13px;overflow:hidden;background:#fff}
+.audit-row{padding:13px 15px;border-bottom:1px solid #edf1f6}
+.audit-row:last-child{border-bottom:0}
+.audit-row-main{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+.audit-row-actor{font-weight:900;color:#164c73;font-size:13px;overflow-wrap:anywhere}
+.audit-row-meta{font-size:11px;color:#72889b;margin-top:5px;line-height:1.85}
+.audit-action{display:inline-block;border:1px solid #d7e9f2;background:#eaf6fc;color:#226c96;border-radius:7px;padding:4px 8px;font-size:11px;font-weight:850;white-space:nowrap}
+.audit-action.danger{border-color:#f3d7d7;background:#fff0f0;color:#a04343}
+.audit-action.warn{border-color:#ffe9bd;background:#fff7e7;color:#986724}
+.audit-target{font-size:12px;color:#3d5f74;margin-top:8px}
+.audit-detail{margin-top:9px;padding-top:8px;border-top:1px dashed #e2ebf0;font-size:12px;color:#436176}
+.audit-detail summary{cursor:pointer;color:#0362af;font-weight:850;padding:2px 0;user-select:none}
+.audit-change{display:grid;grid-template-columns:minmax(100px,.85fr) repeat(2,minmax(0,1.3fr));gap:6px;border-bottom:1px solid #ebf1f6;padding:8px 2px;align-items:start;font-size:11px}
+.audit-change:last-child{border-bottom:none}
+.audit-change strong{overflow-wrap:anywhere;direction:ltr;text-align:right;color:#205c83}
+.audit-change code{white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.7;background:#f5f9fc;border-radius:6px;padding:6px;color:#526b7f}
+.audit-change .new-val{background:#eaf8f1;color:#1b6750}
+.audit-legacy-note{padding:12px;background:#f4f8fa;border-radius:9px;line-height:1.95;margin-top:7px}
+.audit-paging{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;font-size:12px}
+.audit-stat{font-size:12px;font-weight:850;color:#476a86}
+@media(max-width:750px){.audit-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-row-main{flex-direction:column;gap:8px}.audit-change{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.audit-change strong{grid-column:span 2}}
+@media(max-width:430px){.audit-filters{grid-template-columns:1fr}}
+
 </style></head>
 <body data-auth="locked">
 
@@ -245,7 +276,7 @@ body[data-auth="ready"]{overflow:auto}
  </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="brand-mark">◈</div><div><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | الدخول المخصص للمحطات</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><span id="accountRole" class="role-chip hidden"></span><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" style="text-align:center;color:#556c82;background:#eaf6ff;border-bottom:1px solid #d9eaf7;padding:8px 12px;font-size:12px;font-weight:700">لكل محطة اسم مستخدم وكلمة مرور مستقلة. لا يظهر لموظف المحطة إلا نموذجها وتقاريرها، بينما يتمكن الأدمن من متابعة جميع المحطات.</aside>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="brand-mark">◈</div><div><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | الدخول المخصص للمحطات</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" style="text-align:center;color:#556c82;background:#eaf6ff;border-bottom:1px solid #d9eaf7;padding:8px 12px;font-size:12px;font-weight:700">لكل محطة اسم مستخدم وكلمة مرور مستقلة. لا يظهر لموظف المحطة إلا نموذجها وتقاريرها، بينما يتمكن الأدمن من متابعة جميع المحطات.</aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2><span>المعاينة مطابقة لتصميم التصدير • تتحدث تلقائيًا</span></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة المحطات — سوبر أدمن</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات في Supabase</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
@@ -299,6 +330,46 @@ body[data-auth="ready"]{overflow:auto}
     <div id="accountList" class="archive-empty">جاري التحميل…</div>
    </div>
   </div>
+ </div>
+</div>
+
+
+<div class="modal-backdrop hidden audit-panel" id="auditModal" role="dialog" aria-modal="true">
+ <div class="modal">
+  <div class="modal-head"><h2>سجل النشاط والمراجعة — السوبر أدمن</h2><button class="btn" id="auditClose">✕ إغلاق</button></div>
+  <div class="modal-body">
+   <p class="audit-intro">تتبع نشاط المستخدمين والمحطات، وعمليات إنشاء وتعديل وحذف التقارير، والتغييرات على حسابات المستخدمين، وأحداث تسجيل الدخول المتاحة من Supabase Auth. تُعرض تفاصيل القيم السابقة والجديدة للتعديلات المسجلة منذ تفعيل هذا النظام.</p>
+   <div class="audit-filters">
+    <div class="field"><label for="auditActor">المستخدم / اسم الحساب</label><input class="control" type="search" id="auditActor" placeholder="اسم المستخدم أو البريد"></div>
+    <div class="field"><label for="auditScope">القسم</label><select class="control" id="auditScope">
+      <option value="">كل الأقسام</option><option value="reports">التقارير</option>
+      <option value="stations">إعدادات المحطات</option><option value="users">حسابات المستخدمين</option>
+      <option value="auth">تسجيل الدخول والأمان</option></select></div>
+    <div class="field"><label for="auditOperation">نوع العملية</label><select class="control" id="auditOperation">
+      <option value="">جميع العمليات</option><option value="INSERT">إضافة</option>
+      <option value="UPDATE">تعديل</option><option value="DELETE">حذف</option>
+      <option value="CREATE_ACCOUNT">إنشاء حساب</option>
+      <option value="RESET_PASSWORD">تغيير كلمة المرور</option>
+      <option value="MOVE_STATION">نقل مستخدم</option>
+      <option value="DELETE_ACCOUNT">حذف حساب</option>
+      <option value="login">تسجيل دخول</option><option value="logout">تسجيل خروج</option>
+      </select></div>
+    <div class="field"><label for="auditFrom">من تاريخ</label><input class="control" type="date" id="auditFrom"></div>
+    <div class="field"><label for="auditTo">إلى تاريخ</label><input class="control" type="date" id="auditTo"></div>
+    <div class="field" style="display:flex;align-items:end"><button class="btn primary" id="auditSearch" style="width:100%">بحث في السجل</button></div>
+   </div>
+   <div class="audit-toolbar">
+     <div class="audit-stat" id="auditCount">عدد السجلات: —</div>
+     <button class="btn" id="auditExport">↓ تصدير نتائج البحث CSV</button>
+   </div>
+   <div id="auditResults" class="audit-list"><div class="archive-empty">ابدأ البحث لعرض السجل.</div></div>
+   <div class="audit-paging">
+     <button class="btn" id="auditPrevious">الصفحة السابقة</button>
+     <span id="auditPageLabel">—</span>
+     <button class="btn" id="auditNext">الصفحة التالية</button>
+   </div>
+  </div>
+  <div class="modal-foot"><span class="report-readonly">السجل للقراءة والتصدير فقط، ولا يمكن حذفه من داخل الموقع</span></div>
  </div>
 </div>
 
@@ -824,6 +895,7 @@ async function enterApplication(){
  await loadCloudStations();
  $('dashboardBtn').classList.toggle('hidden',!isAdmin());
  $('accountsBtn').classList.toggle('hidden',!isSuperAdmin());
+ $('auditBtn').classList.toggle('hidden',!isSuperAdmin());
  $('settingsBtn').classList.toggle('hidden',!isSuperAdmin());
  $('accountRole').classList.remove('hidden');
  $('accountRole').textContent=isSuperAdmin()?'سوبر أدمن':isAdmin()?'أدمن — متابعة':'محطة '+currentLoginName;
@@ -867,10 +939,10 @@ async function logout(){
  authSession=null;currentRole='';currentStationId='';currentUserId='';cloudReady=false;
  sessionStorage.removeItem(AUTH_KEY);
  stations=allowedStations();drafts={};receipts={};requestIds={};
- for(const m of ['archiveModal','dashboardModal','accountsModal'])$(m).classList.add('hidden');
+ for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal'])$(m).classList.add('hidden');
  document.body.dataset.auth='locked';$('loginScreen').classList.remove('hidden');
  $('accountRole').classList.add('hidden');
- $('dashboardBtn').classList.add('hidden');$('accountsBtn').classList.add('hidden');$('settingsBtn').classList.add('hidden');
+ $('dashboardBtn').classList.add('hidden');$('accountsBtn').classList.add('hidden');$('settingsBtn').classList.add('hidden');$('auditBtn').classList.add('hidden');
  $('loginPassword').value='';
  $('loginUsername').value='';
  $('loginError').textContent='';
@@ -940,6 +1012,7 @@ async function accountAdminRequest(action,params={}){
     user_not_found:'الحساب المطلوب غير موجود',station_not_active:'المحطة غير مفعّلة'};
   throw Error(problems[out.error]||('تعذر تنفيذ العملية: '+(out.error||resp.status)));
  }
+ if(out.audit_logged===false)toast('تم تنفيذ العملية لكن تعذر حفظ سجل التدقيق الخاص بها؛ راجع Supabase.',true);
  return out;
 }
 function accountsOpen(){
@@ -1039,6 +1112,154 @@ async function accountListAction(e){
  finally{button.disabled=false}
 }
 
+
+let auditPage=0,auditPageSize=60,auditLastRows=[],auditTotal=0,auditBusy=false;
+const auditOperationLabel={
+ INSERT:'إضافة',UPDATE:'تعديل',DELETE:'حذف',
+ CREATE_ACCOUNT:'إنشاء حساب',RESET_PASSWORD:'تغيير كلمة مرور',MOVE_STATION:'نقل حساب إلى محطة',DELETE_ACCOUNT:'حذف حساب',
+ login:'تسجيل دخول',logout:'تسجيل خروج',user_signedup:'إنشاء مستخدم',user_deleted:'حذف مستخدم',
+ token_refreshed:'تجديد جلسة',token_revoked:'إنهاء جلسة',user_updated_password:'تحديث كلمة مرور',AUTH_EVENT:'حدث مصادقة'
+};
+const auditScopeLabel={reports:'التقارير',stations:'المحطات',users:'إدارة الحسابات',auth:'تسجيل الدخول'};
+function auditFilters(offset=0){
+ const from=$('auditFrom').value,to=$('auditTo').value;
+ let until=null;
+ if(to){const stop=new Date(to+'T00:00:00+03:00');stop.setUTCDate(stop.getUTCDate()+1);until=stop.toISOString()}
+ return {
+   p_limit:auditPageSize,p_offset:offset,
+   p_since:from?new Date(from+'T00:00:00+03:00').toISOString():null,
+   p_until:until,p_actor:$('auditActor').value.trim()||null,
+   p_scope:$('auditScope').value||null,
+   p_operation:$('auditOperation').value||null
+ };
+}
+async function auditRequest(offset=0){
+ if(!isSuperAdmin())throw Error('السجل متاح للسوبر أدمن فقط');
+ const r=await authedFetch('/rest/v1/rpc/superadmin_activity',{
+   method:'POST',body:JSON.stringify(auditFilters(offset))
+ });
+ if(!r.ok)throw Error('تعذر قراءة سجل النشاط أو انتهت صلاحية الدخول ('+r.status+').');
+ const data=await r.json();
+ if(!data||!Array.isArray(data.rows))throw Error('استجابة سجل النشاط غير صالحة.');
+ return data;
+}
+function auditOpen(){
+ if(!isSuperAdmin())return;
+ $('auditModal').classList.remove('hidden');
+ auditPage=0;
+ auditSearch();
+}
+function auditClose(){$('auditModal').classList.add('hidden')}
+function auditValueText(value){
+ if(value===undefined)return '—';
+ if(value===null)return 'فارغ';
+ if(typeof value==='string')return value.length>450?value.slice(0,450)+'…':value;
+ const raw=JSON.stringify(value);
+ return raw.length>450?raw.slice(0,450)+'…':raw;
+}
+function auditDeltas(before,after,path='',depth=0,out=[]){
+ if(out.length>=70)return out;
+ const plain=v=>v&&typeof v==='object'&&!Array.isArray(v);
+ if(depth<6&&plain(before)&&plain(after)){
+  const keys=new Set([...Object.keys(before),...Object.keys(after)]);
+  for(const key of keys){
+   if(key==='updated_at')continue;
+   const a=before[key],b=after[key];
+   if(JSON.stringify(a)===JSON.stringify(b))continue;
+   auditDeltas(a,b,path?path+'.'+key:key,depth+1,out);
+   if(out.length>=70)break;
+  }
+ }else if(JSON.stringify(before)!==JSON.stringify(after)){
+   out.push({field:path||'القيمة',before,after});
+ }
+ return out;
+}
+function auditChangesMarkup(entry){
+ const details=entry.details||{};
+ if(details.before===undefined&&details.after===undefined){
+  const fields=Object.entries(details).filter(([k])=>!['actor_name','note'].includes(k));
+  if(!fields.length)return '<div class="audit-legacy-note">لا تتوفر قيم تفصيلية لهذه العملية.</div>';
+  return fields.map(([name,value])=>
+   '<div class="audit-change"><strong>'+esc(name)+'</strong><code>—</code><code class="new-val">'+esc(auditValueText(value))+'</code></div>').join('');
+ }
+ const changes=auditDeltas(details.before||{},details.after||{});
+ if(!changes.length)return '<div class="audit-legacy-note">لا يوجد اختلاف في القيم الرئيسية.</div>';
+ const header='<div class="audit-change" style="font-weight:900"><strong>الحقل</strong><span>قبل</span><span>بعد</span></div>';
+ return header+changes.slice(0,70).map(x=>
+  '<div class="audit-change"><strong>'+esc(x.field)+'</strong><code>'+esc(auditValueText(x.before))+'</code><code class="new-val">'+esc(auditValueText(x.after))+'</code></div>'
+ ).join('')+(changes.length>=70?'<div class="audit-legacy-note">تم عرض أول 70 قيمة متغيرة من هذه العملية.</div>':'');
+}
+function auditRowHtml(row){
+ const op=row.operation||'EVENT',scope=row.scope||'',
+    time=row.created_at?new Date(row.created_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh',dateStyle:'short',timeStyle:'short'}):'—';
+ const operation=auditOperationLabel[op]||op;
+ const color=/DELETE|REVOKE|deleted/i.test(op)?'danger':/UPDATE|RESET|MOVE/i.test(op)?'warn':'';
+ const d=row.details||{};
+ const target=d.target_username||d.station_id||d.station||row.row_id||'';
+ const reportDate=d.report_date?' • تاريخ التقرير '+d.report_date:'';
+ return '<div class="audit-row">'+
+  '<div class="audit-row-main"><div><div class="audit-row-actor">'+esc(row.actor_name||row.actor_id||'النظام / غير معروف')+'</div>'+
+  '<div class="audit-row-meta">'+esc(time)+' • '+esc(auditScopeLabel[scope]||scope)+
+    ' • '+esc(row.actor_role||'')+'</div></div>'+
+  '<span class="audit-action '+color+'">'+esc(operation)+'</span></div>'+
+  (target?'<div class="audit-target">المستهدف: <strong>'+esc(target)+'</strong>'+esc(reportDate)+'</div>':'')+
+  '<details class="audit-detail"><summary>عرض تفاصيل العملية والتغييرات</summary><div style="margin-top:9px">'+
+  auditChangesMarkup(row)+'</div></details></div>';
+}
+async function auditSearch(reset=false){
+ if(!isSuperAdmin()||auditBusy)return;
+ if(reset)auditPage=0;
+ auditBusy=true;
+ $('auditSearch').disabled=true;$('auditResults').innerHTML='<div class="archive-empty">جاري تحميل سجل النشاط…</div>';
+ try{
+  const data=await auditRequest(auditPage*auditPageSize);
+  auditLastRows=data.rows;auditTotal=Number(data.total)||0;
+  $('auditResults').innerHTML=auditLastRows.length?auditLastRows.map(auditRowHtml).join(''):
+      '<div class="archive-empty">لا توجد عمليات مسجلة تطابق الفلاتر.</div>';
+  $('auditCount').textContent='إجمالي العمليات: '+auditTotal.toLocaleString('ar-SA');
+  $('auditPageLabel').textContent='صفحة '+(auditPage+1)+' من '+Math.max(1,Math.ceil(auditTotal/auditPageSize));
+  $('auditPrevious').disabled=auditPage===0;
+  $('auditNext').disabled=(auditPage+1)*auditPageSize>=auditTotal;
+  $('auditExport').disabled=auditTotal===0;
+ }catch(err){
+  $('auditResults').innerHTML='<div class="archive-empty">'+esc(err.message)+'</div>';
+  $('auditCount').textContent='تعذّر جلب السجلات';
+  $('auditPrevious').disabled=true;$('auditNext').disabled=true;$('auditExport').disabled=true;
+ }finally{auditBusy=false;$('auditSearch').disabled=false}
+}
+async function auditExportCsv(){
+ if(!isSuperAdmin()||auditBusy||!auditTotal)return;
+ const button=$('auditExport');button.disabled=true;
+ try{
+  let rows=[];
+  const maxRows=3000;
+  const count=Math.min(auditTotal,maxRows);
+  for(let at=0;at<count;at+=auditPageSize){
+    const result=await auditRequest(at);rows.push(...result.rows);
+    button.textContent='جاري تجهيز '+rows.length+' من '+count;
+    if(!result.rows.length)break;
+  }
+  const fields=['الوقت','اسم المستخدم','معرف المستخدم','الدور','القسم','العملية','المستهدف','التفاصيل'];
+  function csvCell(v){
+   let value=String(v??'');
+   if(/^[\s]*[=+\-@]/.test(value))value="'"+value; // Avoid spreadsheet formula injection.
+   return '"'+value.replace(/"/g,'""')+'"';
+  }
+  const csv=[fields.map(csvCell).join(','),...rows.map(r=>[
+   r.created_at,r.actor_name,r.actor_id,r.actor_role,auditScopeLabel[r.scope]||r.scope,
+   auditOperationLabel[r.operation]||r.operation,r.details?.target_username||r.row_id||r.details?.station_id||'',
+   JSON.stringify(r.details||{})
+  ].map(csvCell).join(','))].join('\r\n');
+  const blob=new Blob(['\ufeff',csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Water_Solutions_Audit_Log_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  if(auditTotal>maxRows)toast('تم تصدير أول '+maxRows+' سجل. استخدم فلاتر التاريخ لتقسيم باقي السجل.',true);
+  else toast('تم تصدير سجل العمليات.');
+ }catch(err){toast('تعذر تصدير سجل التدقيق: '+err.message,true)}
+ finally{button.disabled=false;button.textContent='↓ تصدير نتائج البحث CSV'}
+}
+
 $('loginForm').addEventListener('submit',loginSubmit);
 $('loginTogglePassword').addEventListener('click',()=>{
  const fld=$('loginPassword'),revealed=fld.type==='password';
@@ -1053,6 +1274,15 @@ $('dashboardBtn').addEventListener('click',dashboardOpen);
 $('dashboardClose').onclick=()=>{$('dashboardModal').classList.add('hidden')};
 $('dashboardRefresh').onclick=dashboardRefresh;
 $('accountsBtn').addEventListener('click',accountsOpen);
+$('auditBtn').addEventListener('click',auditOpen);
+$('auditClose').onclick=auditClose;
+$('auditSearch').onclick=()=>auditSearch(true);
+$('auditPrevious').onclick=()=>{if(auditPage>0){auditPage--;auditSearch()}};
+$('auditNext').onclick=()=>{if((auditPage+1)*auditPageSize<auditTotal){auditPage++;auditSearch()}};
+$('auditExport').onclick=auditExportCsv;
+$('auditModal').addEventListener('click',e=>{if(e.target.id==='auditModal')auditClose()});
+$('auditActor').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();auditSearch(true)}});
+
 $('accountsClose').onclick=()=>{$('accountsModal').classList.add('hidden')};
 $('accountType').addEventListener('change',accountTypeChanged);
 $('accountStation').addEventListener('change',e=>{if($('accountType').value==='station')$('accountUsername').value=e.target.value;});
