@@ -22,30 +22,111 @@
 .archive-empty{padding:26px;text-align:center;color:#8393a1;font-size:13px}
 .report-readonly{padding:5px 12px;border-radius:8px;background:#fff1d8;color:#794a05;font-weight:700;font-size:12px}
 @media(max-width:650px){.archive-entry{align-items:flex-start}.cloud-archive .rowfilters .field{min-width:130px}}
+
+/* Damad's long report name must not collide with the report date. */
+.report-sheet.station-damad .report-header{height:357px}
+.report-sheet.station-damad .report-brand-line{padding-top:114px;align-items:flex-start}
+.report-sheet.station-damad .report-company-logo{margin-top:22px}
+.report-sheet.station-damad .report-title-area{min-width:0}
+.report-sheet.station-damad .report-plant-title{font-size:26px;line-height:1.35;max-width:960px;overflow-wrap:normal}
+.report-sheet.station-damad .report-date{font-size:18px;line-height:1.5;margin-top:7px;clear:both}
+.report-sheet.station-damad .report-overlap{margin-top:-57px}
+body[data-auth="locked"] .app-bar,body[data-auth="locked"] .app-main,body[data-auth="locked"] #cloudNotice,body[data-auth="locked"] #accessNote{display:none!important}
+.login-screen{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:linear-gradient(130deg,#084e89,#50b4f2);overflow:auto;padding:18px}
+.login-card{width:min(430px,96%);background:#fff;padding:31px;border-radius:20px;box-shadow:0 20px 65px #002b5060;text-align:right}
+.login-card h2{font-size:24px;margin:0 0 8px;color:#0862a6}
+.login-card p{font-size:12px;color:#697b8b;line-height:1.9;margin:3px 0 18px}
+.login-card label{display:block;margin:14px 0 5px;font-size:13px;font-weight:800;color:#3f5261}
+.login-card input{width:100%;padding:12px 13px;border:1px solid #d5e2ef;border-radius:11px;font:inherit;direction:ltr;text-align:right}
+.login-card .btn{width:100%;margin-top:18px;justify-content:center}
+.login-error{color:#b53843;font-weight:800;font-size:12px;margin-top:12px;min-height:20px}
+.role-chip{font-size:12px;background:#e8f1f8;color:#146299;border-radius:9px;padding:7px 10px;font-weight:800}
+.sec-panel{border:1px solid #deebf1;border-radius:12px;padding:14px;background:#f9fcfe;margin:12px 0}
+.sec-panel h3{margin:0 0 10px;color:#145b8a;font-size:15px}
+.sec-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:15px}
+.sec-stat{padding:14px;border-radius:12px;background:#eef7fc;text-align:center}
+.sec-stat strong{display:block;color:#14629b;font-size:23px;font-weight:900}
+.sec-stat small{font-size:11px;color:#637787}
+.sec-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 3px;border-bottom:1px solid #e4eef6;font-size:13px}
+.sec-row strong{color:#145c8c}.sec-row small{display:block;color:#74899a;font-size:11px;margin-top:3px}
+.sec-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.sec-fields .field{min-width:0}
+.sec-fields .control{width:100%}
+.sec-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
+.sec-response{background:#e9f8f2;color:#125e46;padding:11px;border-radius:9px;font-size:12px;white-space:pre-wrap;word-break:break-word}
+@media(max-width:700px){.sec-fields,.sec-grid{grid-template-columns:1fr 1fr}.sec-panel{padding:10px}.login-card{padding:20px}}
 </style></head>
-<body>
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="brand-mark">◈</div><div><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | دون حسابات مستخدمين</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn" id="restoreBtn" class="hidden">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn" id="backupBtn" class="hidden">↓ JSON</button><button class="btn" id="importBtn" class="hidden">↑ استيراد</button><button class="btn" id="settingsBtn" class="hidden">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🔒 الأرشيف المركزي</button></div></div></header><aside style="text-align:center;color:#556c82;background:#eaf6ff;border-bottom:1px solid #d9eaf7;padding:8px 12px;font-size:12px;font-weight:700">البيانات التشغيلية تُرسل إلى قاعدة Supabase المركزية دون حسابات للموظفين. الاطلاع على الأرشيف محمي برمز إداري. مسودة الإدخال تحفظ محليًا فقط حتى الإرسال.</aside>
+<body data-auth="locked">
+<section id="loginScreen" class="login-screen" aria-label="الدخول إلى نظام تقارير المحطات">
+ <div class="login-card">
+  <div style="font-size:38px;color:#0362af;margin-bottom:8px">◈</div>
+  <h2>نظام التقارير التشغيلية</h2>
+  <p>شركة حلول المياه — حساب خاص لكل محطة، ولوحة متابعة للإدارة. لا يمكن عرض بيانات المحطات دون تسجيل الدخول.</p>
+  <form id="loginForm">
+   <label for="loginUsername">اسم المستخدم أو بريد الأدمن</label>
+   <input id="loginUsername" name="username" autocomplete="username" required placeholder="jizan أو بريد الأدمن" dir="ltr">
+   <label for="loginPassword">كلمة المرور</label>
+   <input id="loginPassword" name="password" autocomplete="current-password" type="password" required placeholder="••••••••••••" dir="ltr">
+   <button id="loginButton" class="btn primary" type="submit">تسجيل الدخول</button>
+  </form>
+  <div id="loginError" class="login-error" role="alert"></div>
+  <p style="margin:14px 0 0">اسم المستخدم يحدده الأدمن لكل محطة. يدخل الأدمن ببريده الإلكتروني المرتبط بحسابه.</p>
+ </div>
+</section>
+
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="brand-mark">◈</div><div><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | الدخول المخصص للمحطات</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn" id="restoreBtn" class="hidden">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn" id="sampleBtn">بيانات تجريبية</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn" id="backupBtn" class="hidden">↓ JSON</button><button class="btn" id="importBtn" class="hidden">↑ استيراد</button><button class="btn" id="settingsBtn" class="hidden">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><span id="accountRole" class="role-chip hidden"></span><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" style="text-align:center;color:#556c82;background:#eaf6ff;border-bottom:1px solid #d9eaf7;padding:8px 12px;font-size:12px;font-weight:700">لكل محطة اسم مستخدم وكلمة مرور مستقلة. لا يظهر لموظف المحطة إلا نموذجها وتقاريرها، بينما يتمكن الأدمن من متابعة جميع المحطات.</aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2><span>المعاينة مطابقة لتصميم التصدير • تتحدث تلقائيًا</span></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2>إدارة إعدادات المحطات</h2><button class="btn" id="closeSettings">✕ إغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">حذف المحطة</button><button class="btn" id="resetStationsBtn">استعادة الإعدادات الأصلية</button><button class="btn primary" id="settingsDone">حفظ وإغلاق</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
-  <div class="modal">
-   <div class="modal-head"><h2>أرشيف التقارير المركزي</h2><button class="btn" id="archiveClose">✕ إغلاق</button></div>
-   <div class="modal-body">
-    <p style="color:#697f91;font-size:12px;line-height:1.8">تصفح التقارير المحفوظة مركزيًا برمز الإدارة. إدخال التقارير لا يتطلب أي حساب.</p>
-    <div class="field" style="max-width:570px"><label for="archiveCode">رمز الأرشيف الإداري</label>
-    <input class="control" type="password" id="archiveCode" autocomplete="off" placeholder="الرمز الخاص الذي حصلت عليه من المسؤول"></div>
-    <div class="rowfilters">
-     <div class="field"><label>المحطة</label><select class="control" id="archiveStation"><option value="">جميع المحطات</option></select></div>
-     <div class="field"><label>من تاريخ</label><input class="control" type="date" id="archiveFrom"></div>
-     <div class="field"><label>إلى تاريخ</label><input class="control" type="date" id="archiveTo"></div>
-     <button class="btn primary" id="archiveSearch">بحث في الأرشيف</button>
-    </div>
-    <div id="archiveResults" class="archive-empty">أدخل الرمز الإداري واضغط بحث.</div>
+ <div class="modal">
+  <div class="modal-head"><h2>أرشيف التقارير</h2><button class="btn" id="archiveClose">✕ إغلاق</button></div>
+  <div class="modal-body">
+   <p style="font-size:12px;color:#718598">يعرض الأرشيف التقارير التي يحق لحسابك الاطلاع عليها فقط.</p>
+   <div class="rowfilters">
+    <div class="field"><label>المحطة</label><select class="control" id="archiveStation"><option value="">جميع المحطات</option></select></div>
+    <div class="field"><label>من تاريخ</label><input class="control" type="date" id="archiveFrom"></div>
+    <div class="field"><label>إلى تاريخ</label><input class="control" type="date" id="archiveTo"></div>
+    <button class="btn primary" id="archiveSearch">بحث</button>
    </div>
-   <div class="modal-foot"><span class="report-readonly">لا يُسمح بتعديل أو حذف التقارير من هذه الواجهة</span></div>
+   <div id="archiveResults" class="archive-empty">اضغط بحث لاستعراض التقارير.</div>
+  </div>
+  <div class="modal-foot"><span class="report-readonly">صلاحيات العرض مقيدة لكل حساب في Supabase</span></div>
+ </div>
+</div>
+<div class="modal-backdrop hidden" id="dashboardModal" role="dialog" aria-modal="true">
+ <div class="modal" style="width:min(1080px,96vw)">
+  <div class="modal-head"><h2>لوحة متابعة جميع المحطات</h2><button class="btn" id="dashboardClose">✕ إغلاق</button></div>
+  <div class="modal-body">
+   <div class="sec-fields">
+    <div class="field"><label>تاريخ التقارير</label><input class="control" id="dashboardDate" type="date"></div>
+    <div class="field"><label>تحديث البيانات</label><button class="btn primary" id="dashboardRefresh">تحديث الداشبورد</button></div>
+   </div>
+   <div id="dashboardContent" class="archive-empty">اختر التاريخ لعرض المؤشرات.</div>
   </div>
  </div>
- <div class="fullscreen-overlay hidden" id="fullscreenOverlay"><div class="fullscreen-controls"><button class="btn" id="exitFullBtn">إغلاق ✕</button><button class="btn purple" id="exportFullBtn">حفظ PNG</button></div><div id="fullscreenContent"></div></div>
+</div>
+<div class="modal-backdrop hidden" id="accountsModal" role="dialog" aria-modal="true">
+ <div class="modal" style="width:min(920px,96vw)">
+  <div class="modal-head"><h2>إدارة مستخدمي المحطات</h2><button class="btn" id="accountsClose">✕ إغلاق</button></div>
+  <div class="modal-body">
+   <p style="font-size:12px;color:#6d8090">أنشئ حسابًا مستقلًا لكل محطة، ثم أعطِ الموظف اسم المستخدم وكلمة المرور. لا تُحفظ كلمة المرور هنا؛ تُخزّن مشفرة لدى Supabase Auth.</p>
+   <div class="sec-panel">
+    <h3>إنشاء حساب محطة</h3>
+    <div class="sec-fields">
+     <div class="field"><label>المحطة</label><select class="control" id="accountStation"></select></div>
+     <div class="field"><label>اسم المستخدم الإنجليزي</label><input class="control" id="accountUsername" dir="ltr" placeholder="jizan"></div>
+     <div class="field"><label>كلمة المرور (12 رمزًا على الأقل)</label><input class="control" id="accountPassword" dir="ltr" type="text" autocomplete="off" placeholder="اضغط توليد كلمة مرور"></div>
+     <div class="field"><label>توليد كلمة مرور قوية</label><button class="btn" id="generatePassword">توليد كلمة مرور</button></div>
+    </div>
+    <div class="sec-actions"><button class="btn primary" id="createAccount">إنشاء حساب الموظف</button><button class="btn" id="resetAccount">تغيير كلمة مرور حساب موجود</button></div>
+    <div id="accountResponse" class="sec-response hidden"></div>
+   </div>
+   <div class="sec-panel"><h3>الحسابات المُنشأة</h3><div id="accountList" class="archive-empty">جاري التحميل…</div></div>
+  </div>
+ </div>
+</div>
+
+<div class="fullscreen-overlay hidden" id="fullscreenOverlay"><div class="fullscreen-controls"><button class="btn" id="exitFullBtn">إغلاق ✕</button><button class="btn purple" id="exportFullBtn">حفظ PNG</button></div><div id="fullscreenContent"></div></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden><div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
@@ -57,6 +138,15 @@ const CLOUD_URL='https://vksbjasfoysuwxdyeaed.supabase.co';
 const CLOUD_PUBLIC_KEY='sb_publishable_ZNsCbKJ-E3WMhiKWbzUTHw_1IJJdBZh';
 const CLOUD_SUBMIT=CLOUD_URL+'/functions/v1/submit-report';
 const CLOUD_ARCHIVE=CLOUD_URL+'/functions/v1/archive-reports';
+const CLOUD_AUTH=CLOUD_URL+'/auth/v1';
+const CLOUD_ADMIN=CLOUD_URL+'/functions/v1/account-admin';
+const AUTH_KEY='wsc_supabase_auth_v1';
+const STATION_EMAIL_SUFFIX='@wsc-ops.example';
+let authSession=null,currentRole='',currentUserId='',currentStationId='',currentLoginName='';
+const signedIn=()=>!!authSession&&!!authSession.access_token&&!!currentUserId;
+const isAdmin=()=>currentRole==='admin';
+const perUserKey=(name)=>name+'_'+(currentUserId||'locked');
+
 const DRAFTS_KEY='wsc_cloud_pending_drafts_v1', RECEIPTS_KEY='wsc_cloud_receipts_v1',REQUESTS_KEY='wsc_cloud_request_ids_v1';
 let cloudReady=false,cloudSubmitting=false,sampleMode=false,archiveViewing=false,archiveConfig=null;
 let receipts={},requestIds={};
@@ -129,15 +219,15 @@ const selected=()=>archiveViewing&&archiveConfig?archiveConfig:(stations.find(s=
 const reportKey=(s=stationId,d=date)=>s+'@'+d;
 function emptyRecord(){return{metrics:{},groups:{},notes:{},lastModified:null}}
 function fetchRecord(){let k=reportKey();return clone(drafts[k]||emptyRecord())}
-function preserveDraft(){if(archiveViewing||sampleMode)return;drafts[reportKey()]=clone(record);store(DRAFTS_KEY,drafts)}
+function preserveDraft(){if(!signedIn()||archiveViewing||sampleMode)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
 function toast(message,error=false){let t=$('toast');t.textContent=message;t.className='toast '+(error?'error':'success');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3600)}
 function updateSaveStatus(){
  let x=$('saveStatus'),k=reportKey();
  x.textContent=archiveViewing?'تقرير مركزي — للقراءة فقط':sampleMode?'عرض بيانات تجريبية — غير قابلة للإرسال':receipts[k]?'تم الإرسال مركزيًا':cloudReady?'مسودة لم ترسل':'جارٍ الاتصال أو تعذّر';
- $('saveBtn').disabled=!cloudReady||archiveViewing||sampleMode||cloudSubmitting||!!receipts[k];
+ $('saveBtn').disabled=!signedIn()||!cloudReady||archiveViewing||sampleMode||cloudSubmitting||!!receipts[k];
  if(archiveViewing)for(const field of $('reportInputFields').querySelectorAll('input,textarea,select'))field.disabled=true;
 }
-function goTo(s,d){preserveDraft();archiveViewing=false;archiveConfig=null;sampleMode=false;stationId=s;date=d;record=fetchRecord();$('reportDate').value=date;$('stationSelect').value=stationId;renderInputs();renderReport();updateSaveStatus()}
+function goTo(s,d){if(!stations.some(x=>x.id===s)||(currentRole==='station'&&s!==currentStationId))return;preserveDraft();archiveViewing=false;archiveConfig=null;sampleMode=false;stationId=s;date=d;record=fetchRecord();$('reportDate').value=date;$('stationSelect').value=stationId;renderInputs();renderReport();updateSaveStatus()}
 function refreshSelects(){let val=stationId;$('stationSelect').innerHTML=stations.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');if(!stations.some(s=>s.id===val))stationId=stations[0].id;$('stationSelect').value=stationId}
 function fieldHtml(label,value,attrs={},unit='',wide=false){let attr=Object.entries(attrs).map(([k,v])=>`${k}="${esc(v)}"`).join(' ');return `<div class="field${wide?' wide':''}"><label>${esc(label)}</label><div class="input-group"><input class="control" type="${attrs['data-text']==='1'?'text':'number'}" ${attrs['data-text']==='1'?'':'step="any" inputmode="decimal"'} value="${esc(value??'')}" ${attr} placeholder="—"><span class="unit">${esc(unit)}</span></div></div>`}
 function metricAuto(m){if(!m.auto)return null;if(m.auto==='meter'){let g=record.groups.meter||{};let a=num((g.current||{}).value),b=num((g.previous||{}).value);return a!==null&&b!==null&&a>=b?a-b:null}if(m.auto==='wtp'){let w=selected().groups.find(x=>x.kind==='wtp'),g=w?(record.groups[w.id]||{}):{},r=g[m.id]||{};if(!m.additive)return num(r.total);let values=Array.from({length:w?.units||2},(_,i)=>num(r['wtp'+(i+1)]));return values.every(v=>v!==null)?values.reduce((a,b)=>a+b,0):num(r.total)}let g=selected().groups.find(x=>x.id===m.auto);if(!g)return null;let values=g.items.map(it=>num(((record.groups[g.id]||{})[it.id]||{}).value));return values.some(v=>v!==null)?values.reduce((a,b)=>a+(b??0),0):null}
@@ -191,7 +281,7 @@ let footer=noteParts.map(x=>`${esc(x.label)}: ${esc(x.v)}`).join('　 |　 ');
 let sections=groups.map(g=>renderGroup(g)).join('');
 let emptyGroups=groups.length===1?' one-section':'';
 let html=`<header class="report-header"><svg class="header-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 135" preserveAspectRatio="none"><path d="M0 0H1280V41C1050 -10 880 31 673 58C455 89 242 110 0 105Z" fill="#50B4F2"/></svg><div class="report-brand-line"><img class="report-company-logo" alt="شعار شركة حلول المياه" src="${LOGO}"><div class="report-title-area"><div class="report-small-title">تقرير التشغيل اليومي</div><div class="report-plant-title">${esc(s.name)}</div><div class="report-date">${esc(title)}</div></div></div></header><div class="report-overlap"><div class="report-metrics">${cards}</div></div><div class="report-content"><div class="report-sections${emptyGroups}">${sections||''}</div></div>${footer?`<footer class="report-footer"><div class="footer-notes">${footer}</div></footer>`:''}<div class="report-index"></div>`;
-let sheet=$('reportSheet');sheet.className='report-sheet '+cls+(groups.length===0?' compact':'');sheet.innerHTML=html;
+let sheet=$('reportSheet');sheet.className='report-sheet '+cls+(groups.length===0?' compact':'')+' station-'+s.id;sheet.innerHTML=html;
 let n=groups.length;if(n===1)sheet.querySelector('.report-group').classList.add('full');
 scalePreview();
 }
@@ -208,35 +298,40 @@ for(let g of s.groups){let gr=record.groups[g.id]||{};for(let it of g.items){let
 return errors;
 }
 
+
 async function saveReport(){
- if(cloudSubmitting||!cloudReady){toast('الاتصال بالحفظ المركزي غير متاح حاليًا. لم يُرسل التقرير.',true);return}
- if(archiveViewing||sampleMode){toast('افتح نموذج تقرير حقيقي جديدًا قبل الإرسال.',true);return}
- if(receipts[reportKey()]){toast('هذا التقرير سبق إرساله من هذا الجهاز. افتح الأرشيف للاطلاع.',true);return}
+ if(!signedIn()||!cloudReady||cloudSubmitting){toast('يجب تسجيل الدخول والاتصال بالقاعدة المركزية.',true);return}
+ if(currentRole==='station'&&stationId!==currentStationId){toast('ليس لديك صلاحية إرسال تقارير هذه المحطة.',true);return}
+ if(archiveViewing||sampleMode){toast('التقارير المؤرشفة والتجريبية للقراءة فقط.',true);return}
+ const k=reportKey();
+ if(receipts[k]){toast('سبق إرسال هذا التقرير من حسابك.','error');return}
  const errors=validateReport();
  if(errors.length){toast('راجع الحقول: '+errors.slice(0,3).join('، '),true);return}
- if(!confirm('إرسال التقرير نهائيًا إلى الأرشيف المركزي؟ لن تتمكن من تعديل النسخة المرسلة من هذه الواجهة.'))return;
+ if(!confirm('اعتماد وإرسال تقرير '+selected().name+' بتاريخ '+date+' إلى الأرشيف المركزي؟'))return;
  cloudSubmitting=true;updateSaveStatus();
  try{
-  const k=reportKey(),requestId=requestIds[k]||(crypto.randomUUID?crypto.randomUUID():null);
-  if(!requestId)throw Error('المتصفح لا يدعم إنشاء طلب آمن');
-  requestIds[k]=requestId;store(REQUESTS_KEY,requestIds);
-  const payload={stationId,reportDate:date,requestId,data:{metrics:record.metrics,groups:record.groups,notes:record.notes}};
-  const resp=await fetch(CLOUD_SUBMIT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  const out=await resp.json().catch(()=>({}));
-  if(!resp.ok){
-   const messages={date_already_submitted:'يوجد بالفعل تقرير مركزي لهذه المحطة في هذا التاريخ.',rate_limited:'تجاوزت حد الإرسال. أعد المحاولة لاحقًا.',date_out_of_range:'التاريخ خارج المدى المسموح للإرسال.',invalid_fields:'هناك قراءات أو ملاحظات غير صحيحة.',origin_not_allowed:'مصدر الاتصال غير مصرح به.',server_not_configured:'خدمة الحفظ غير مهيّأة.',temporarily_unavailable:'تعذر الوصول للخادم، ولم يتم تأكيد الحفظ.',save_failed:'لم تؤكد قاعدة البيانات حفظ التقرير.'};
-   throw Error(messages[out.error]||('لم يكتمل الإرسال المركزي (رمز '+resp.status+').'));
+  const requestId=requestIds[k]||(crypto.randomUUID?crypto.randomUUID():null);
+  if(!requestId)throw Error('هذا المتصفح لا يدعم معرفات الطلب الآمنة');
+  requestIds[k]=requestId;store(perUserKey(REQUESTS_KEY),requestIds);
+  const data={metrics:record.metrics,groups:record.groups,notes:record.notes};
+  const response=await authedFetch('/rest/v1/reports',{method:'POST',headers:{Prefer:'return=representation'},
+    body:JSON.stringify({station_id:stationId,report_date:date,request_id:requestId,source:'public',data})});
+  const body=await response.json().catch(()=>[]);
+  if(!response.ok){
+   if(response.status===409)throw Error('يوجد بالفعل تقرير لهذا التاريخ والمحطة. افتح الأرشيف لعرضه.');
+   if(response.status===401||response.status===403)throw Error('حسابك لا يملك صلاحية إرسال تقرير هذه المحطة.');
+   throw Error('تعذر حفظ التقرير مركزيًا (HTTP '+response.status+').');
   }
-  if(out.status!=='received'&&out.status!=='already_received')throw Error('لم يصل تأكيد الحفظ من الخادم.');
-  receipts[k]={receiptId:out.receiptId,receivedAt:new Date().toISOString()};
-  store(RECEIPTS_KEY,receipts);
-  delete drafts[k];store(DRAFTS_KEY,drafts);
-  record.lastModified=new Date().toISOString();
-  toast('تم إرسال التقرير بنجاح إلى قاعدة البيانات المركزية');
-  cloudNotice('متصل بقاعدة Supabase — التقارير الجديدة تحفظ مركزيًا، والأرشيف محمي.', 'ok');
- }catch(e){console.error('Central submit failed',e);toast(e.message||'تعذّر الإرسال المركزي، احتفظ بمسودتك وأعد المحاولة.',true)}
+  if(!Array.isArray(body)||!body[0]?.id)throw Error('لم يتم تأكيد رقم التقرير من Supabase');
+  receipts[k]={receiptId:body[0].id,receivedAt:new Date().toISOString()};
+  store(perUserKey(RECEIPTS_KEY),receipts);
+  delete drafts[k];store(perUserKey(DRAFTS_KEY),drafts);
+  cloudNotice('تم حفظ التقرير في قاعدة البيانات — يمكن استعراضه من الأرشيف.','ok');
+  toast('تم حفظ التقرير مركزيًا بنجاح');
+ }catch(e){toast(e.message||'تعذر الإرسال',true)}
  finally{cloudSubmitting=false;updateSaveStatus()}
 }
+
 function restoreReport(){let k=reportKey();if(!reports[k]){let matches=Object.keys(reports).filter(x=>x.startsWith(stationId+'@')).sort().reverse();if(!matches.length){toast('لا توجد تقارير محفوظة لهذه المحطة.',true);return}let d=matches[0].split('@')[1];date=d;$('reportDate').value=d;k=reportKey()}
 record=clone(reports[k]);drafts[k]=clone(record);renderInputs();renderReport();updateSaveStatus();toast('تم استرجاع التقرير المحفوظ')}
 function newReport(){archiveViewing=false;archiveConfig=null;sampleMode=false;date=currentDate;$('reportDate').value=date;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم فتح نموذج تقرير جديد بتاريخ اليوم')}
@@ -376,70 +471,256 @@ window.addEventListener('resize',scalePreview);
 // Boot
 refreshSelects();$('reportDate').value=date;record=fetchRecord();renderInputs();renderReport();updateSaveStatus();
 
+
 function archiveOpen(){
+ if(!signedIn())return;
  $('archiveModal').classList.remove('hidden');
- $('archiveStation').innerHTML='<option value="">جميع المحطات</option>'+stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('');
- $('archiveStation').value='';
+ $('archiveStation').innerHTML=(isAdmin()?'<option value="">جميع المحطات</option>':'')+stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('');
+ $('archiveStation').value=isAdmin()?'':currentStationId;
+ $('archiveStation').disabled=!isAdmin();
+ $('archiveResults').innerHTML='<div class="archive-empty">اختر الفترة واضغط بحث.</div>';
 }
 function archiveClose(){$('archiveModal').classList.add('hidden');}
-async function archiveRequest(action,params={}){
- const code=$('archiveCode').value.trim();
- if(code.length<25)throw Error('أدخل رمز الأرشيف الإداري الصحيح.');
- const resp=await fetch(CLOUD_ARCHIVE,{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({action,code,...params})});
- const value=await resp.json().catch(()=>({}));
- if(!resp.ok)throw Error(resp.status===403?'رمز الأرشيف غير صحيح أو لا توجد صلاحية.':value.error==='archive_fetch_failed'?'تعذر جلب البيانات من قاعدة Supabase.':'تعذر فتح الأرشيف. (رمز '+resp.status+')');
- return value;
-}
 async function archiveSearch(){
- const target=$('archiveResults'),button=$('archiveSearch');
- button.disabled=true;target.innerHTML='<div class="archive-empty">جاري جلب السجلات من Supabase…</div>';
+ const out=$('archiveResults'),button=$('archiveSearch');
+ button.disabled=true;out.innerHTML='<div class="archive-empty">يتم جلب التقارير المصرّح بها…</div>';
  try{
-  const result=await archiveRequest('list',{stationId:$('archiveStation').value,from:$('archiveFrom').value,to:$('archiveTo').value});
-  const rows=result.rows||[];
-  target.innerHTML=rows.length?rows.map(r=>'<div class="archive-entry"><div><strong>'+esc((stations.find(s=>s.id===r.station_id)||{}).name||r.station_id)+'</strong><small>تاريخ التقرير: '+esc(r.report_date)+' — تاريخ الإرسال: '+esc(new Date(r.created_at).toLocaleString('ar-SA'))+'</small></div><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض التقرير</button></div>').join(''):'<div class="archive-empty">لا توجد تقارير مطابقة. التقارير السابقة المحفوظة محليًا لا تنتقل تلقائيًا إلى الأرشيف المركزي.</div>';
- }catch(e){target.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>';toast(e.message,true)}
+  const filter=new URLSearchParams({select:'id,station_id,report_date,created_at,source',order:'report_date.desc,created_at.desc',limit:'150'});
+  const chosen=isAdmin() ? $('archiveStation').value : currentStationId;
+  if(chosen)filter.set('station_id','eq.'+chosen);
+  if($('archiveFrom').value)filter.append('report_date','gte.'+$('archiveFrom').value);
+  if($('archiveTo').value)filter.append('report_date','lte.'+$('archiveTo').value);
+  const resp=await authedFetch('/rest/v1/reports?'+filter.toString());
+  if(!resp.ok)throw Error('تعذر قراءة التقارير: '+resp.status);
+  const rows=await resp.json();
+  out.innerHTML=Array.isArray(rows)&&rows.length
+   ?rows.map(r=>'<div class="archive-entry"><div><strong>'+esc((stations.find(s=>s.id===r.station_id)||{}).name||r.station_id)+'</strong><small>'+esc(r.report_date)+' — '+esc(new Date(r.created_at).toLocaleString('ar-SA'))+'</small></div><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button></div>').join('')
+   :'<div class="archive-empty">لا توجد تقارير لهذا الاختيار.</div>';
+ }catch(e){out.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
  finally{button.disabled=false}
 }
 async function archiveShow(id){
+ if(!signedIn())return;
  try{
-  const result=await archiveRequest('get',{id});
-  const r=result.report;
-  if(!r||!r.data||!r.station_id||!r.report_date)throw Error('بيانات التقرير غير مكتملة');
+  const resp=await authedFetch('/rest/v1/reports?select=id,station_id,report_date,data,config_snapshot,created_at&id=eq.'+encodeURIComponent(id)+'&limit=1');
+  if(!resp.ok)throw Error('تعذر الوصول للتقرير.');
+  const arr=await resp.json(),r=arr[0];
+  if(!r||!r.data||!stations.some(x=>x.id===r.station_id))throw Error('ليس لديك صلاحية عرض التقرير.');
   preserveDraft();stationId=r.station_id;date=r.report_date;
-  archiveViewing=true;archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;sampleMode=false;
-  record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
+  archiveViewing=true;archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;
+  sampleMode=false;record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
-  archiveClose();toast('تم فتح التقرير المركزي للمعاينة والتصدير؛ لا يسمح بتعديله.');
+  archiveClose();toast('عرض التقرير المحفوظ — لا يسمح بتعديله من هذه الصفحة.');
  }catch(e){toast(e.message,true)}
 }
+
+
 async function loadCloudStations(){
- cloudNotice('جاري تحميل بيانات المحطات من Supabase…');
- try{
-  const [st,health]=await Promise.all([
-   fetch(CLOUD_URL+'/rest/v1/stations?select=id,config&active=eq.true',{headers:{apikey:CLOUD_PUBLIC_KEY}}),
-   fetch(CLOUD_SUBMIT,{method:'GET'})
-  ]);
-  if(!st.ok)throw Error('تعذر تحميل تعريف المحطات ('+st.status+').');
-  const healthData=await health.json().catch(()=>({}));
-  if(!health.ok||healthData.status!=='ready')throw Error('خدمة استقبال التقارير غير جاهزة. لم يتفعّل الإرسال.');
-  const rows=await st.json();
-  if(!Array.isArray(rows)||rows.length===0)throw Error('لا توجد محطات منشورة في قاعدة البيانات.');
-  const valid=rows.filter(r=>r&&typeof r.id==='string'&&r.config&&r.config.id===r.id&&Array.isArray(r.config.metrics)&&Array.isArray(r.config.groups));
-  if(!valid.length)throw Error('وصلت إعدادات محطات غير صالحة.');
-  const sorted=new Map(valid.map(r=>[r.id,r.config]));
-  stations=allowedStationIds.map(id=>sorted.get(id)).filter(Boolean);
-  if(!stations.length)throw Error('لم يتم العثور على المحطات الثلاث المطلوبة في Supabase.');
-  cloudReady=true;
-  if(!stations.some(s=>s.id===stationId)){stationId=stations[0].id;record=fetchRecord()}
-  refreshSelects();renderInputs();renderReport();updateSaveStatus();
-  cloudNotice('متصل بقاعدة Supabase — التقارير الجديدة تحفظ مركزيًا، والأرشيف محمي.','ok');
- }catch(e){
-  cloudReady=false;updateSaveStatus();
-  cloudNotice('تعذر الاتصال المركزي: '+e.message+' — الإرسال متوقف لحماية بياناتك.','err');
-  toast('تعذر تشغيل الحفظ المركزي: '+e.message,true);
+ if(!signedIn())throw Error('يرجى تسجيل الدخول أولًا.');
+ cloudReady=false;cloudNotice('جاري تحميل المحطات المصرح بها…');
+ const response=await authedFetch('/rest/v1/stations?select=id,config&active=eq.true');
+ if(!response.ok)throw Error('تعذر قراءة المحطات: '+response.status);
+ const rows=await response.json();
+ const valid=rows.filter(r=>r&&typeof r.id==='string'&&r.config&&r.config.id===r.id&&Array.isArray(r.config.metrics)&&Array.isArray(r.config.groups));
+ const indexed=new Map(valid.map(r=>[r.id,r.config]));
+ stations=isAdmin()?allowedStationIds.map(id=>indexed.get(id)).filter(Boolean):[indexed.get(currentStationId)].filter(Boolean);
+ if(!stations.length)throw Error('لا توجد محطة مفعلة مرتبطة بهذا الحساب.');
+ stationId=isAdmin()&&stations.some(s=>s.id===stationId)?stationId:stations[0].id;
+ drafts=load(perUserKey(DRAFTS_KEY),{});
+ receipts=load(perUserKey(RECEIPTS_KEY),{});
+ requestIds=load(perUserKey(REQUESTS_KEY),{});
+ archiveViewing=false;archiveConfig=null;sampleMode=false;record=fetchRecord();
+ refreshSelects();$('stationSelect').disabled=!isAdmin();
+ $('reportDate').value=date;renderInputs();renderReport();
+ cloudReady=true;updateSaveStatus();
+ cloudNotice('متصل بـ Supabase — '+(isAdmin()?'صلاحيات الإدارة لجميع المحطات':'الصلاحية محددة بمحطة '+selected().name),'ok');
+}
+async function authRefresh(){
+ const refresh=authSession?.refresh_token;
+ if(!refresh)throw Error('انتهت الجلسة.');
+ const r=await fetch(CLOUD_AUTH+'/token?grant_type=refresh_token',{method:'POST',
+  headers:{'Content-Type':'application/json',apikey:CLOUD_PUBLIC_KEY},
+  body:JSON.stringify({refresh_token:refresh})});
+ const next=await r.json().catch(()=>({}));
+ if(!r.ok||!next.access_token)throw Error('انتهت الجلسة، أعد تسجيل الدخول.');
+ authSession={...next,expires_at:Math.floor(Date.now()/1000)+next.expires_in};
+ sessionStorage.setItem(AUTH_KEY,JSON.stringify(authSession));
+}
+async function authedFetch(path,opts={},retried=false){
+ if(!authSession?.access_token)throw Error('مطلوب تسجيل الدخول.');
+ if(authSession.expires_at&&authSession.expires_at<Date.now()/1000+45)await authRefresh();
+ const headers={apikey:CLOUD_PUBLIC_KEY,Authorization:'Bearer '+authSession.access_token,...(opts.headers||{})};
+ if(opts.body!==undefined)headers['Content-Type']='application/json';
+ const r=await fetch(CLOUD_URL+path,{...opts,headers});
+ if(r.status===401&&!retried){await authRefresh();return authedFetch(path,opts,true)}
+ return r;
+}
+async function getCurrentProfile(){
+ const [admRes,memberRes]=await Promise.all([
+  authedFetch('/rest/v1/admin_users?select=user_id,role'),
+  authedFetch('/rest/v1/station_users?select=user_id,station_id,username')
+ ]);
+ if(!admRes.ok||!memberRes.ok)throw Error('تعذر التحقق من صلاحيات الحساب.');
+ const admins=await admRes.json(),members=await memberRes.json();
+ if(admins.some(a=>a.user_id===currentUserId&&['superadmin','admin'].includes(a.role))){
+   currentRole='admin';currentStationId='';currentLoginName='الأدمن';
+ } else {
+   const member=members.find(m=>m.user_id===currentUserId);
+   if(!member)throw Error('هذا المستخدم غير مرتبط بأي محطة. تواصل مع المسؤول.');
+   currentRole='station';currentStationId=member.station_id;currentLoginName=member.username;
  }
 }
+async function enterApplication(){
+ if(!authSession?.access_token)throw Error('أدخل بيانات الدخول');
+ const user=await authedFetch('/auth/v1/user');
+ if(!user.ok)throw Error('تعذّر التحقق من الجلسة.');
+ const actor=await user.json();
+ currentUserId=actor.id||'';
+ if(!currentUserId)throw Error('هوية الحساب غير متاحة.');
+ await getCurrentProfile();
+ await loadCloudStations();
+ $('dashboardBtn').classList.toggle('hidden',!isAdmin());
+ $('accountsBtn').classList.toggle('hidden',!isAdmin());
+ $('accountRole').classList.remove('hidden');
+ $('accountRole').textContent=isAdmin()?'مسؤول النظام':'محطة '+currentLoginName;
+ document.body.dataset.auth='ready';
+ $('loginScreen').classList.add('hidden');
+ $('loginPassword').value='';
+}
+async function loginSubmit(e){
+ e.preventDefault();
+ const button=$('loginButton'),error=$('loginError');
+ const raw=$('loginUsername').value.trim().toLowerCase(),pwd=$('loginPassword').value;
+ if(!raw||!pwd)return;
+ button.disabled=true;error.textContent='جارٍ التحقق من بيانات الدخول…';
+ try{
+   const email=raw.includes('@')?raw:('station-'+raw+STATION_EMAIL_SUFFIX);
+   const r=await fetch(CLOUD_AUTH+'/token?grant_type=password',{method:'POST',
+     headers:{apikey:CLOUD_PUBLIC_KEY,'Content-Type':'application/json'},
+     body:JSON.stringify({email,password:pwd})});
+   const data=await r.json().catch(()=>({}));
+   if(!r.ok||!data.access_token)throw Error('بيانات الدخول غير صحيحة، أو الحساب غير مفعّل.');
+   authSession={...data,expires_at:Math.floor(Date.now()/1000)+data.expires_in};
+   sessionStorage.setItem(AUTH_KEY,JSON.stringify(authSession));
+   await enterApplication();error.textContent='';
+ }catch(err){
+   authSession=null;currentRole='';currentStationId='';currentUserId='';sessionStorage.removeItem(AUTH_KEY);
+   error.textContent=err.message||'تعذّر تسجيل الدخول';
+ }finally{button.disabled=false}
+}
+async function logout(){
+ preserveDraft();
+ const token=authSession?.access_token;
+ authSession=null;currentRole='';currentStationId='';currentUserId='';cloudReady=false;
+ sessionStorage.removeItem(AUTH_KEY);
+ stations=allowedStations();drafts={};receipts={};requestIds={};
+ for(const m of ['archiveModal','dashboardModal','accountsModal'])$(m).classList.add('hidden');
+ document.body.dataset.auth='locked';$('loginScreen').classList.remove('hidden');
+ $('accountRole').classList.add('hidden');
+ $('dashboardBtn').classList.add('hidden');$('accountsBtn').classList.add('hidden');
+ $('loginPassword').value='';
+ if(token)fetch(CLOUD_AUTH+'/logout',{method:'POST',headers:{apikey:CLOUD_PUBLIC_KEY,Authorization:'Bearer '+token}}).catch(()=>{});
+}
+async function restoreSession(){
+ try{
+  const saved=JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null');
+  if(!saved?.access_token)return;
+  authSession=saved;
+  await enterApplication();
+ }catch(err){
+  authSession=null;currentRole='';currentStationId='';currentUserId='';sessionStorage.removeItem(AUTH_KEY);
+  $('loginError').textContent='أعد تسجيل الدخول للمتابعة.';
+ }
+}
+function dashboardOpen(){
+ if(!isAdmin())return;
+ $('dashboardModal').classList.remove('hidden');
+ $('dashboardDate').value=currentDate;
+ dashboardRefresh();
+}
+async function dashboardRefresh(){
+ if(!isAdmin())return;
+ const date=$('dashboardDate').value||currentDate,view=$('dashboardContent');
+ view.innerHTML='<div class="archive-empty">جاري تحميل المؤشرات…</div>';
+ try{
+  const q=new URLSearchParams({select:'id,station_id,report_date,data,created_at',
+    report_date:'eq.'+date,limit:'200'});
+  const resp=await authedFetch('/rest/v1/reports?'+q);
+  if(!resp.ok)throw Error('تعذر تحميل التقارير.');
+  const rows=await resp.json(), byId=new Map(rows.map(r=>[r.station_id,r]));
+  const sum=(name)=>rows.reduce((a,r)=>a+(Number(r.data?.metrics?.[name])||0),0);
+  const received=stations.filter(s=>byId.has(s.id)).length;
+  const lines=stations.map(s=>{
+    const r=byId.get(s.id),metrics=r?.data?.metrics||{};
+    const production=Number(metrics.production)||0;
+    const pct=Math.max(0,Math.min(100,(production/Math.max(1,...rows.map(x=>Number(x.data?.metrics?.production)||0)))*100));
+    return '<div class="sec-row"><div><strong>'+esc(s.name)+'</strong><small>'+(r?'تم استلام التقرير':'لم يُرسل تقرير في هذا التاريخ')+'</small></div>'+
+       '<div style="width:min(280px,36%);text-align:left"><span style="font-weight:900;color:'+(r?'#13754e':'#b95b36')+'">'+(r?fmt(production)+' م³':'لم يرسل')+'</span>'+
+       '<div style="height:7px;border-radius:8px;background:#e0e9f1;margin-top:5px"><div style="height:7px;border-radius:8px;background:#50b4f2;width:'+pct+'%"></div></div></div></div>';
+  }).join('');
+  view.innerHTML='<div class="sec-grid"><div class="sec-stat"><strong>'+stations.length+'</strong><small>إجمالي المحطات</small></div>'+
+   '<div class="sec-stat"><strong>'+received+'</strong><small>تقارير مستلمة</small></div>'+
+   '<div class="sec-stat"><strong>'+ (stations.length-received)+'</strong><small>لم تُرسل</small></div>'+
+   '<div class="sec-stat"><strong>'+fmt(sum('production'))+'</strong><small>إجمالي الإنتاج (م³)</small></div>'+
+   '<div class="sec-stat"><strong>'+fmt(sum('raw'))+'</strong><small>إجمالي المياه الخام (م³)</small></div>'+
+   '<div class="sec-stat"><strong>'+fmt(sum('export'))+'</strong><small>إجمالي التصدير (م³)</small></div></div>'+
+   '<div class="sec-panel"><h3>حالة المحطات وتوزيع الإنتاج — '+esc(date)+'</h3>'+lines+'</div>';
+ }catch(e){view.innerHTML='<div class="archive-empty">'+esc(e.message)+'</div>'}
+}
+function accountsOpen(){
+ if(!isAdmin())return;
+ $('accountsModal').classList.remove('hidden');
+ $('accountStation').innerHTML=stations.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('');
+ $('accountStation').value=stations[0].id;
+ $('accountUsername').value=stations[0].id;
+ $('accountResponse').classList.add('hidden');
+ accountsRefresh();
+}
+async function accountsRefresh(){
+ try{
+  const resp=await authedFetch('/rest/v1/station_users?select=username,station_id,created_at&order=station_id.asc');
+  if(!resp.ok)throw Error('تعذر قراءة الحسابات');
+  const rows=await resp.json();
+  $('accountList').innerHTML=rows.length?rows.map(x=>'<div class="sec-row"><div><strong>'+esc(x.username)+'</strong><small>'+esc((stations.find(s=>s.id===x.station_id)||{}).name||x.station_id)+'</small></div><span class="role-chip">حساب محطة</span></div>').join('')
+   :'<div class="archive-empty">لا توجد حسابات محطات حتى الآن. أنشئ حسابًا لكل محطة.</div>';
+ }catch(e){$('accountList').textContent=e.message}
+}
+function strongPassword(){
+ const abc='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+ const bytes=new Uint32Array(22);crypto.getRandomValues(bytes);
+ const value=Array.from(bytes,v=>abc[v%abc.length]).join('');
+ $('accountPassword').value=value;
+}
+async function userWrite(action){
+ if(!isAdmin())return;
+ const username=$('accountUsername').value.trim().toLowerCase(),stationId=$('accountStation').value,
+ password=$('accountPassword').value;
+ if(!/^[a-z][a-z0-9_-]{2,24}$/.test(username)){toast('اسم المستخدم: أحرف إنجليزية صغيرة وأرقام وشرطة فقط.',true);return}
+ if(password.length<12){toast('كلمة المرور يجب أن تكون 12 رمزًا على الأقل.',true);return}
+ if(action==='reset_password'&&!confirm('تغيير كلمة مرور حساب '+username+'؟'))return;
+ try{
+  const resp=await authedFetch('/functions/v1/account-admin',{method:'POST',body:JSON.stringify({action,stationId,username,password})});
+  const out=await resp.json().catch(()=>({}));
+  if(!resp.ok)throw Error(resp.status===409?'اسم المستخدم مستخدم مسبقًا.':'تعذّر تنفيذ الطلب ('+(out.error||resp.status)+').');
+  const label=action==='create'?'تم إنشاء الحساب':'تم تغيير كلمة المرور';
+  $('accountResponse').textContent=label+' بنجاح\nالمحطة: '+(stations.find(s=>s.id===stationId)?.name||stationId)+
+    '\nاسم المستخدم: '+username+'\nكلمة المرور الجديدة: '+password+'\nاحتفظ بها وسلّمها لموظف المحطة بشكل آمن. لن تُعرض مرة أخرى.';
+  $('accountResponse').classList.remove('hidden');$('accountPassword').value='';
+  toast(label+' بنجاح');accountsRefresh();
+ }catch(e){toast(e.message,true)}
+}
+$('loginForm').addEventListener('submit',loginSubmit);
+$('signoutBtn').addEventListener('click',logout);
+$('dashboardBtn').addEventListener('click',dashboardOpen);
+$('dashboardClose').onclick=()=>{$('dashboardModal').classList.add('hidden')};
+$('dashboardRefresh').onclick=dashboardRefresh;
+$('accountsBtn').addEventListener('click',accountsOpen);
+$('accountsClose').onclick=()=>{$('accountsModal').classList.add('hidden')};
+$('accountStation').addEventListener('change',e=>{$('accountUsername').value=e.target.value});
+$('generatePassword').onclick=strongPassword;
+$('createAccount').onclick=()=>userWrite('create');
+$('resetAccount').onclick=()=>userWrite('reset_password');
+
 $('archiveBtn').onclick=archiveOpen;
 $('archiveClose').onclick=archiveClose;
 $('archiveSearch').onclick=archiveSearch;
@@ -447,7 +728,7 @@ $('archiveResults').onclick=e=>{const btn=e.target.closest('[data-archive-id]');
 $('archiveModal').addEventListener('click',e=>{if(e.target.id==='archiveModal')archiveClose()});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('archiveModal').classList.contains('hidden'))archiveClose()});
 
-loadCloudStations();
+restoreSession();
 })();
 
 </script></body></html>
