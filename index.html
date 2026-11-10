@@ -561,6 +561,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     <div class="dashboard-quick">
      <button class="btn" id="dashboardToday" type="button">اليوم</button>
      <button class="btn" id="dashboardYesterday" type="button">أمس</button>
+     <button class="btn" id="dashboardLastHistorical" type="button">آخر يوم تاريخي</button>
      <button class="btn primary" id="dashboardRefresh" type="button">تحديث البيانات</button>
     </div>
    </div>
@@ -704,6 +705,7 @@ const perUserKey=(name)=>name+'_'+(currentUserId||'locked');
 
 const DRAFTS_KEY='wsc_cloud_pending_drafts_v1', RECEIPTS_KEY='wsc_cloud_receipts_v1',REQUESTS_KEY='wsc_cloud_request_ids_v1';
 let cloudReady=false,cloudSubmitting=false,archiveViewing=false,archiveConfig=null;
+let dailyLookupBusy=false,dailyLookupError=false,dailySelectedReport=null,dailyLookupVersion=0;
 let stationVersions=Object.create(null);
 let editingReportId=null,settingsEditing=false,pendingInactiveIds=[];
 let receipts={},requestIds={};
@@ -768,13 +770,68 @@ function fetchRecord(){let k=reportKey();return clone(drafts[k]||emptyRecord())}
 function preserveDraft(){if(!signedIn()||archiveViewing)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
 function toast(message,error=false){let t=$('toast');t.textContent=message;t.className='toast '+(error?'error':'success');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3600)}
 function updateSaveStatus(){
- let x=$('saveStatus'),k=reportKey();
- x.textContent=editingReportId?'تعديل تقرير مؤرشف — سوبر أدمن':archiveViewing?'تقرير مركزي — للقراءة فقط':isAdmin()&&!isSuperAdmin()?'الأدمن — عرض فقط':receipts[k]?'تم الإرسال مركزيًا':cloudReady?'مسودة لم ترسل':'جارٍ الاتصال أو تعذّر';
+ const x=$('saveStatus'),key=reportKey();
+ const saved=dailySelectedReport;
+ const sourceTime=saved?(saved.source==='migration'?saved.source_sent_at:saved.created_at):null;
+ const stamp=sourceTime?dashboardSubmitTime(sourceTime):null;
+ if(dailyLookupBusy)x.textContent='جارٍ استرجاع التقرير من قاعدة البيانات…';
+ else if(dailyLookupError)x.textContent='تعذّر التحقق من بيانات هذا التاريخ؛ لا يمكن الإرسال قبل إعادة المحاولة';
+ else if(editingReportId)x.textContent='تعديل تقرير محفوظ — سوبر أدمن';
+ else if(archiveViewing&&saved){
+  x.textContent=saved.source==='migration'
+   ?'تقرير يومي محفوظ — وقت رسالة واتساب الأصلية: '+(stamp?.date||'—')+'، '+(stamp?.time||'—')+' (استيراد تاريخي لاحق)'
+   :'تقرير يومي محفوظ — وقت إرساله عبر الموقع: '+(stamp?.date||'—')+'، '+(stamp?.time||'—');
+ }else if(archiveViewing)x.textContent='تقرير محفوظ — للقراءة فقط';
+ else x.textContent=isAdmin()&&!isSuperAdmin()?'الأدمن — عرض فقط':receipts[key]?'تم الإرسال مركزيًا':cloudReady?'مسودة لم ترسل':'جارٍ الاتصال أو تعذّر';
  $('saveBtn').textContent=editingReportId?'☁ حفظ تعديل التقرير':'☁ إرسال التقرير';
- $('saveBtn').disabled=!signedIn()||!cloudReady||archiveViewing||cloudSubmitting||(isAdmin()&&!isSuperAdmin())||(!editingReportId&&!!receipts[k]);
- if(archiveViewing)for(const field of $('reportInputFields').querySelectorAll('input,textarea,select'))field.disabled=true;
+ $('saveBtn').disabled=!signedIn()||!cloudReady||dailyLookupBusy||dailyLookupError||
+  archiveViewing||cloudSubmitting||(isAdmin()&&!isSuperAdmin())||(!editingReportId&&!!receipts[key]);
+ if(archiveViewing){
+  for(const field of $('reportInputFields').querySelectorAll('input,textarea,select'))field.disabled=true;
+ }
 }
-function goTo(s,d){if(!stations.some(x=>x.id===s)||(currentRole==='station'&&s!==currentStationId))return;preserveDraft();archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();stationId=s;date=d;record=fetchRecord();$('reportDate').value=date;$('stationSelect').value=stationId;renderInputs();renderReport();updateSaveStatus()}
+async function loadSelectedDailyReport(){
+ const request=++dailyLookupVersion,lookupStation=stationId,lookupDate=date;
+ if(!signedIn()||!cloudReady)return;
+ dailyLookupBusy=true;dailyLookupError=false;updateSaveStatus();
+ try{
+  const query=new URLSearchParams({select:'id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at',
+    station_id:'eq.'+lookupStation,report_date:'eq.'+lookupDate,limit:'1'});
+  const response=await authedFetch('/rest/v1/reports?'+query.toString());
+  if(!response.ok)throw Error('تعذّر جلب التقرير من قاعدة البيانات ('+response.status+').');
+  const result=await response.json();
+  if(request!==dailyLookupVersion||lookupStation!==stationId||lookupDate!==date)return;
+  if(!Array.isArray(result))throw Error('وصلت استجابة غير صحيحة من قاعدة البيانات.');
+  const r=result[0];
+  if(r){
+   archiveViewing=true;
+   dailySelectedReport=r;
+   archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;
+   record={...emptyRecord(),metrics:r.data?.metrics||{},groups:r.data?.groups||{},notes:r.data?.notes||{}};
+  }else{
+   archiveViewing=false;archiveConfig=null;dailySelectedReport=null;
+   record=fetchRecord();
+  }
+  renderInputs();renderReport();
+ }catch(error){
+  if(request!==dailyLookupVersion)return;
+  dailyLookupError=true;
+  toast(error.message||'تعذّر التحقق من التقرير المحفوظ.',true);
+ }finally{
+  if(request===dailyLookupVersion){dailyLookupBusy=false;updateSaveStatus();}
+ }
+}
+function goTo(s,d){
+ if(!stations.some(x=>x.id===s)||(currentRole==='station'&&s!==currentStationId))return;
+ preserveDraft();
+ ++dailyLookupVersion;dailyLookupBusy=false;dailyLookupError=false;dailySelectedReport=null;
+ archiveViewing=false;archiveConfig=null;editingReportId=null;
+ $('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();
+ stationId=s;date=d;record=fetchRecord();
+ $('reportDate').value=date;$('stationSelect').value=stationId;
+ renderInputs();renderReport();updateSaveStatus();
+ if(signedIn()&&cloudReady)loadSelectedDailyReport();
+}
 function refreshSelects(){let val=stationId;$('stationSelect').innerHTML=stations.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');if(!stations.some(s=>s.id===val))stationId=stations[0].id;$('stationSelect').value=stationId}
 function fieldHtml(label,value,attrs={},unit='',wide=false){let attr=Object.entries(attrs).map(([k,v])=>`${k}="${esc(v)}"`).join(' ');return `<div class="field${wide?' wide':''}"><label>${esc(label)}</label><div class="input-group"><input class="control" type="${attrs['data-text']==='1'?'text':'number'}" ${attrs['data-text']==='1'?'':'step="any" inputmode="decimal"'} value="${esc(value??'')}" ${attr} placeholder="—"><span class="unit">${esc(unit)}</span></div></div>`}
 function metricAuto(m){if(!m.auto)return null;if(m.auto==='meter'){let g=record.groups.meter||{};let a=num((g.current||{}).value),b=num((g.previous||{}).value);return a!==null&&b!==null&&a>=b?a-b:null}if(m.auto==='wtp'){let w=selected().groups.find(x=>x.kind==='wtp'),g=w?(record.groups[w.id]||{}):{},r=g[m.id]||{};if(!m.additive)return num(r.total);let values=Array.from({length:w?.units||2},(_,i)=>num(r['wtp'+(i+1)]));return values.every(v=>v!==null)?values.reduce((a,b)=>a+b,0):num(r.total)}let g=selected().groups.find(x=>x.id===m.auto);if(!g)return null;let values=g.items.map(it=>num(((record.groups[g.id]||{})[it.id]||{}).value));return values.some(v=>v!==null)?values.reduce((a,b)=>a+(b??0),0):null}
@@ -877,16 +934,39 @@ async function saveReport(){
   store(perUserKey(RECEIPTS_KEY),receipts);
   delete drafts[k];store(perUserKey(DRAFTS_KEY),drafts);
   editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();
+  await loadSelectedDailyReport();
   cloudNotice('تم حفظ التقرير في قاعدة البيانات — يمكن استعراضه من الأرشيف.','ok');
   toast('تم حفظ التقرير مركزيًا بنجاح');
  }catch(e){toast(e.message||'تعذر الإرسال',true)}
  finally{cloudSubmitting=false;updateSaveStatus()}
 }
 
-function restoreReport(){let k=reportKey();if(!reports[k]){let matches=Object.keys(reports).filter(x=>x.startsWith(stationId+'@')).sort().reverse();if(!matches.length){toast('لا توجد تقارير محفوظة لهذه المحطة.',true);return}let d=matches[0].split('@')[1];date=d;$('reportDate').value=d;k=reportKey()}
-record=clone(reports[k]);drafts[k]=clone(record);renderInputs();renderReport();updateSaveStatus();toast('تم استرجاع التقرير المحفوظ')}
-function newReport(){archiveViewing=false;archiveConfig=null;editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();date=currentDate;$('reportDate').value=date;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم فتح نموذج تقرير جديد بتاريخ اليوم')}
-function clearFields(){if(!confirm('هل تريد مسح جميع قيم التقرير الحالي غير المحفوظة؟'))return;record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم مسح حقول الإدخال')}
+async function restoreReport(){
+ if(!signedIn()||!cloudReady)return toast('يلزم الاتصال بقاعدة البيانات.',true);
+ if(dailyLookupBusy)return;
+ if(!dailySelectedReport){
+  try{
+   const params=new URLSearchParams({select:'report_date',station_id:'eq.'+stationId,order:'report_date.desc',limit:'1'});
+   const response=await authedFetch('/rest/v1/reports?'+params);
+   if(!response.ok)throw Error('تعذر قراءة التقارير المركزية.');
+   const rows=await response.json();
+   if(!Array.isArray(rows)||!rows.length)return toast('لا توجد تقارير محفوظة لهذه المحطة.',true);
+   goTo(stationId,rows[0].report_date);
+   return;
+  }catch(err){return toast(err.message,true);}
+ }
+ await loadSelectedDailyReport();
+ toast('تم فتح التقرير المحفوظ للمراجعة.');
+}
+function newReport(){
+ goTo(stationId,currentDate);
+ toast('تم فتح نموذج اليوم. إذا كان محفوظًا فسيظهر من قاعدة البيانات.');
+}
+function clearFields(){
+ if(archiveViewing||dailyLookupBusy||dailyLookupError){toast('التقرير المحفوظ للقراءة فقط؛ لا يمكن مسحه.',true);return;}
+ if(!confirm('هل تريد مسح جميع قيم التقرير الحالي غير المحفوظة؟'))return;
+ record=emptyRecord();preserveDraft();renderInputs();renderReport();updateSaveStatus();toast('تم مسح حقول الإدخال');
+}
 function downloadBlob(blob,name){let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),45000)}
 const fileStem=()=>selected().name.replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,'_')+'_'+date;
 // Offline PNG renderer: paints the actual layout geometry and text from the live report.
@@ -1094,7 +1174,7 @@ refreshSelects();$('reportDate').value=date;record=fetchRecord();renderInputs();
 const ARCHIVE_PAGE_SIZE=1000;
 const ARCHIVE_SHOW_STEP=60;
 let archiveMode='daily',archiveRows=[],archiveHistoricalRows=[],archiveVisibleCount=ARCHIVE_SHOW_STEP;
-let archiveQueryInfo=null,archiveSearchVersion=0;
+let archiveQueryInfo=null,archiveSearchVersion=0,archiveSuggestedMonth='';
 
 function archiveChosenStation(){
  if(!signedIn())throw Error('سجّل الدخول أولًا.');
@@ -1151,9 +1231,13 @@ function archiveOpen(){
  $('archiveStation').value=isAdmin()?'':currentStationId;
  $('archiveStation').disabled=!isAdmin();
  $('archiveStationField').classList.toggle('hidden',!isAdmin());
- $('archiveMonth').value=dashboardSaudiDate().slice(0,7);
- $('archiveYear').value=dashboardSaudiDate().slice(0,4);
+ const end=dashboardSaudiDate();
+ $('archiveFrom').value=dashboardShiftDate(end,-89);
+ $('archiveTo').value=end;
+ $('archiveMonth').value=archiveSuggestedMonth||end.slice(0,7);
+ $('archiveYear').value=end.slice(0,4);
  archiveSetMode('daily');
+ archiveSearch();
 }
 function archiveClose(){
  archiveSearchVersion++;
@@ -1308,6 +1392,34 @@ function archivePeriodGroups(rows,period){
   return {...b,reports:subset.length,production,readingDays:days,average:production===null||!days?null:production/days};
  });
 }
+function archiveDailyGroups(rows){
+ const bucket=new Map();
+ for(const r of rows){
+  if(!bucket.has(r.report_date))bucket.set(r.report_date,[]);
+  bucket.get(r.report_date).push(r);
+ }
+ return [...bucket].sort(([a],[b])=>a.localeCompare(b)).map(([id,list])=>({
+  id,label:dashboardShortDate(id).slice(0,5),reports:list.length,
+  production:archiveAggregate(list,'production').total,
+  raw:archiveAggregate(list,'raw').total,
+  export:archiveAggregate(list,'export').total
+ }));
+}
+function archiveDailySummary(rows){
+ const groups=archiveDailyGroups(rows);
+ const table=groups.slice().reverse().map(row=>'<tr><td>'+esc(dashboardShortDate(row.id))+'</td>'+
+  '<td class="archive-num">'+esc(fmt(row.reports))+'</td>'+
+  '<td class="archive-num">'+esc(archiveFormatNum(row.production))+'</td>'+
+  '<td class="archive-num">'+esc(archiveFormatNum(row.raw))+'</td>'+
+  '<td class="archive-num">'+esc(archiveFormatNum(row.export))+'</td></tr>').join('');
+ return (groups.length?archiveChart(groups.slice(-35)):'')+
+  '<div class="archive-block"><h3>البيانات اليومية المسجلة حسب التاريخ</h3>'+
+  '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+
+  '<th>تاريخ التقرير</th><th>عدد تقارير المحطات</th><th>الإنتاج (م³)</th><th>الخام (م³)</th><th>التصدير (م³)</th>'+
+  '</tr></thead><tbody>'+table+'</tbody></table></div>'+
+  (groups.length>35?'<p class="archive-hint">الرسم يعرض أحدث 35 يومًا لديه تقارير؛ الجدول يشمل جميع الأيام ضمن البحث.</p>':'')+
+  '</div>';
+}
 function archiveChart(groups){
  const max=Math.max(0,...groups.map(g=>g.production??0));
  const width=groups.length>12?Math.max(690,groups.length*32):0;
@@ -1430,7 +1542,8 @@ function archiveRender(){
   content+=historical.length?archiveHistoricalSection(historical,period):
    '<div class="archive-empty">لا توجد تقارير محفوظة لهذه الفترة أو السنة. لا توجد قراءات لعرض رسم بياني، واختر فترة أخرى تحتوي على تقارير.</div>';
  }else if(period.mode==='daily'){
-  content+='<p class="archive-missing-note">عدد التقارير: '+esc(fmt(rows.length))+'</p>'+archiveReportEntries(rows);
+  content+=archiveSummary(rows,period,scope)+archiveDailySummary(rows)+archiveStationTable(rows)+
+   '<div class="archive-block"><h3>التقارير اليومية المحفوظة لكل محطة</h3>'+archiveReportEntries(rows)+'</div>';
  }else{
   const groups=archivePeriodGroups(rows,period);
   content+=archiveSummary(rows,period,scope)+(period.mode==='yearly'?archiveAnnualTrend(groups):archiveChart(groups))+archiveGroupTable(groups,period)+
@@ -1457,6 +1570,13 @@ async function archiveSearch(){
   const [rows,historical]=await Promise.all([archiveFetchAll(scope,period,searchVersion),archiveFetchHistorical(scope,period,searchVersion)]);
   if(searchVersion!==archiveSearchVersion)return;
   archiveRows=rows;archiveHistoricalRows=historical;archiveQueryInfo={scope,period};
+  if(period.mode==='daily'&&rows.length){
+   const counts=new Map();
+   for(const item of rows){const month=item.report_date.slice(0,7);counts.set(month,(counts.get(month)||0)+1);}
+   const eligible=[...counts].filter(([,n])=>n>=5).sort(([a],[b])=>b.localeCompare(a));
+   const candidate=eligible.length?eligible[0][0]:[...counts.keys()].sort().reverse()[0];
+   if(candidate){archiveSuggestedMonth=candidate;$('archiveMonth').value=candidate;}
+  }
   archiveRender();
  }catch(e){
   if(searchVersion!==archiveSearchVersion)return;
@@ -1605,13 +1725,16 @@ async function archiveDelete(id){
 
 async function archiveShow(id,editable=false){
  if(!signedIn())return;
+ const lookupGuard=++dailyLookupVersion;
  try{
   const resp=await authedFetch('/rest/v1/reports?select=id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at&id=eq.'+encodeURIComponent(id)+'&limit=1');
   if(!resp.ok)throw Error('تعذر الوصول للتقرير.');
   const arr=await resp.json(),r=arr[0];
   if(!r||!r.data||!stations.some(x=>x.id===r.station_id))throw Error('ليس لديك صلاحية عرض التقرير.');
   if(editable&&!isSuperAdmin())throw Error('فقط السوبر أدمن يستطيع تعديل التقارير.');
+  if(lookupGuard!==dailyLookupVersion)return;
   preserveDraft();stationId=r.station_id;date=r.report_date;
+  dailyLookupBusy=false;dailyLookupError=false;dailySelectedReport=r;
   archiveViewing=!editable;editingReportId=editable?r.id:null;archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;
   record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
@@ -1641,6 +1764,7 @@ async function loadCloudStations(){
  $('reportDate').value=date;renderInputs();renderReport();
  cloudReady=true;updateSaveStatus();
  cloudNotice('متصل بـ Supabase — '+(isAdmin()?'صلاحيات الإدارة لجميع المحطات':'الصلاحية محددة بمحطة '+selected().name),'ok');
+ await loadSelectedDailyReport();
 }
 async function authRefresh(){
  const refresh=authSession?.refresh_token;
@@ -1730,6 +1854,7 @@ async function loginSubmit(e){
 }
 async function logout(){
  preserveDraft();
+ ++dailyLookupVersion;dailyLookupBusy=false;dailyLookupError=false;dailySelectedReport=null;
  const token=authSession?.access_token;
  authSession=null;currentRole='';currentStationId='';currentUserId='';cloudReady=false;
  sessionAssignedPasswords.clear();
@@ -1863,9 +1988,9 @@ async function dashboardRefresh(){
    const submit=r?dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at):null;
    const metrics=r?.data?.metrics||{};
    const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)]];
-   const status=r?(r.source==='migration'?'مستورد من واتساب':'تم الاستلام'):'لم يُرسل';
+   const status=r?'تقرير محفوظ':'لم يُرسل';
    return '<div class="dashboard-plant '+(r?'received':'pending')+'">'+
-    '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+'</h4>'+
+    '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+(r?.source==='migration'?'<small style="display:block;font-size:10px;font-weight:500">من سجل واتساب التاريخي</small>':'')+'</h4>'+
      '<span class="dashboard-status '+(r?'received':'pending')+'">'+status+'</span></div>'+
     '<div class="dashboard-submission">'+
      '<div class="dashboard-field"><small>'+(r?.source==='migration'?'تاريخ رسالة واتساب':'تاريخ إرسال التقرير')+'</small><strong>'+esc(submit?.date||'—')+'</strong></div>'+
@@ -2333,6 +2458,20 @@ $('dashboardRefresh').onclick=dashboardRefresh;
 $('dashboardDate').addEventListener('change',dashboardRefresh);
 $('dashboardToday').onclick=()=>{$('dashboardDate').value=dashboardSaudiDate();dashboardRefresh()};
 $('dashboardYesterday').onclick=()=>{$('dashboardDate').value=dashboardShiftDate(dashboardSaudiDate(),-1);dashboardRefresh()};
+$('dashboardLastHistorical').onclick=async()=>{
+ if(!isAdmin())return;
+ const button=$('dashboardLastHistorical');button.disabled=true;
+ try{
+  const q=new URLSearchParams({select:'report_date',source:'eq.migration',order:'report_date.desc',limit:'1'});
+  const response=await authedFetch('/rest/v1/reports?'+q);
+  if(!response.ok)throw Error('تعذر الوصول للتقارير التاريخية.');
+  const rows=await response.json();
+  if(!rows.length)throw Error('لا يوجد سجل تاريخي بعد.');
+  $('dashboardDate').value=rows[0].report_date;
+  dashboardRefresh();
+ }catch(error){toast(error.message,true);}
+ finally{button.disabled=false;}
+};
 $('dashboardContent').addEventListener('click',event=>{
  const button=event.target.closest('[data-dashboard-report]');
  if(button&&isAdmin())archiveShow(button.dataset.dashboardReport);
@@ -2397,7 +2536,8 @@ for(const id of ['archiveFrom','archiveTo','archiveMonth','archiveYear']){
  });
 }
 document.querySelector('.archive-modes').addEventListener('click',e=>{
- const button=e.target.closest('[data-archive-mode]');if(button)archiveSetMode(button.dataset.archiveMode);
+ const button=e.target.closest('[data-archive-mode]');
+ if(button){archiveSetMode(button.dataset.archiveMode);if(button.dataset.archiveMode==='monthly'&&archiveSuggestedMonth)$('archiveMonth').value=archiveSuggestedMonth;archiveSearch();}
 });
 $('archiveStation').onchange=()=>{
  archiveSearchVersion++;archiveRows=[];archiveQueryInfo=null;
