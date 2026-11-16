@@ -86,3 +86,31 @@ body[data-auth="locked"] #chemicalsLink{display:none!important}
 @media(prefers-reduced-motion:reduce){
  #dashboardModal .ws-needle,#dashboardModal .dashboard-week-fill{transition:none!important}
 }
+
+/* Site-wide presentation motion — scoped to display elements only.
+   Form inputs and the printable report-sheet never animate. */
+@keyframes wsDataEnter {
+ from {opacity:0;transform:translate3d(0,13px,0) scale(.985)}
+ to {opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes wsPageEnter {
+ from {opacity:.3;transform:translate3d(0,10px,0)}
+ to {opacity:1;transform:translate3d(0,0,0)}
+}
+.ws-reveal-pending{opacity:0;transform:translate3d(0,13px,0)}
+.ws-reveal-running{animation:wsDataEnter .62s cubic-bezier(.22,.86,.28,1) var(--ws-delay,0ms) both}
+.ws-entry-intro{animation:wsPageEnter .7s ease-out both}
+.ws-entry-intro:nth-child(2){animation-delay:90ms}
+.archive-barfill.ws-animated-chart-fill,.archive-trend-fill.ws-animated-chart-fill{transition:height 1.15s cubic-bezier(.16,.88,.28,1)}
+#archiveModal .archive-barset,#archiveModal .archive-trend-bars{overflow:visible}
+#archiveModal .archive-trend-kpi strong,#archiveModal .archive-kpi strong,
+#dashboardModal .ws-instrument-number,#dashboardModal .dashboard-kpi strong,
+#dashboardModal .dashboard-station-value strong{font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){
+ .ws-reveal-pending,.ws-reveal-running,.ws-entry-intro{animation:none!important;opacity:1!important;transform:none!important}
+ .archive-barfill.ws-animated-chart-fill,.archive-trend-fill.ws-animated-chart-fill{transition:none!important}
+}
+@media print{
+ .ws-reveal-pending,.ws-reveal-running,.ws-entry-intro{animation:none!important;opacity:1!important;transform:none!important}
+ .archive-barfill.ws-animated-chart-fill,.archive-trend-fill.ws-animated-chart-fill{transition:none!important}
+}
