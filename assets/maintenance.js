@@ -509,24 +509,34 @@ function onClick(e){
 }
 async function dashboardMaintenance(){
  const container=el('dashboardContent');
- if(!accessible()||!container||!container.querySelector('.dashboard-summary')||updatingDash)return;
+ const summaryNode=container?.querySelector('.dashboard-summary');
+ if(!accessible()||!container||!summaryNode||updatingDash)return;
  if(container.querySelector('.mw-dash-summary'))return;
  const node=document.createElement('section');
- node.className='mw-dash-summary';node.innerHTML='<h3>🔧 ملخص الصيانة</h3><div class="mw-muted">جارٍ تحميل سجلات الصيانة...</div>';
- container.insertBefore(node,container.firstChild);
+ node.className='mw-dash-summary';
+ node.innerHTML='<h3>🔧 متابعة الصيانة</h3><div class="mw-muted">جارٍ تحميل سجلات الصيانة...</div>';
+ summaryNode.insertAdjacentElement('afterend',node);
  updatingDash=true;
  try{
   const list=await summary('');
   if(!node.isConnected)return;
   const sums=k=>list.reduce((a,x)=>a+Number(x[k]||0),0);
-  const assets=sums('asset_count'),works=sums('work_count'),undone=sums('not_done_count');
-  node.innerHTML='<h3>🔧 متابعة الصيانة — جميع المحطات</h3><div class="mw-dash-row"><div class="mw-dash-values">'+
-   [['المعدات المسجلة',assets],['سجلات الصيانة',works],['NOT DONE',undone]].map(([label,num])=>'<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+
-   '</div><button type="button" id="mw-dashboard-open">فتح إدارة الصيانة</button></div>'+
-   (!works?'<p class="mw-muted" style="margin:8px 0 0">لم تُستورد سجلات الصيانة إلى الموقع بعد.</p>':'');
+  const assets=sums('asset_count'),works=sums('work_count'),done=sums('done_count'),undone=sums('not_done_count');
+  const hasData=list.filter(x=>Number(x.work_count||0)>0);
+  const ratio=done+undone?Math.round(100*done/(done+undone)):null;
+  const stationsWithData=hasData.map(x=>stationName(x.station_id)).join('، ');
+  node.innerHTML='<div class="mw-top" style="border:0;padding:0;margin:0 0 10px"><div><h3>🔧 متابعة الصيانة</h3>'+
+   '<p class="mw-muted" style="margin:3px 0">المحطات التي لديها بيانات صيانة: '+h(stationsWithData||'لا توجد سجلات مستوردة')+'</p></div>'+
+   '<button type="button" id="mw-dashboard-open">فتح إدارة الصيانة</button></div>'+
+   '<div class="mw-dash-row"><div class="mw-dash-values">'+
+   [['المعدات المؤكدة',assets],['سجلات الصيانة',works],['DONE',done],['NOT DONE',undone]].
+   map(([label,num])=>'<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>'+
+   '<p class="mw-small-note">'+(ratio!==null?'نسبة DONE من الحالات الصريحة: '+ratio+'%. ':'')+
+   'يظهر ملخص المحطات التي تم إدخال بياناتها فقط؛ بقية المحطات لا تُعرض لها بيانات افتراضية.</p>';
   el('mw-dashboard-open')?.addEventListener('click',()=>open('overview'));
- }catch(err){if(node.isConnected)node.innerHTML='<h3>🔧 متابعة الصيانة</h3>'+message('تعذر تحميل ملخص الصيانة.',true)}
- finally{updatingDash=false}
+ }catch(err){
+  if(node.isConnected)node.innerHTML='<h3>🔧 متابعة الصيانة</h3>'+message('تعذر تحميل ملخص الصيانة.',true);
+ }finally{updatingDash=false}
 }
 function init(){
  const trigger=el('maintenanceLink');
