@@ -3029,7 +3029,10 @@ window.WSMaintenanceHost=Object.freeze({
  stationId:()=>currentStationId,
  stations:()=>stations.map(s=>({id:s.id,name:s.name})),
  userId:()=>currentUserId,
- authedFetch:(path,options)=>authedFetch(path,options)
+ authedFetch:(path,options)=>authedFetch(path,options),
+ logo:()=>LOGO,
+ gauge:(value,color,mode='level')=>wsDial(value,color,mode),
+ animateGauges:node=>wsAnimateInstruments(node)
 });
 
 void (async()=>{if(!(await checkRecoveryLink()))await restoreSession()})();
