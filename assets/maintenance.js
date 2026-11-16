@@ -481,46 +481,56 @@ function assign(data,id){
  return {...data,station_id:id,created_by:host().userId()};
 }
 async function importCommit(){
- const p=M.preview,id=getId();if(M.importing||!p||p.stationId!==id||!owns(id))return;
+ const p=M.preview,id=getId();
+ if(M.importing||!p||p.stationId!==id||!owns(id))return;
  if(!p.assets.size){el('mw-import-status').innerHTML=message('لا توجد معدات للاستيراد.',true);return}
- M.importing=true;let savedAssets=0,savedRecords=0;
+ M.importing=true;
+ let savedAssets=0,savedRecords=0,savedPlanned=0;
  const box=el('mw-import-status'),buttons=root.querySelectorAll('[data-mw="commitImport"],[data-mw="discardPreview"]');
  buttons.forEach(b=>b.disabled=true);
  const progress=(t,v)=>{if(box)box.innerHTML='<div class="mw-progress"><div style="width:'+v+'%"></div></div><div class="mw-muted">'+h(t)+'</div>'};
  try{
   const assets=Array.from(p.assets.values()),existing=await loadAllAssets(id);
-  const missing=assets.filter(a=>!existing.has(a.normalized_key));
+  const missing=assets.filter(a=>!matchAsset(a,existing));
   for(let i=0;i<missing.length;i+=BATCH){
    const inserted=await postRows('maintenance_assets',missing.slice(i,i+BATCH).map(a=>assign(a,id)),true);
-   savedAssets+=inserted.length;progress('جاري حفظ المعدات...',Math.round((i+BATCH)/Math.max(1,missing.length)*35));
+   savedAssets+=inserted.length;
+   progress('جاري حفظ المعدات...',Math.min(35,Math.round((i+BATCH)/Math.max(1,missing.length)*35)));
   }
   const amap=await loadAllAssets(id);
-  const records=p.records.map(r=>{
-   const asset_id=amap.get(r.assetKey);if(!asset_id)return null;
-   const {assetKey,...row}=r;return assign({...row,asset_id},id);
-  }).filter(Boolean);
+  const attach=(entry)=>{
+   const asset_id=matchAsset(p.assets.get(entry.assetKey),amap);
+   if(!asset_id)return null;
+   const {assetKey,...row}=entry;
+   return assign({...row,asset_id},id);
+  };
+  const records=p.records.map(attach).filter(Boolean);
+  const plans=p.definitions.map(attach).filter(Boolean);
   for(let i=0;i<records.length;i+=BATCH){
    const inserted=await postRows('maintenance_records',records.slice(i,i+BATCH),true);
-   savedRecords+=inserted.length;progress('جاري حفظ سجلات الصيانة... '+Math.min(i+BATCH,records.length)+' / '+records.length,35+Math.round(Math.min(i+BATCH,records.length)/Math.max(1,records.length)*62));
+   savedRecords+=inserted.length;
+   progress('جاري حفظ سجلات الصيانة... '+Math.min(i+BATCH,records.length)+' / '+records.length,
+     35+Math.round(Math.min(i+BATCH,records.length)/Math.max(1,records.length)*40));
+  }
+  for(let i=0;i<plans.length;i+=BATCH){
+   const inserted=await postRows('maintenance_definitions',plans.slice(i,i+BATCH),true);
+   savedPlanned+=inserted.length;
+   progress('جاري حفظ الأعمال المجدولة... '+Math.min(i+BATCH,plans.length)+' / '+plans.length,
+     75+Math.round(Math.min(i+BATCH,plans.length)/Math.max(1,plans.length)*23));
   }
   await postRows('maintenance_imports',[assign({
    file_name:p.filename.slice(0,240),reviewed_rows:p.validRows,inserted_assets:savedAssets,
-   inserted_records:savedRecords,ignored_records:records.length-savedRecords
+   inserted_records:savedRecords,inserted_definitions:savedPlanned,ignored_records:records.length-savedRecords
   },id)]);
-  M.preview=null;progress('اكتمل الحفظ: '+savedAssets+' معدة جديدة، '+savedRecords+' سجل جديد. تم تجاوز '+(records.length-savedRecords)+' سجل مكرر.',100);
+  M.preview=null;
+  progress('اكتمل الحفظ: '+savedAssets+' معدة جديدة، '+savedRecords+' سجل صيانة جديد، '+savedPlanned+' عمل مجدول.',100);
   const actions=document.createElement('div');actions.className='mw-actions';actions.style.marginTop='12px';
   actions.innerHTML='<button class="mw-button main" type="button" data-mw="goRecords">استعراض السجلات</button>';
   box.appendChild(actions);root.querySelector('[data-mw="commitImport"]')?.remove();
   dashboardMaintenance();
- }catch(err){progress('توقف الاستيراد: '+err.message+'. تم حفظ '+savedAssets+' معدة و'+savedRecords+' سجل قبل التوقف. يمكن إعادة رفع الملف دون تكرار السجلات.',75)}
- finally{M.importing=false;buttons.forEach(b=>b.disabled=false)}
-}
-async function addAsset(form){
- const name=clean(form.elements.assetName.value),area=clean(form.elements.area.value),code=clean(form.elements.assetCode.value);
- if(name.length<2||name.length>180)throw Error('اسم المعدة غير صالح.');
- const rows=await postRows('maintenance_assets',[assign({asset_name:name,area,asset_code:code,normalized_key:assetKey(name,area,code)},getId())],true);
- if(rows.length){M.search='';M.assetPage=0;await update();alertInline('تمت إضافة المعدة بنجاح.')}
- else alertInline('هذه المعدة مسجلة مسبقًا في المحطة.',false);
+ }catch(err){
+  progress('توقف الاستيراد: '+err.message+'. تمت إضافة '+savedAssets+' معدة و'+savedRecords+' سجل و'+savedPlanned+' عمل مجدول قبل التوقف. يمكن إعادة رفع الملف لتجاوز العناصر المكررة.',75);
+ }finally{M.importing=false;buttons.forEach(b=>b.disabled=false)}
 }
 function alertInline(text,err=false){
  const body=el('maintenanceBody');if(body)body.insertAdjacentHTML('afterbegin',message(text,err));
