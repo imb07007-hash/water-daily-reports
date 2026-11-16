@@ -461,7 +461,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 .archive-trend-tag.down{background:#fff1e9}
 @media(max-width:650px){.archive-trend-cards{grid-template-columns:1fr 1fr}.archive-trend-kpi strong{font-size:17px}}
 
-</style><link rel="stylesheet" href="/assets/ops-theme.css"></head>
+</style><link rel="stylesheet" href="/assets/ops-theme.css"><link rel="stylesheet" href="/assets/chemicals-embedded.css"></head>
 <body data-auth="locked">
 
 <section id="loginScreen" class="login-screen" aria-label="بوابة تسجيل الدخول إلى نظام تشغيل المحطات">
@@ -521,7 +521,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><a class="btn" id="chemicalsLink" href="/chemicals.html">🧪 مخزون المواد الكيميائية</a><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button type="button" class="btn" id="chemicalsLink">🧪 مخزون المواد الكيميائية</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2 id="settingsTitle">إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
@@ -549,6 +549,51 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     <button type="button" class="btn" id="archivePdf">طباعة / PDF</button>
    </div>
    <div id="archiveResults" aria-live="polite" aria-busy="false" class="archive-empty">اختر نوع التقرير ثم اضغط عرض التقارير.</div>
+  </div>
+ </div>
+</div>
+
+<div class="modal-backdrop hidden" id="chemicalsModal" role="dialog" aria-modal="true" aria-label="لوحة مخزون المواد الكيميائية">
+ <div class="modal" role="document">
+  <div class="modal-head">
+   <h2>🧪 لوحة مخزون المواد الكيميائية</h2>
+   <button type="button" class="btn" id="chemicalsClose" aria-label="إغلاق لوحة المواد الكيميائية والعودة إلى التقارير">✕ إغلاق والعودة للتقارير</button>
+  </div>
+  <div class="modal-body">
+   <section id="chemRoot" dir="rtl">
+    <div class="chem-embed-toolbar">
+     <div class="chem-embed-note">شركة حلول المياه · متابعة المواد الكيميائية بمحطات التشغيل</div>
+     <div class="toolbar">
+      <button type="button" class="btn primary" id="chem-widget-refresh">⟳ تحديث المؤشرات</button>
+      <button type="button" class="btn" id="chem-widget-goEditor">＋ تسجيل تحديث مخزون</button>
+      <span id="chem-widget-account" style="font-size:11px;color:#617990"></span>
+     </div>
+    </div>
+    <div class="container">
+<div class="notice">تعكس هذه اللوحة آخر قراءة مخزون محفوظة لكل مادة. <strong>مدة التغطية تخص تاريخ القراءة</strong>، ولا تعني بالضرورة الكمية المتاحة اليوم إذا كانت البيانات قديمة.</div>
+<div class="alertbar" id="chem-widget-alerts"></div>
+<div class="stats" id="chem-widget-stats"></div>
+<div class="filterbar"><input type="search" id="chem-widget-search" placeholder="بحث عن محطة أو مادة كيميائية" aria-label="البحث">
+<select id="chem-widget-stationFilter" aria-label="المحطة"></select>
+<select id="chem-widget-sort"><option value="risk">الأقل أيام تغطية أولًا</option><option value="station">الترتيب حسب المحطة</option></select>
+<button type="button" class="chip active" data-stage="ALL">كل المراحل</button><button type="button" class="chip" data-stage="PRE">المعالجة الأولية</button><button type="button" class="chip" data-stage="RO">التناضح العكسي</button><button type="button" class="chip" data-stage="POST">المعالجة النهائية</button><button type="button" class="chip" data-stage="CIP">الغسيل الكيميائي</button><button type="button" class="chip" data-stage="GENERAL">غير محدد</button>
+</div>
+<div class="legend"><span><i style="background:#d64545"></i>أقل من 30 يوم</span><span><i style="background:#e6a117"></i>30–60 يومًا</span><span><i style="background:#2e9e5b"></i>أكثر من 60 يومًا</span><span><i style="background:#a1adba"></i>لم تُسجّل فترة تغطية</span><span>القراءات التي لم تُحدّث خلال 14 يومًا تميّز بتاريخ قديم</span></div>
+<div class="plantgrid" id="chem-widget-plantGrid" aria-live="polite"><div class="empty">جارٍ الاتصال بقاعدة البيانات…</div></div>
+<section class="editor" id="chem-widget-editor"><h2>تحديث المخزون الكيميائي</h2><p class="caption">سجّل قراءة بتاريخها الفعلي. سيتم الاحتفاظ بقراءات الأيام السابقة، ويمكن تحديث قراءة التاريخ نفسه.</p>
+<form id="chem-widget-chemForm"><div class="formgrid">
+<label>المحطة<select id="chem-widget-fStation" required></select></label>
+<label>المادة الكيميائية<input id="chem-widget-fMaterial" maxlength="140" required placeholder="مثال: PAC / غاز الكلور"></label>
+<label>مرحلة المعالجة<select id="chem-widget-fStage"><option value="GENERAL">غير محدد</option><option value="PRE">المعالجة الأولية</option><option value="RO">التناضح العكسي</option><option value="POST">المعالجة النهائية</option><option value="CIP">الغسيل الكيميائي</option></select></label>
+<label>تاريخ القراءة<input type="date" id="chem-widget-fDate" required></label>
+<label>الكمية المتوفرة<input type="number" id="chem-widget-fQuantity" min="0" step="any" placeholder="اتركه فارغًا إذا غير مسجل"></label>
+<label>وحدة الكمية<select id="chem-widget-fUnit"><option>طن</option><option>كجم</option><option>لتر</option><option>م³</option><option>أسطوانة</option><option>عبوة</option></select></label>
+<label>مدة التغطية بالأيام<input type="number" id="chem-widget-fDays" min="0" step="any" placeholder="أيام"></label>
+<label class="full">ملاحظات<textarea id="chem-widget-fNotes" maxlength="1500" placeholder="التوريد، حالة التخزين، ملاحظات التشغيل"></textarea></label>
+</div><div class="form-actions"><button class="btn primary" id="chem-widget-save" type="submit">حفظ قراءة المخزون</button><span id="chem-widget-feedback" role="status"></span></div></form></section>
+<div class="foot">شركة حلول المياه — متابعة المواد الكيميائية · التواريخ معروضة بالتقويم الميلادي</div>
+</div>
+   </section>
   </div>
  </div>
 </div>
@@ -1863,7 +1908,8 @@ async function logout(){
  sessionAssignedPasswords.clear();
  sessionStorage.removeItem(AUTH_KEY);
  stations=allowedStations();drafts={};receipts={};requestIds={};
- for(const m of ['archiveModal','dashboardModal','accountsModal','auditModal','passwordModal'])$(m).classList.add('hidden');
+ for(const m of ['archiveModal','dashboardModal','chemicalsModal','accountsModal','auditModal','passwordModal'])$(m).classList.add('hidden');
+ chemicalPanel.reset();
  $('changeOwnPasswordBtn').classList.add('hidden');
  for(const id of ['selfPasswordOld','selfPasswordNew','selfPasswordConfirm'])$(id).value='';
  document.body.dataset.auth='locked';$('loginScreen').classList.remove('hidden');
@@ -2751,6 +2797,222 @@ $('backFromRecovery').onclick=resetToLogin;
 $('forgotForm').onsubmit=sendRecovery;
 $('recoveryRefreshButton').onclick=()=>location.reload();
 $('recoveryForm').onsubmit=applyRecoveredPassword;
+
+
+const chemicalPanel=(function(host){
+'use strict';
+
+const $=id=>document.getElementById('chem-widget-'+id);
+let user=null,role='',ownStation='',stations=[],records=[],filterStage='ALL',initialUid='';
+const stages={PRE:'المعالجة الأولية',RO:'التناضح العكسي',POST:'المعالجة النهائية',CIP:'الغسيل الكيميائي',GENERAL:'غير محدد'};
+const esc=value=>String(value??'').replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]});
+const fixed=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
+function today(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day}
+function ageDays(d){const a=Date.parse(d+'T12:00:00Z'),b=Date.parse(today()+'T12:00:00Z');return Number.isFinite(a)?Math.max(0,Math.floor((b-a)/86400000)):0}
+function state(days){return days===null?'unknown':days<30?'critical':days<=60?'warning':'good'}
+function color(days){return {critical:'#d64545',warning:'#e6a117',good:'#2e9e5b',unknown:'#93a3b6'}[state(days)]}
+
+/* Scale and needle follow the original chemical dashboard's half-circle instrument. */
+function dial(days,title=''){
+ const value=days===null?null:Number(days),safe=value===null?0:Math.max(0,Math.min(120,value)),cx=70,cy=64,R=48;
+ const P=(a,r)=>[(cx+r*Math.cos(Math.PI*(1-a/120))).toFixed(2),(cy-r*Math.sin(Math.PI*(1-a/120))).toFixed(2)];
+ const segment=(a,b,col,active)=>'<path d="M'+P(a,R)[0]+','+P(a,R)[1]+' A'+R+','+R+' 0 0 1 '+P(b,R)[0]+','+P(b,R)[1]+'" fill="none" stroke="'+col+'" stroke-width="13" opacity="'+(active?1:0.31)+'"/>';
+ const z=state(value),active=x=>z===x;
+ let ticks='';for(let a=10;a<120;a+=10){const [x1,y1]=P(a,R-8),[x2,y2]=P(a,R-13);ticks+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#9caebf" stroke-width="1"/>'}
+ const label=(a,n)=>{const pt=P(a,R+14);return '<text x="'+pt[0]+'" y="'+(Number(pt[1])+4)+'" text-anchor="middle" font-size="10" font-weight="800" fill="#17324d">'+n+'</text>'};
+ const angle=-90+safe/120*180,stroke=color(value);
+ return '<svg viewBox="0 0 140 82" aria-label="'+esc(title+' — '+(value===null?'مدة غير مسجلة':fixed(value)+' يوم'))+'" role="img">'+
+ segment(0,29.3,'#e05252',active('critical'))+segment(30.7,59.3,'#f0a92b',active('warning'))+segment(60.7,120,'#2fa865',active('good'))+
+ ticks+label(30,'30')+label(60,'60')+
+ '<text x="16" y="76" font-size="9" fill="#8998a8" text-anchor="middle">0</text><text x="124" y="76" font-size="9" fill="#8998a8" text-anchor="middle">120+</text>'+
+ '<g class="ws-needle" data-target-angle="'+angle+'" style="transform:rotate(-90deg)"><path d="M66.8,64 L70,22 L73.2,64 Z" fill="#17324d"/></g>'
+ '<circle cx="70" cy="64" r="7" fill="#17324d"/><circle cx="70" cy="64" r="2.7" fill="#fff"/></svg>';
+}
+function packIcon(row,dayState){
+ const material=String(row.material||'').toLowerCase(),tint=color(row.coverage_days),gas=/chlorine gas|غاز|أسطوانة|cylinder/.test(material+' '+row.unit);
+ const powder=/polymer|بودر|مسحوق|powder/.test(material);
+ let shapes='';
+ if(gas){for(let x=9;x<=45;x+=18){shapes+='<rect x="'+x+'" y="12" width="13" height="38" rx="5" fill="'+tint+'" opacity=".93"/><rect x="'+(x+4)+'" y="6" width="5" height="8" rx="1" fill="#849eb2"/><rect x="'+(x+5)+'" y="3" width="3" height="4" fill="#476a87"/>'}}
+ else if(powder){for(let x=9;x<=45;x+=18){shapes+='<path d="M'+(x+3)+' 10 L'+(x+13)+' 10 L'+(x+16)+' 49 L'+x+' 49 Z" fill="'+tint+'"/><path d="M'+(x+4)+' 18 L'+(x+13)+' 18" stroke="white" opacity=".65" stroke-width="2"/>'}}
+ else {for(let x=7;x<=45;x+=19){shapes+='<rect x="'+x+'" y="16" width="16" height="33" rx="4" fill="'+tint+'"/><ellipse cx="'+(x+8)+'" cy="16" rx="8" ry="4" fill="#e8f1f7" stroke="'+tint+'" stroke-width="2"/><path d="M'+(x+3)+' 28 h10" stroke="white" opacity=".6" stroke-width="2"/>'}}
+ return '<div class="ws-pack" style="color:'+tint+'"><svg viewBox="0 0 72 59" aria-hidden="true">'+shapes+'</svg>'+
+ '<span class="qty-pill">'+(row.quantity===null?'—':fixed(row.quantity))+' '+esc(row.quantity===null?'':row.unit)+'</span></div>';
+}
+const api=(path,options={})=>host.authedFetch(path,options);
+async function init(){
+ try{
+  if(!host.signedIn())throw Error('يجب تسجيل الدخول إلى الموقع أولًا.');
+  user={id:host.uid()};
+  role=host.role();
+  ownStation=host.station();
+  if(!user.id||!['station','admin','superadmin'].includes(role))throw Error('تعذّر قراءة صلاحيات الحساب.');
+  stations=host.stations().filter(v=>role!=='station'||v.id===ownStation).map(v=>({id:v.id,name:v.name}));
+  if(role==='station'&&!ownStation)throw Error('حساب المستخدم غير مرتبط بمحطة.');
+  if(!stations.length)throw Error('لا توجد محطات مسموح بعرضها.');
+  $('account').textContent=role==='superadmin'?'حساب السوبر أدمن':role==='admin'?'حساب الإدارة':'حساب محطة';
+  const options='<option value="ALL">جميع المحطات</option>'+stations.map(v=>'<option value="'+esc(v.id)+'">'+esc(v.name)+'</option>').join('');
+  $('stationFilter').innerHTML=role==='station'?options.replace('<option value="ALL">جميع المحطات</option>',''):options;
+  $('fStation').innerHTML=stations.map(v=>'<option value="'+esc(v.id)+'">'+esc(v.name)+'</option>').join('');
+  $('fStation').value=ownStation||stations[0]?.id||'';
+  $('fDate').value=today();
+  $('editor').hidden=role==='admin';
+  $('goEditor').hidden=role==='admin';
+  await load();
+  return true;
+ }catch(e){
+  $('plantGrid').innerHTML='<div class="empty">'+esc(e.message||'تعذّر فتح لوحة المواد الكيميائية')+'</div>';
+  $('editor').hidden=true;$('goEditor').hidden=true;
+  return false;
+ }
+}
+async function load(){
+ $('plantGrid').innerHTML='<div class="empty">جارٍ تحديث المخزون…</div>';
+ try{const q=new URLSearchParams({select:'id,station_id,material,stage,quantity,unit,coverage_days,reading_date,notes,updated_at',order:'reading_date.desc,updated_at.desc',limit:'2000'});
+ if(role==='station')q.set('station_id','eq.'+ownStation);
+ const r=await api('/rest/v1/chemical_inventory?'+q.toString());
+ if(!r.ok)throw Error('تعذّر جلب المخزون ('+r.status+')');
+ const all=await r.json(),seen=new Set();
+ records=all.filter(v=>{const key=v.station_id+'|'+v.material.trim().toLowerCase()+'|'+v.stage;if(seen.has(key))return false;seen.add(key);return true});
+ render();
+ }catch(e){$('plantGrid').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; $('stats').innerHTML='';$('alerts').textContent=''}
+}
+
+/* Same two-frame animation trigger as the user's reference dashboard:
+   render at zero first, then animate needle and fill to their data values. */
+function animateChemicalIn(root){
+ if(!root)return;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  if(!root.isConnected)return;
+  root.querySelectorAll('.ws-needle[data-target-angle]').forEach(el=>{
+   el.style.transform='rotate('+el.dataset.targetAngle+'deg)';
+  });
+  root.querySelectorAll('.track i[data-target-width]').forEach(el=>{
+   el.style.width=el.dataset.targetWidth+'%';
+  });
+ }));
+}
+function render(shouldAnimate=true){
+ const query=$('search').value.trim().toLowerCase(),station=$('stationFilter').value,sort=$('sort').value;
+ const selected=records.filter(r=>(!station||station==='ALL'||r.station_id===station)&&(filterStage==='ALL'||r.stage===filterStage)&&(!query||(r.material+' '+(stations.find(s=>s.id===r.station_id)?.name||'')).toLowerCase().includes(query)));
+ const allRecords=records,crit=allRecords.filter(x=>x.coverage_days!==null&&x.coverage_days<30);
+ const warn=allRecords.filter(x=>x.coverage_days!==null&&x.coverage_days>=30&&x.coverage_days<=60);
+ const good=allRecords.filter(x=>x.coverage_days!==null&&x.coverage_days>60);
+ const stale=allRecords.filter(x=>ageDays(x.reading_date)>14);
+ const st=[['محطات لها قراءات',new Set(allRecords.map(x=>x.station_id)).size,''],['مواد مراقبة',allRecords.length,''],['أقل من 30 يوم',crit.length,'critical'],['30–60 يومًا',warn.length,'warning'],['أكثر من 60 يومًا',good.length,'good'],['قراءات قديمة',stale.length,'warning']];
+ $('stats').innerHTML=st.map(x=>'<div class="stat '+x[2]+'"><strong>'+fixed(x[1])+'</strong><small>'+esc(x[0])+'</small></div>').join('');
+ $('alerts').innerHTML=crit.length?'مواد تحتاج متابعة التوريد (قراءات مؤرخة): '+crit.slice(0,9).map(x=>esc((stations.find(s=>s.id===x.station_id)?.name||x.station_id)+' — '+x.material+' ('+fixed(x.coverage_days)+' يوم بتاريخ '+x.reading_date+')')).join(' · '):'';
+ const groups=new Map();
+ selected.forEach(r=>{if(!groups.has(r.station_id))groups.set(r.station_id,[]);groups.get(r.station_id).push(r)});
+ let entries=Array.from(groups.entries());
+ if(sort==='risk')entries.sort((a,b)=>Math.min(...a[1].map(v=>v.coverage_days??1e9))-Math.min(...b[1].map(v=>v.coverage_days??1e9)));
+ else entries.sort((a,b)=>(stations.find(s=>s.id===a[0])?.name||a[0]).localeCompare(stations.find(s=>s.id===b[0])?.name||b[0],'ar'));
+ $('plantGrid').innerHTML=entries.length?entries.map(function([id,all]){
+ const rows=all.slice().sort((a,b)=>(a.coverage_days??1e9)-(b.coverage_days??1e9)),name=stations.find(s=>s.id===id)?.name||id;
+ const min=Math.min(...rows.map(v=>v.coverage_days??1e9)),level=min===1e9?'unknown':state(min);
+ const risk=level==='critical'?'تنبيه نقص المخزون':level==='warning'?'تغطية تحتاج متابعة':level==='good'?'تغطية جيدة':'بدون بيانات تغطية';
+ const focus=rows.filter(v=>v.coverage_days!==null&&v.coverage_days<=60).slice(0,3);
+ if(!focus.length)focus.push(...rows.filter(v=>v.coverage_days!==null).slice(0,1));
+ return '<article class="plant"><div class="cardheader"><div><h2>'+esc(name)+'</h2><div class="plant-sub">مواد تحت المتابعة: '+rows.length+' · آخر تاريخ بيانات '+esc(rows.reduce((m,r)=>r.reading_date>m?r.reading_date:m,''))+'</div></div>'+
+ '<span class="tag plant-risk '+level+'">'+risk+'</span>'+
+ '<div class="plant-gauges">'+(focus.length?focus.map(r=>{
+ const n=Number(r.coverage_days),col=color(n);
+ return '<div class="gauge-item">'+dial(n,r.material)+
+ '<div class="gauge-days" style="color:'+col+'">'+fixed(n)+' <small>يوم</small></div>'+
+ '<div class="gauge-name">'+esc(r.material)+'</div><div class="gauge-date">'+esc(r.reading_date)+'</div></div>';
+ }).join(''):'<div class="gauge-item gauge-empty">لا توجد فترة تغطية مسجلة</div>')+'</div></div>'+
+ rows.map(r=>{
+ const n=r.coverage_days===null?null:Number(r.coverage_days),status=state(n),shade=color(n),width=n===null?0:Math.round(Math.min(100,Math.max(0,n/120*100)));
+ return '<section class="material">'+packIcon(r,status)+'<div class="material-detail"><h3>'+esc(r.material)+' <span class="tag">'+esc(stages[r.stage]||'غير محدد')+'</span></h3>'+
+ '<div class="mat-balance"><span class="days-text" style="color:'+shade+'">'+(n===null?'تغطية غير مسجلة':'يكفي '+fixed(n)+' <small>يوم</small>')+'</span>'+
+ '<span class="quant">· المتوفر '+(r.quantity===null?'غير مسجل':fixed(r.quantity))+'</span><span class="unit">'+esc(r.quantity===null?'':r.unit)+'</span></div>'+
+ '<div class="track"><i class="'+status+'" data-target-width="'+width+'" style="width:0%"></i>'
+ '<em class="mark" style="right:25%"></em><em class="mark" style="right:50%"></em><em class="mark" style="right:75%"></em></div>'+
+ '<div class="footerrow"><small>قراءة المخزون: '+esc(r.reading_date)+'</small>'+(ageDays(r.reading_date)>14?'<span class="outdate">تاريخ قديم</span>':'')+'</div>'+
+ (r.notes?'<span class="note">'+esc(r.notes)+'</span>':'')+'</div></section>';
+ }).join('')+'</article>';
+ }).join(''):'<div class="empty">لا توجد قراءات مخزون تطابق الفلاتر الحالية. أدخل أول قراءة من النموذج أدناه.</div>';
+ const grid=$('plantGrid');
+ grid.classList.toggle('ws-no-motion',!shouldAnimate);
+ if(shouldAnimate){
+  animateChemicalIn(grid);
+  window.WSMotion?.animate(grid);
+  window.WSMotion?.animate($('stats'));
+ }else{
+  // Searches update immediately, without replaying needle motion per keystroke.
+  grid.querySelectorAll('.ws-needle[data-target-angle]').forEach(el=>{
+   el.style.transition='none';el.style.transform='rotate('+el.dataset.targetAngle+'deg)';
+  });
+  grid.querySelectorAll('.track i[data-target-width]').forEach(el=>{
+   el.style.transition='none';el.style.width=el.dataset.targetWidth+'%';
+  });
+ }
+}
+async function save(e){
+ e.preventDefault();if(!user||role==='admin')return;
+ const quantity=$('fQuantity').value===''?null:Number($('fQuantity').value),days=$('fDays').value===''?null:Number($('fDays').value);
+ if(quantity===null&&days===null){$('feedback').textContent='أدخل كمية أو مدة تغطية على الأقل';return}
+ const payload={station_id:role==='station'?ownStation:$('fStation').value,material:$('fMaterial').value.trim(),stage:$('fStage').value,quantity,unit:$('fUnit').value,coverage_days:days,reading_date:$('fDate').value,notes:$('fNotes').value.trim(),recorded_by:user.id};
+ if(!payload.station_id||payload.material.length<2||!/^\d{4}-\d{2}-\d{2}$/.test(payload.reading_date)){$('feedback').textContent='تحقق من البيانات المدخلة';return}
+ const btn=$('save');btn.disabled=true;$('feedback').textContent='جارٍ الحفظ…';
+ try{const q='?on_conflict=station_id,material,stage,reading_date';
+ const resp=await api('/rest/v1/chemical_inventory'+q,{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(payload)});
+ if(!resp.ok){const details=await resp.json().catch(()=>({}));throw Error(details.message||'تعذّر حفظ القراءة')}
+ $('feedback').textContent='تم حفظ القراءة في قاعدة البيانات';$('fQuantity').value='';$('fDays').value='';$('fNotes').value='';await load();
+ }catch(err){$('feedback').textContent='تعذّر الحفظ: '+err.message}finally{btn.disabled=false}
+}
+$('refresh').onclick=()=>load();
+$('goEditor').onclick=()=>$('editor').scrollIntoView({behavior:'smooth',block:'start'});
+$('chemForm').onsubmit=save;
+$('search').oninput=()=>render(false);$('sort').onchange=()=>render(true);$('stationFilter').onchange=()=>render(true);
+document.querySelectorAll('#chemRoot [data-stage]').forEach(el=>el.onclick=()=>{filterStage=el.dataset.stage;document.querySelectorAll('#chemRoot [data-stage]').forEach(b=>b.classList.toggle('active',b===el));render()});
+
+function reset(){
+ initialUid='';user=null;role='';ownStation='';stations=[];records=[];filterStage='ALL';
+ $('plantGrid').innerHTML='<div class="empty">جارٍ تحميل بيانات المواد الكيميائية…</div>';
+ $('alerts').textContent='';$('stats').innerHTML='';
+ $('search').value='';$('sort').value='risk';$('feedback').textContent='';
+ $('fMaterial').value='';$('fQuantity').value='';$('fDays').value='';$('fNotes').value='';
+ $('editor').hidden=true;$('goEditor').hidden=true;
+ document.querySelectorAll('#chemRoot [data-stage]').forEach(el=>el.classList.toggle('active',el.dataset.stage==='ALL'));
+}
+return {
+ async open(){
+  if(!host.signedIn())return;
+  if(initialUid!==host.uid()){
+   reset();
+   if(await init())initialUid=host.uid();
+  }else await load();
+ },
+ reset
+};
+
+})({
+ authedFetch:(path,options)=>authedFetch(path,options),
+ uid:()=>currentUserId,
+ role:()=>currentRole,
+ station:()=>currentStationId,
+ stations:()=>stations,
+ signedIn:()=>signedIn()
+});
+
+function chemicalsOpen(){
+ if(!signedIn())return;
+ $('chemicalsModal').classList.remove('hidden');
+ $('chemicalsClose').focus();
+ void chemicalPanel.open();
+}
+function chemicalsClose(){
+ $('chemicalsModal').classList.add('hidden');
+ $('chemicalsLink').focus();
+}
+$('chemicalsLink').addEventListener('click',chemicalsOpen);
+$('chemicalsClose').addEventListener('click',chemicalsClose);
+$('chemicalsModal').addEventListener('click',event=>{
+ if(event.target===$('chemicalsModal'))chemicalsClose();
+});
+window.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!$('chemicalsModal').classList.contains('hidden'))chemicalsClose();
+});
 
 void (async()=>{if(!(await checkRecoveryLink()))await restoreSession()})();
 })();
