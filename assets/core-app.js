@@ -22,8 +22,6 @@ applyCorporateIdentity();
 const KEY_STATIONS='wsc_daily_station_settings_v2',KEY_REPORTS='wsc_daily_reports_v2';
 const CLOUD_URL='https://vksbjasfoysuwxdyeaed.supabase.co';
 const CLOUD_PUBLIC_KEY='sb_publishable_ZNsCbKJ-E3WMhiKWbzUTHw_1IJJdBZh';
-const CLOUD_SUBMIT=CLOUD_URL+'/functions/v1/submit-report';
-const CLOUD_ARCHIVE=CLOUD_URL+'/functions/v1/archive-reports';
 const CLOUD_AUTH=CLOUD_URL+'/auth/v1';
 const CLOUD_ADMIN=CLOUD_URL+'/functions/v1/account-admin';
 const CLOUD_STATION_LOGIN=CLOUD_URL+'/functions/v1/station-login';
