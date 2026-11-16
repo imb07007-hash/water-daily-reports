@@ -1,0 +1,1 @@
+Deno.serve(()=>new Response(JSON.stringify({error:"legacy_app_disabled",message:"Use https://water-daily-reports.onrender.com for secure authenticated reports."}),{status:410,headers:{"Content-Type":"application/json","Cache-Control":"no-store"}}));
