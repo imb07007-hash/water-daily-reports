@@ -3,7 +3,7 @@
 'use strict';
 const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetId:'',assetName:'',type:'',status:'',period:'',search:'',preview:null,importing:false,loading:false};
 const PAGE=40,BATCH=100;
-let root=null,observer=null,bodyObserver=null,updatingDash=false;
+let root=null,observer=null,bodyObserver=null,updatingDash=false,restoreFocus=null,restoreOverflow='';
 const el=id=>document.getElementById(id);
 const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=x=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(x||0));
@@ -57,15 +57,22 @@ function toolbar(){
 function setTab(tab){if(M.importing)return;M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
- build();M.stationId=getId();M.tab=tab||M.tab||'overview';root.classList.remove('hidden');document.body.style.overflow='hidden';update();
+ build();
+ if(root.classList.contains('hidden')){restoreFocus=document.activeElement;restoreOverflow=document.body.style.overflow;}
+ M.stationId=getId();M.tab=tab||M.tab||'overview';root.classList.remove('hidden');
+ document.body.style.overflow='hidden';
+ root.querySelector('[data-mw="close"]')?.focus();
+ update();
 }
 function close(){
  if(M.importing)return;
- root?.classList.add('hidden');document.body.style.overflow='';M.preview=null;
+ root?.classList.add('hidden');document.body.style.overflow=restoreOverflow;M.preview=null;
+ if(restoreFocus?.isConnected&&typeof restoreFocus.focus==='function')restoreFocus.focus();
 }
 function setTabs(){root?.querySelectorAll('.mw-tab').forEach(b=>{const active=b.dataset.tab===M.tab;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')})}
 async function update(){
- if(!root||root.classList.contains('hidden')||M.loading)return;
+ if(!root||root.classList.contains('hidden'))return;
+ if(M.loading){M.pendingUpdate=true;return}
  const id=getId();if(!owns(id)){el('maintenanceBody').innerHTML=message('لا تتوفر صلاحية لهذه المحطة.',true);return}
  M.loading=true;setTabs();
  const area=el('maintenanceBody');area.innerHTML=toolbar()+message('جارٍ تحميل البيانات...');
@@ -76,7 +83,7 @@ async function update(){
   else if(M.tab==='planned')await renderPlanned(id);
   else renderImport(id);
  }catch(err){area.innerHTML=toolbar()+message(err.message||'تعذر تحميل البيانات.',true)}
- finally{M.loading=false}
+ finally{M.loading=false;if(M.pendingUpdate){M.pendingUpdate=false;void update()}}
 }
 async function renderOverview(id){
  const [list,imports,months,history]=await Promise.all([
@@ -179,13 +186,13 @@ async function renderRecords(id){
  [['','الكل'],['DONE','DONE'],['NOT DONE','NOT DONE'],['NEED CM','NEED CM'],['OTHERS','OTHERS'],['NOT IN SERVICE','NOT IN SERVICE'],['UNVERIFIED','غير محدد']].
  map(([v,t])=>'<option value="'+v+'"'+(M.status===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
  '<label>الشهر <input type="month" class="mw-input" id="mw-period" value="'+h(M.period)+'"></label></div>';
- html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ الصيانة الأصلي</th><th>التكرار</th><th>الحالة</th><th>الملاحظات الأصلية</th><th>التكلفة (ر.س)</th><th>المصدر</th>'+ (canCorrect?'<th>المراجعة</th>':'') +'</tr></thead><tbody>'+
+ html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ التنفيذ / المصدر</th><th>التكرار</th><th>الحالة</th><th>الوصف والملاحظات</th><th>التكلفة (ر.س)</th><th>المصدر</th>'+ (canCorrect?'<th>المراجعة</th>':'') +'</tr></thead><tbody>'+
  list.map(r=>{
   const unlinked=Array.isArray(r.import_issues)&&r.import_issues.includes('غير مرتبط بمعدة مؤكدة');
   const name=r.original_equipment||r.maintenance_assets?.asset_name||'—',area=r.original_area||r.maintenance_assets?.area||'—';
   return '<tr><td class="mw-note"><span class="mw-original">'+h(name)+'</span>'+(unlinked?'<small class="mw-source-warning" style="display:block">الربط بمعدة غير مؤكد</small>':'')+
    '</td><td class="mw-note">'+h(area)+'</td><td>'+h(r.work_type)+'</td><td>'+h(r.period_month?String(r.period_month).slice(0,7):'—')+'</td>'+
-   '<td dir="ltr">'+h(r.original_date||prettyDate(r.work_date))+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+'</td>'+
+   '<td dir="ltr"><strong>'+h(prettyDate(r.work_date))+'</strong>'+(r.original_date?'<small style="display:block;color:#73899a">المصدر: '+h(r.original_date)+'</small>':'')+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+'</td>'+
    '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td>'+
    '<td>'+h(r.cost==null?'—':fmt(r.cost))+'</td><td class="mw-note"><small>'+h(r.source_sheet||r.source_file||'إدخال مباشر')+
    (r.source_row?' — صف '+h(r.source_row):'')+'</small></td>'+
@@ -803,7 +810,19 @@ function init(){
  if(dc){observer=new MutationObserver(()=>{if(!dc.querySelector('.mw-dash-summary'))dashboardMaintenance()});observer.observe(dc,{childList:true});dashboardMaintenance()}
  bodyObserver=new MutationObserver(()=>{if(!accessible())close()});
  bodyObserver.observe(document.body,{attributes:true,attributeFilter:['data-auth']});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root&&!root.classList.contains('hidden'))close()});
+ document.addEventListener('keydown',e=>{
+ if(!root||root.classList.contains('hidden'))return;
+ if(e.key==='Escape'){
+  e.preventDefault();e.stopImmediatePropagation();close();return;
+ }
+ if(e.key==='Tab'){
+  const choices=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')].filter(x=>x.getClientRects().length>0);
+  if(!choices.length)return;
+  const first=choices[0],last=choices[choices.length-1];
+  if(e.shiftKey&&(document.activeElement===first||!root.contains(document.activeElement))){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&(document.activeElement===last||!root.contains(document.activeElement))){e.preventDefault();first.focus()}
+ }
+},true);
 }
 window.WSMaintenance={open,close,refreshDashboard:dashboardMaintenance};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
