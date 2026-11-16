@@ -454,11 +454,28 @@ function previewHtml(p){
  '<button class="mw-button" type="button" data-mw="discardPreview">إلغاء</button></div></div>';
 }
 async function loadAllAssets(id){
- const all=[];for(let offset=0;offset<100000;offset+=1000){
-  const rows=await getRows('maintenance_assets',{select:'id,normalized_key',station_id:'eq.'+id,limit:'1000',offset:String(offset)});
-  all.push(...rows);if(rows.length<1000)break;
+ const all=[];
+ for(let offset=0;offset<100000;offset+=1000){
+  const rows=await getRows('maintenance_assets',{select:'id,normalized_key,asset_name,area,asset_code,source_aliases',station_id:'eq.'+id,limit:'1000',offset:String(offset)});
+  all.push(...rows);
+  if(rows.length<1000)break;
  }
- return new Map(all.map(x=>[x.normalized_key,x.id]));
+ const lookup=new Map();
+ const addAlias=(key,value)=>{
+  if(!lookup.has(key))lookup.set(key,value);
+  else if(lookup.get(key)!==value)lookup.set(key,null); // Different assets with the same alias require review.
+ };
+ for(const a of all){
+  lookup.set(a.normalized_key,a.id);
+  addAlias('NAME:'+normalized(a.area)+'|'+normalized(a.asset_name),a.id);
+  const names=Array.isArray(a.source_aliases)?a.source_aliases:[];
+  for(const alias of names)addAlias('NAME:'+normalized(a.area)+'|'+normalized(alias),a.id);
+ }
+ return lookup;
+}
+function matchAsset(asset,lookup){
+ if(!asset)return null;
+ return lookup.get(asset.normalized_key)||lookup.get('NAME:'+normalized(asset.area)+'|'+normalized(asset.asset_name))||null;
 }
 function assign(data,id){
  return {...data,station_id:id,created_by:host().userId()};
