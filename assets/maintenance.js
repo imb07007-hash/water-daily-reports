@@ -414,15 +414,63 @@ async function loadExcel(){
  }
  throw Error('تعذر تحميل قارئ Excel، تحقق من الاتصال بالإنترنت.');
 }
+async function loadIndexedRows(table,id,fields){
+ const all=[];
+ for(let offset=0;offset<50000;offset+=1000){
+  const batch=await getRows(table,{select:fields,station_id:'eq.'+id,limit:'1000',offset:String(offset)});
+  all.push(...batch);
+  if(batch.length<1000)break;
+ }
+ return all;
+}
+async function preflightImport(out){
+ const id=getId();
+ if(!owns(id))throw Error('لا توجد صلاحية للاستيراد لهذه المحطة.');
+ const [assets,records,plans,shaMatches]=await Promise.all([
+  loadAllAssets(id),
+  loadIndexedRows('maintenance_records',id,
+   'id,source_key,source_sheet,source_row,period_month,work_type,status,description,notes,cost,work_date,original_equipment,original_area'),
+  loadIndexedRows('maintenance_definitions',id,
+   'id,source_key,source_sheet,source_row,period_month,work_type,frequency,notes,original_equipment,original_area'),
+  out.fileSha256?getRows('maintenance_imports',{
+   select:'id,status,created_at',station_id:'eq.'+id,
+   file_sha256:'eq.'+out.fileSha256,status:'eq.completed',limit:'1'
+  }):Promise.resolve([])
+ ]);
+ const guard=window.WSMaintenanceImportGuard;
+ if(!guard)throw Error('تعذر تحميل أداة مطابقة السجلات. حدّث الصفحة وحاول مجددًا.');
+ const data=guard.classify(out.records,records,false),schedule=guard.classify(out.definitions,plans,true);
+ const missingAssets=Array.from(out.assets.values()).filter(a=>!matchAsset(a,assets));
+ const unresolved=[...data.newRows,...schedule.newRows].filter(row=>{
+  const asset=out.assets.get(row.assetKey);return !asset||(!matchAsset(asset,assets)&&!missingAssets.some(x=>x.normalized_key===row.assetKey));
+ });
+ out.stationId=id;
+ out.review={
+  records:data.newRows,plans:schedule.newRows,assets:missingAssets,
+  duplicateRecords:data.duplicates.length,duplicatePlans:schedule.duplicates.length,
+  conflicts:[...data.conflicts.map(x=>({...x,kind:'سجل صيانة'})),...schedule.conflicts.map(x=>({...x,kind:'عمل مجدول'}))],
+  unresolved:unresolved.length,
+  fileExists:shaMatches.length>0
+ };
+ return out.review;
+}
 async function previewFile(){
  const file=el('mw-file')?.files?.[0];
  if(!file){el('mw-import-result').innerHTML=message('اختر ملف Excel أولًا.',true);return}
- if(!/\.(xlsx|xls)$/i.test(file.name)||file.size>15*1024*1024){el('mw-import-result').innerHTML=message('يجب اختيار ملف Excel بحجم لا يتجاوز 15 ميجابايت.',true);return}
- const status=el('mw-import-result');status.innerHTML=message('جارٍ قراءة الملف وفحص الأعمدة...');M.preview=null;
+ if(!/\.(xlsx|xls)$/i.test(file.name)||file.size>15*1024*1024){
+  el('mw-import-result').innerHTML=message('يجب اختيار ملف Excel بحجم لا يتجاوز 15 ميجابايت.',true);return;
+ }
+ const status=el('mw-import-result');status.innerHTML=message('جارٍ فحص الملف ومقارنة البيانات الحالية بالمستوردة...');
+ M.preview=null;
  try{
   await loadExcel();
-  const bytes=await file.arrayBuffer(),wb=XLSX.read(bytes,{type:'array',cellDates:false,raw:false});
-  const out=makeImporter(file),uni=wb.SheetNames.find(n=>clean(n)==='قاعدة البيانات');
+  const bytes=await file.arrayBuffer();
+  const digest=await crypto.subtle.digest('SHA-256',bytes);
+  const fingerprint=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  const wb=XLSX.read(bytes,{type:'array',cellDates:false,raw:false});
+  const out=makeImporter(file);
+  out.fileSha256=fingerprint;
+  const uni=wb.SheetNames.find(n=>clean(n)==='قاعدة البيانات');
   const names=uni?[uni]:wb.SheetNames;
   for(const sheet of names){
    const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,defval:'',raw:false,blankrows:false});
@@ -433,25 +481,39 @@ async function previewFile(){
    const guide=XLSX.utils.sheet_to_json(wb.Sheets['دليل المعدات'],{header:1,defval:'',raw:false,blankrows:false});
    parseGuide(guide,'دليل المعدات',out);
   }
-  // Pure asset guide in a unified workbook is not treated as proof of completed work.
   if(!out.assets.size)throw Error('لم يتم التعرف على معدات صحيحة. راجع أسماء الأعمدة أو اختر الجدول الأصلي.');
-  out.stationId=getId();
-  M.preview=out;
-  status.innerHTML=previewHtml(out);
- }catch(err){status.innerHTML=message(err.message||'تعذر قراءة Excel.',true)}
+  await preflightImport(out);
+  M.preview=out;status.innerHTML=previewHtml(out);
+ }catch(err){status.innerHTML=message(err.message||'تعذر قراءة Excel ومقارنته.',true)}
 }
 function previewHtml(p){
- const issues=p.issues.length,assets=p.assets.size,works=p.records.length,plans=p.definitions.length;
- return '<div class="mw-card"><h3>معاينة قبل الحفظ — '+h(p.filename)+'</h3>'+
- '<div class="mw-kpis">'+[['المعدات المميزة',assets],['سجلات التنفيذ',works],['الأعمال المجدولة',plans],['ملاحظات الفحص',issues]].map(([t,v])=>
- '<div class="mw-kpi"><small>'+h(t)+'</small><strong>'+fmt(v)+'</strong></div>').join('')+'</div>'+
- (issues?message('توجد '+issues+' ملاحظة. أمثلة: '+p.issues.slice(0,4).join('؛ ')):'')+
- '<p class="mw-muted">الأعمال غير المؤكدة تُحفظ ضمن الجدول المخطط وليس كسجلات تنفيذ. توجد سجلات تاريخية لوادي جيزان بالفعل؛ راجع المعاينة وتأكد من عدم إعادة استيراد نفس السجل من ملف مختلف.</p>'+
- '<div class="mw-preview"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>التاريخ المدون</th><th>الحالة</th></tr></thead><tbody>'+
+ const r=p.review||{},issues=p.issues.length,assets=p.assets.size,works=p.records.length,plans=p.definitions.length;
+ const conflicts=r.conflicts||[],blocked=!!(r.fileExists||conflicts.length||r.unresolved);
+ const noNew=!(r.records?.length||r.plans?.length||r.assets?.length);
+ return '<div class="mw-card"><h3>معاينة مقارنة قبل الاستيراد — '+h(p.filename)+'</h3>'+
+ '<div class="mw-kpis">'+[
+ ['معدات جديدة',r.assets?.length||0],['سجلات صيانة جديدة',r.records?.length||0],
+ ['أعمال مجدولة جديدة',r.plans?.length||0],['سجلات موجودة ستُتجاوز',(r.duplicateRecords||0)+(r.duplicatePlans||0)]
+ ].map(([t,v])=>'<div class="mw-kpi"><small>'+h(t)+'</small><strong>'+fmt(v)+'</strong></div>').join('')+'</div>'+
+ '<div class="mw-status-grid" style="margin-top:12px">'+
+ [['سجلات الملف',works+plans],['تعارضات تحتاج مراجعة',conflicts.length],['ملاحظات القراءة',issues]].map(([t,v])=>
+ '<div class="mw-status-item"><span>'+h(t)+'</span><strong>'+fmt(v)+'</strong></div>').join('')+'</div>'+
+ (issues?message('ملاحظات المصدر: '+p.issues.slice(0,5).join('؛ ')):'')+
+ (r.fileExists?message('هذا الملف نفسه سبق استيراده واعتماده. لن يُسمح باستيراده مرة ثانية.',true):'')+
+ (r.unresolved?message('توجد سجلات لم يمكن ربطها بمعدة. الاستيراد متوقف لحين مراجعتها.',true):'')+
+ (conflicts.length?message('تم رصد '+conflicts.length+' تعارضًا مع بيانات محفوظة. لن تُستبدل أو تُكرر السجلات آليًا.',true):'')+
+ (conflicts.length?'<div class="mw-table-wrap" style="margin:12px 0"><table><thead><tr><th>النوع</th><th>المعدة</th><th>الشهر</th><th>الحالة بالملف</th><th>الحالة الحالية</th><th>سبب التعارض</th></tr></thead><tbody>'+
+ conflicts.slice(0,25).map(x=>'<tr><td>'+h(x.kind)+'</td><td class="mw-note">'+h(x.incoming.original_equipment||'—')+'</td>'+
+ '<td>'+h(x.incoming.period_month?.slice(0,7)||'—')+'</td><td>'+h(x.incoming.status||'مجدول')+
+ '</td><td>'+h(x.existing.status||'مجدول')+'</td><td class="mw-note">'+h(x.reason)+'</td></tr>').join('')+'</tbody></table></div>':'')+
+ '<p class="mw-muted">لا تُحتسب الأعمال المخططة كصيانة منفذة. التكرارات تُتجاوز دون تعديل الأصل؛ التعارضات تتطلب تصحيح الملف أو مراجعة السجل الموجود.</p>'+
+ '<div class="mw-preview"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>التاريخ الأصلي</th><th>الحالة</th></tr></thead><tbody>'+
  (p.sample.length?p.sample.map(x=>'<tr><td>'+h(x.name)+'</td><td>'+h(x.area)+'</td><td>'+h(x.type)+'</td><td>'+h(x.date)+'</td><td>'+badge(x.status)+'</td></tr>').join(''):'<tr><td colspan="5">الملف يحتوي على قائمة معدات فقط</td></tr>')+
  '</tbody></table></div><div id="mw-import-status"></div><div class="mw-actions" style="margin-top:12px">'+
- '<button class="mw-button main" type="button" data-mw="commitImport">اعتماد استيراد البيانات المعروضة</button>'+
- '<button class="mw-button" type="button" data-mw="discardPreview">إلغاء</button></div></div>';
+ '<button class="mw-button main" type="button" data-mw="commitImport" '+(blocked||noNew?'disabled':'')+
+ '>اعتماد الإضافات الجديدة فقط</button>'+
+ '<button class="mw-button" type="button" data-mw="discardPreview">إلغاء</button></div>'+
+ (noNew&&!blocked?message('جميع البيانات موجودة بالفعل، ولا توجد إضافات جديدة.'):'')+'</div>';
 }
 async function loadAllAssets(id){
  const all=[];
