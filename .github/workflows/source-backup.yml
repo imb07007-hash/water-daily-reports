@@ -1,23 +1,32 @@
-name: Water reports source snapshot
+name: Water reports - source snapshot
 on:
   push:
     paths:
-      - '.github/workflows/source-backup.yml'
+      - 'index.html'
+      - 'chemicals.html'
+      - 'assets/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+      - 'recovery_snapshot/**'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  capture:
+  snapshot:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact website source
         uses: actions/checkout@v4
-      - name: Export entire recoverable source snapshot
+      - name: Archive full deployed static source and supporting files
         uses: actions/upload-artifact@v4
         with:
-          name: water-reports-restore-source-2026-11-08
+          name: water-reports-source
           path: |
             index.html
+            chemicals.html
+            assets/**
+            tests/**
+            .github/workflows/**
             recovery_snapshot/**
-          retention-days: 7
+          retention-days: 30
           if-no-files-found: error
