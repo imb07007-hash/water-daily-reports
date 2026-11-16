@@ -191,3 +191,10 @@ body[data-auth="locked"] #maintenanceLink{display:none!important}
 @media(prefers-reduced-motion:reduce){
  #maintenanceModal .ws-needle{transition:none!important}
 }
+
+#maintenanceModal button.mw-month-item{border:0;background:transparent;cursor:pointer;color:inherit;font-family:inherit;padding:0 2px 3px;border-radius:7px}
+#maintenanceModal button.mw-month-item:hover{background:#eef6fc}
+#maintenanceModal button.mw-month-item:focus-visible{outline:2px solid #50B4F2;outline-offset:2px}
+#maintenanceModal .mw-tag.unknown{background:#fff4df;color:#926719}
+#maintenanceModal .mw-tag.cm{background:#fdf0e8;color:#bd542d}
+#maintenanceModal .mw-tag.offline{background:#f0eff6;color:#74608f}
