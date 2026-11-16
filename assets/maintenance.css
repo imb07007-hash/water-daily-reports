@@ -41,7 +41,7 @@ body[data-auth="locked"] #maintenanceLink{display:none!important}
 #maintenanceModal .mw-tag{display:inline-block;background:#edf3f7;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:bold;color:#5a7488}
 #maintenanceModal .mw-tag.done{background:#e8f6ee;color:#18734c}
 #maintenanceModal .mw-tag.not{background:#ffeff0;color:#ae3948}
-#maintenanceModal .mw-tag.unknown{background:#fff4df;color:#926719}
+
 #maintenanceModal .mw-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 #maintenanceModal .mw-muted{color:#75889a;font-size:12px}
 #maintenanceModal .mw-notice{padding:12px;border-radius:8px;background:#eaf3fd;color:#285f89;font-size:12px;margin:10px 0}
