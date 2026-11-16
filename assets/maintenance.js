@@ -292,45 +292,76 @@ function hash(str){
 function makeImporter(file){
  return {filename:file.name,assets:new Map(),records:[],definitions:[],skipped:0,issues:[],sample:[],seen:new Set(),seenPlans:new Set(),validRows:0};
 }
+function addPlanned(out,obj){
+ const name=clean(obj.name),area=clean(obj.area),code=clean(obj.code);
+ if(!name||name.length<2||!obj.type||!obj.period||!/^20\d{2}-\d{2}$/.test(obj.period))return;
+ const key=assetKey(name,area,code);
+ const sourceFile=clean(obj.sourceFile||out.filename),sourceSheet=clean(obj.sourceSheet||obj.sheet);
+ const sourceRow=Number(obj.sourceRow)||obj.row;
+ const sourceKey='XLS-PLAN-'+hash(sourceFile+'|'+sourceSheet+'|'+sourceRow+'|'+key+'|'+obj.type);
+ if(out.seenPlans.has(sourceKey))return;
+ out.seenPlans.add(sourceKey);
+ out.definitions.push({assetKey:key,work_type:obj.type,frequency:clean(obj.frequency).slice(0,100),
+ period_month:obj.period+'-01',source_sheet:sourceSheet.slice(0,100),source_row:sourceRow,
+ source_key:sourceKey,original_equipment:name,original_area:area,
+ notes:clean(obj.notes).slice(0,4000),import_issues:obj.auditNote?[clean(obj.auditNote)]:[]});
+}
 function addParsed(out,obj){
  const name=clean(obj.name),area=clean(obj.area),code=clean(obj.code);
  if(!name||name.length<2||/^total$|^اجمالي|^المجموع|^unit$|^equipment$/i.test(name)){out.skipped++;return}
  if(name.length>180||area.length>180||code.length>100){out.skipped++;return}
- const key=assetKey(name,area,code);if(!out.assets.has(key))out.assets.set(key,{asset_name:name,area,asset_code:code,normalized_key:key});
+ const key=assetKey(name,area,code);
+ if(!out.assets.has(key))out.assets.set(key,{asset_name:name,area,asset_code:code,normalized_key:key});
  out.validRows++;
  if(!obj.type)return;
- const workdate=parseDate(obj.rawDate,obj.period);
- if(workdate.uncertain&&obj.rawDate)out.issues.push('تاريخ غير مؤكد: '+obj.sheet+' / صف '+obj.row+' ('+clean(obj.rawDate)+')');
+ const workdate=parseDate(obj.verifiedDate||obj.rawDate,obj.period);
+ if(workdate.uncertain&&(obj.verifiedDate||obj.rawDate))out.issues.push('تاريخ يحتاج تحققًا: '+obj.sheet+' / صف '+obj.row);
  const status=statusOf(obj.rawStatus,workdate.iso,obj.type);
- const costRaw=clean(obj.cost).replace(/[,،\s]/g,'');
- const cost=costRaw&&/^\d+(\.\d{1,2})?$/.test(costRaw)?Number(costRaw):null;
- if(costRaw&&cost===null)out.issues.push('تكلفة غير مقروءة: '+obj.sheet+' / صف '+obj.row);
+ const numeric=value=>{const v=clean(value).replace(/[,،\s]/g,'');return v&&/^\d+(\.\d{1,2})?$/.test(v)?Number(v):null};
+ const cost=numeric(obj.cost),workers=numeric(obj.workers),hours=numeric(obj.hours);
+ if(clean(obj.cost)&&cost===null)out.issues.push('تكلفة غير مقروءة: '+obj.sheet+' / صف '+obj.row);
  const m=obj.period||((workdate.iso||'').slice(0,7));
- const hasWork=!!(obj.period||obj.rawDate||obj.rawStatus||obj.description||obj.notes||cost!==null);
- if(!hasWork)return;
- const sourceKey='XLS-'+hash(out.filename+'|'+obj.sheet+'|'+obj.row+'|'+key+'|'+obj.type);
+ const hasWork=!!(obj.rawDate||obj.verifiedDate||obj.rawStatus||obj.description||obj.notes||cost!==null);
+ if(!hasWork){addPlanned(out,obj);return}
+ const sourceFile=clean(obj.sourceFile||out.filename),sourceSheet=clean(obj.sourceSheet||obj.sheet);
+ const sourceRow=Number(obj.sourceRow)||obj.row;
+ const sourceKey='XLS-'+hash(sourceFile+'|'+sourceSheet+'|'+sourceRow+'|'+key+'|'+obj.type);
  if(out.seen.has(sourceKey))return;
  out.seen.add(sourceKey);
  const row={assetKey:key,work_type:obj.type,frequency:clean(obj.frequency).slice(0,100),
- period_month:m?m+'-01':null,work_date:workdate.iso||null,status,description:clean(obj.description).slice(0,3000),notes:clean(obj.notes).slice(0,4000),cost,source_file:out.filename.slice(0,240),
- source_sheet:obj.sheet.slice(0,100),source_row:obj.row,source_ref:clean(obj.sourceRef).slice(0,100),
- source_key:sourceKey,original_status:clean(obj.rawStatus).slice(0,200),original_date:clean(obj.rawDate).slice(0,100),
- raw_data:{original_area:area,original_name:name,original_code:code}};
+ period_month:m?m+'-01':null,work_date:workdate.iso||null,status,
+ description:clean(obj.description).slice(0,3000),notes:clean(obj.notes).slice(0,4000),cost,
+ source_file:sourceFile.slice(0,240),source_sheet:sourceSheet.slice(0,100),
+ source_row:sourceRow,source_ref:clean(obj.sourceRef).slice(0,100),source_key:sourceKey,
+ original_status:clean(obj.originalStatus||obj.rawStatus).slice(0,200),
+ original_date:clean(obj.rawDate).slice(0,100),
+ original_equipment:name,original_area:area,workers,hours,
+ materials:clean(obj.materials),spares:clean(obj.spares),
+ import_issues:obj.auditNote?[clean(obj.auditNote)]:[],
+ raw_data:{original_area:area,original_name:name,original_code:code,source_ref:clean(obj.sourceRef).slice(0,100)}};
  out.records.push(row);
  if(out.sample.length<9)out.sample.push({name,area,type:obj.type,date:obj.rawDate||'',status});
 }
 function parseUnified(rows,sheet,out){
  const p=monthFrom(out.filename);
  for(let i=5;i<rows.length;i++){
-  const r=rows[i]||[];let v=j=>clean(r[j]);
+  const r=rows[i]||[],v=j=>clean(r[j]);
   if(!v(3)||/^(رقم السجل|المعدة)/.test(v(3)))continue;
   const month=v(4)&&v(5)?v(4)+'-'+String(v(5)).padStart(2,'0'):p;
   const type=typeOf(v(8),'');
-  const obj={name:v(3),area:v(2),code:v(1),sheet,row:i+1,period:/^20\d{2}-\d{2}$/.test(month)?month:p,
-   type,frequency:'',rawDate:v(12)||v(11),rawStatus:v(10)||v(9),
-   description:v(13),notes:v(14),cost:v(18),sourceRef:v(0)};
-  // "حالة مصنفة" and "حالة أصلية" stay UNVERIFIED when explicitly unconfirmed.
-  addParsed(out,obj);
+  const obj={name:v(3),area:v(2),code:v(1),sheet,row:i+1,
+   period:/^20\d{2}-\d{2}$/.test(month)?month:p,
+   type,frequency:'',rawDate:v(11),verifiedDate:v(12),rawStatus:v(9),
+   originalStatus:v(10)||v(9),description:v(13),notes:v(14),
+   workers:v(15),hours:v(16),spares:v(17),cost:v(18),materials:v(19),
+   sourceFile:v(20)||out.filename,sourceSheet:v(21)||sheet,sourceRow:v(22)||i+1,
+   auditNote:v(23),sourceRef:v(0)};
+  const uncertainty=normalized(v(9)+' '+v(10)+' '+v(23));
+  const unverified=/غير مؤكد|غير موثق|غير مثبت|التنفيذ غير/.test(uncertainty);
+  if(unverified){
+    addParsed(out,{...obj,type:''});  // Register asset without falsely claiming performed maintenance.
+    addPlanned(out,obj);
+  }else addParsed(out,obj);
  }
 }
 function parseGeneric(rows,sheet,out){
