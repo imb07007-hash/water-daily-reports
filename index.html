@@ -1873,7 +1873,11 @@ async function enterApplication(){
  $('accessNote').textContent=isAdmin()
    ?'أهلاً بك في لوحة إدارة المحطات. يمكنك اختيار أي محطة أو فتح داشبورد جميع المحطات.'
    :'تم تسجيل الدخول إلى '+selected().name+' — يمكنك إدخال بيانات المحطة واستعراض تقاريرها فقط.';
- if(isAdmin())dashboardOpen();
+ if(location.hash==='#chemicals'){
+  // Backward-compatible deep link opens inside the existing signed-in app.
+  history.replaceState(null,document.title,location.pathname+location.search);
+  chemicalsOpen();
+ }else if(isAdmin())dashboardOpen();
 }
 async function loginSubmit(e){
  e.preventDefault();
