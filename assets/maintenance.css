@@ -65,3 +65,129 @@ body[data-auth="locked"] #maintenanceLink{display:none!important}
 .mw-dash-summary button{border:1px solid #0362AF;background:#0362AF;color:white;border-radius:8px;padding:7px 14px;font-weight:700}
 @media(max-width:1050px){#maintenanceModal .mw-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:720px){#maintenanceModal{padding:0}#maintenanceModal .mw-dialog{width:100%;height:100dvh;max-height:none;border-radius:0}#maintenanceModal .mw-header{padding:12px}#maintenanceModal .mw-body{padding:10px}#maintenanceModal .mw-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#maintenanceModal .mw-kpi{padding:10px}#maintenanceModal .mw-kpi strong{font-size:20px}#maintenanceModal .mw-tabs{padding:9px;gap:5px}#maintenanceModal .mw-tab{padding:8px 9px;font-size:11px}#maintenanceModal .mw-form-grid{grid-template-columns:1fr}#maintenanceModal .mw-card{padding:12px}.mw-dash-summary .mw-dash-values{gap:8px}}
+
+
+/* Unified 16 Nov visual identity: exact typography, white cards, gauges,
+   corporate gradients and number treatments from the operations dashboard. */
+#maintenanceModal .mw-dialog{
+ font-family:'Cairo','Tajawal','Noto Sans Arabic',Tahoma,Arial,sans-serif;
+ color:#17324d;background:#f3f5f8;border-color:#dde3ea;
+}
+#maintenanceModal .mw-header{
+ background:linear-gradient(105deg,#f9fbff 5%,#edf4fb 70%,#f9f7fc 100%);
+ border-bottom:3px solid #0362AF;position:relative;box-shadow:0 2px 8px #17324d0c;
+}
+#maintenanceModal .mw-header:before{
+ content:"";position:absolute;left:0;right:0;top:0;height:3px;
+ background:linear-gradient(90deg,#87329A 0%,#0362AF 55%,#50B4F2 100%);
+}
+#maintenanceModal .mw-brand{display:flex;align-items:center;gap:13px;min-width:0}
+#maintenanceModal .mw-brand img{width:110px;height:56px;object-fit:contain;flex:none;border-left:1px solid #dce7f0;padding-left:9px}
+#maintenanceModal .mw-header h2{font-weight:900;font-size:20px;color:#0362AF}
+#maintenanceModal .mw-header small{color:#687f92;font-size:11px}
+#maintenanceModal .mw-tabs{gap:9px;border-bottom:1px solid #dde6ef;box-shadow:0 2px 6px #12476d09}
+#maintenanceModal .mw-tab{font-size:12px;border-color:#d3e0eb;font-weight:800;padding:9px 13px;border-radius:8px;transition:background .18s,transform .18s}
+#maintenanceModal .mw-tab:hover:not(.active){background:#edf5fc;transform:translateY(-1px)}
+#maintenanceModal .mw-tab.active{background:#0362AF;box-shadow:0 3px 10px #0362af27}
+#maintenanceModal .mw-body{background:#f3f5f8}
+#maintenanceModal .mw-top{background:#fff;border:1px solid #dde3ea;border-radius:11px;padding:11px 14px;margin-bottom:14px}
+#maintenanceModal .mw-top strong{font-size:14px;font-weight:900;color:#17324d}
+#maintenanceModal .mw-card{border:1px solid #dde3ea;border-radius:13px;box-shadow:0 2px 9px #17324d0a}
+#maintenanceModal .mw-card h3{font-size:15px;color:#0362AF;font-weight:900}
+#maintenanceModal .mw-button{border-color:#c9d9e8;color:#145386;font-weight:800}
+#maintenanceModal .mw-button.main{color:#fff;background:#0362AF;border-color:#0362AF}
+#maintenanceModal .mw-button:hover:not(:disabled){filter:brightness(.97)}
+#maintenanceModal .mw-kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+#maintenanceModal .mw-kpi{
+ border:1px solid #dde3ea;border-top:0;border-radius:12px;background:#fff;
+ box-shadow:0 2px 8px #17324d0a;padding:12px 12px;min-height:99px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ text-align:center;gap:3px;position:relative;overflow:hidden;
+}
+#maintenanceModal .mw-kpi:before{
+ content:"";height:4px;position:absolute;top:0;right:0;left:0;
+ background:linear-gradient(90deg,#87329A,#0362AF);
+}
+#maintenanceModal .mw-kpi:nth-child(3n):before{background:linear-gradient(90deg,#50B4F2,#0362AF)}
+#maintenanceModal .mw-kpi small{font-size:12px;color:#67788b;font-weight:800}
+#maintenanceModal .mw-kpi strong{
+ display:block;font:900 clamp(21px,2.2vw,28px)/1.35 'Cairo','Tajawal',Tahoma,Arial,sans-serif;
+ color:#0362AF;text-align:center;direction:ltr;
+ font-variant-numeric:tabular-nums;letter-spacing:-.4px;
+}
+#maintenanceModal .mw-kpi:nth-child(3n) strong{color:#87329A}
+#maintenanceModal .mw-kpi-sub{color:#75889a;font-size:10px;font-weight:700}
+#maintenanceModal .mw-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#maintenanceModal .mw-status-item{background:#f7fbff;border:1px solid #e3ebf2;border-radius:10px;padding:11px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+#maintenanceModal .mw-status-item span{font-size:11px;color:#657d8d;font-weight:800}
+#maintenanceModal .mw-status-item strong{font-size:18px;color:#0362AF;font-weight:900;direction:ltr;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-status-item.warning strong{color:#cb6b2f}
+#maintenanceModal .mw-status-item.critical strong{color:#b33d4b}
+#maintenanceModal .mw-status-item.purple strong{color:#87329A}
+#maintenanceModal .mw-instrument-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 15px}
+#maintenanceModal .mw-instrument{
+ background:#fff;border:1px solid #dde3ea;border-radius:13px;
+ box-shadow:0 2px 9px #17324d0a;min-height:210px;padding:13px 10px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;
+}
+#maintenanceModal .mw-instrument:before{
+ content:"";height:4px;position:absolute;top:0;left:0;right:0;
+ background:linear-gradient(90deg,#87329A,#0362AF);border-radius:13px 13px 0 0;
+}
+#maintenanceModal .mw-instrument .ws-dial{width:170px;height:101px;margin:2px auto 5px;display:block;overflow:visible}
+#maintenanceModal .mw-instrument .mw-instrument-label{font-size:13px;font-weight:800;color:#17324d;text-align:center}
+#maintenanceModal .mw-instrument .mw-instrument-number{font-size:clamp(19px,2vw,26px);font-weight:900;color:#0362AF;text-align:center;direction:ltr;line-height:1.5;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-instrument .mw-instrument-sub{color:#79889b;text-align:center;font-size:10px}
+#maintenanceModal .ws-needle{transform-origin:70px 64px;transition:transform 1.2s cubic-bezier(.2,.9,.3,1.15)}
+#maintenanceModal .mw-month-chart{display:flex;align-items:flex-end;gap:6px;min-height:180px;direction:rtl;border-bottom:1px solid #e5edf3}
+#maintenanceModal .mw-month-item{display:flex;align-items:center;justify-content:flex-end;flex-direction:column;gap:7px;min-width:0;flex:1;height:170px}
+#maintenanceModal .mw-month-total{font-size:10px;color:#54718a;font-weight:900;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-month-bar{display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;width:min(75%,48px);height:115px;background:#f1f6fa;border:1px solid #e4eaf0;border-radius:6px 6px 0 0}
+#maintenanceModal .mw-month-bar .mw-month-done{background:linear-gradient(180deg,#50B4F2,#0362AF);width:100%}
+#maintenanceModal .mw-month-bar .mw-month-other{background:#d1b7e5;width:100%}
+#maintenanceModal .mw-month-item small{font-size:10px;color:#70849a;white-space:nowrap}
+#maintenanceModal .mw-small-note{font-size:11px;color:#708496;line-height:1.85;margin:10px 0 0}
+#maintenanceModal .mw-original{font-weight:800;color:#184d73}
+#maintenanceModal .mw-source-warning{font-weight:900;color:#b35f28}
+#maintenanceModal .mw-table-wrap{border-color:#dce6ed}
+#maintenanceModal table{font-family:inherit;font-size:12px}
+#maintenanceModal table th{background:#f1f7fc;color:#3e6783;font-weight:900}
+#maintenanceModal .mw-pager{padding-top:8px}
+.mw-dash-summary{
+ background:#fff;border:1px solid #dde3ea;border-radius:13px;
+ padding:14px 17px;box-shadow:0 2px 9px #17324d0a;
+ border-right:0;position:relative;overflow:hidden;
+}
+.mw-dash-summary:before{
+ content:"";position:absolute;top:0;right:0;left:0;height:4px;
+ background:linear-gradient(90deg,#87329A,#0362AF);
+}
+.mw-dash-summary h3{font-size:14px;color:#0362AF;font-weight:900;margin:0 0 12px}
+.mw-dash-summary .mw-dash-values{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.mw-dash-summary .mw-dash-values span{font-size:11px;background:#f6faff;border:1px solid #e3ebf2;padding:11px 8px;border-radius:9px;text-align:center;color:#64798d;font-weight:800}
+.mw-dash-summary .mw-dash-values strong{font-size:23px;color:#0362AF;line-height:1.5;direction:ltr;font-variant-numeric:tabular-nums}
+.mw-dash-summary .mw-dash-values span:nth-child(3) strong{color:#87329A}
+.mw-dash-summary button{align-self:center;border-radius:8px;white-space:nowrap}
+@media(max-width:1080px){
+ #maintenanceModal .mw-instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .mw-dash-summary .mw-dash-values{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+ #maintenanceModal .mw-brand img{width:75px;height:43px;padding-left:5px}
+ #maintenanceModal .mw-header h2{font-size:16px}
+ #maintenanceModal .mw-header small{font-size:9px}
+ #maintenanceModal .mw-instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #maintenanceModal .mw-instrument{min-height:190px;padding:10px 5px}
+ #maintenanceModal .mw-instrument .ws-dial{width:135px;height:86px}
+ #maintenanceModal .mw-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-kpi strong{font-size:22px}
+ #maintenanceModal .mw-month-chart{overflow-x:auto;min-height:185px}
+ #maintenanceModal .mw-month-item{min-width:36px}
+ .mw-dash-summary .mw-dash-values{gap:6px}
+ .mw-dash-summary .mw-dash-values strong{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ #maintenanceModal .ws-needle{transition:none!important}
+}
