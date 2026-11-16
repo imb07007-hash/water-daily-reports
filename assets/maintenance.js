@@ -145,16 +145,16 @@ function assetQuery(id){
 async function renderAssets(id){
  const items=await getRows('maintenance_assets',assetQuery(id));
  let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>دليل المعدات والأصول</h3><button class="mw-button main" data-mw="goImport">رفع قائمة المعدات من Excel</button></div>'+
- '<form id="mw-search-form" class="mw-actions"><input class="mw-input" id="mw-search-input" placeholder="اسم المعدة أو المبنى أو رقم المعدة" value="'+h(M.search)+'" style="flex:1" maxlength="70">'+
+ '<form id="mw-search-form" class="mw-actions"><input class="mw-input" id="mw-search-input" placeholder="اسم المعدة أو المنطقة أو المعرّف الداخلي" value="'+h(M.search)+'" style="flex:1" maxlength="70">'+
  '<button class="mw-button" type="submit">بحث</button><button class="mw-button" type="button" data-mw="clearSearch">مسح</button></form>';
- html+=items.length?'<div class="mw-table-wrap" style="margin-top:13px"><table><thead><tr><th>رقم المعدة</th><th>اسم المعدة</th><th>المنطقة / المبنى</th><th>السجل</th></tr></thead><tbody>'+
+ html+=items.length?'<div class="mw-table-wrap" style="margin-top:13px"><table><thead><tr><th>معرّف المعدة</th><th>اسم المعدة</th><th>المنطقة / المبنى</th><th>السجل</th></tr></thead><tbody>'+
  items.map(a=>'<tr><td>'+h(a.asset_code||'—')+'</td><td class="mw-note">'+h(a.asset_name)+'</td><td class="mw-note">'+h(a.area||'—')+'</td><td><button type="button" class="mw-button" data-mw="asset" data-asset="'+h(a.id)+'" data-name="'+h(a.asset_name)+'">عرض الصيانة</button></td></tr>').join('')+'</tbody></table></div>':
  '<div class="mw-empty">لا توجد معدات مطابقة. يمكنك إضافة معدات جديدة أو استيراد قائمتها من Excel.</div>';
  html+='<div class="mw-pager"><button type="button" class="mw-button" data-mw="assetPrev" '+(M.assetPage?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.assetPage+1)+'</span><button type="button" class="mw-button" data-mw="assetNext" '+(items.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  html+='<div class="mw-card"><h3>إضافة معدة واحدة</h3><form id="mw-add-asset"><div class="mw-form-grid">'+
  '<label class="mw-label">اسم المعدة<input class="mw-input" name="assetName" required minlength="2" maxlength="180" placeholder="مثال: INTAKE WATER PUMP 1"></label>'+
  '<label class="mw-label">المنطقة / المبنى<input class="mw-input" name="area" maxlength="180" placeholder="مثال: INTAKE"></label>'+
- '<label class="mw-label">رقم المعدة / TAG (اختياري)<input class="mw-input" name="assetCode" maxlength="100"></label>'+
+ '<label class="mw-label">معرّف المعدة الداخلي / Tag إن كان معتمدًا (اختياري)<input class="mw-input" name="assetCode" maxlength="100"></label>'+
  '</div><div class="mw-actions" style="margin-top:12px"><button class="mw-button main" type="submit">حفظ المعدة</button></div></form></div>';
  el('maintenanceBody').innerHTML=html;
 }
@@ -707,7 +707,26 @@ function refreshDashboardMaintenance(){
 function alertInline(text,err=false){
  const body=el('maintenanceBody');if(body)body.insertAdjacentHTML('afterbegin',message(text,err));
 }
+async function rollbackClick(id){
+ if(!id||M.importing)return;
+ if(!confirm('التراجع سيحذف فقط المعدات والأعمال التي أُضيفت ضمن عملية الاستيراد المختارة. لن يغير الأرشيف التاريخي أو التقارير التشغيلية. متابعة؟'))return;
+ M.importing=true;
+ try{
+  const result=await rollbackImport(id);
+  M.importing=false;
+  await update();
+  alertInline('تم التراجع عن الاستيراد: '+fmt(result.records)+' سجل، '+fmt(result.planned)+' عمل مجدول، '+fmt(result.assets)+' معدة.');
+  refreshDashboardMaintenance();
+ }catch(err){
+  M.importing=false;
+  alertInline('لم يكتمل التراجع: '+err.message,true);
+ }
+}
 async function onSubmit(e){
+ if(e.target.id==='mw-correct-form'){
+  e.preventDefault();try{await submitCorrection(e.target)}catch(err){const box=el('mw-correction-feedback');if(box)box.innerHTML=message(err.message,true);return}
+  return;
+ }
  if(e.target.id==='mw-add-asset'){e.preventDefault();try{await addAsset(e.target)}catch(err){alertInline(err.message,true)}}
  else if(e.target.id==='mw-search-form'){e.preventDefault();M.search=el('mw-search-input').value;M.assetPage=0;update()}
 }
@@ -722,6 +741,7 @@ function onClick(e){
  const b=e.target.closest('[data-mw]');if(!b)return;
  const action=b.dataset.mw;
  if(action==='close'){close();return}
+ if(M.importing)return;
  if(action==='tab'){setTab(b.dataset.tab);return}
  if(action==='goImport'){setTab('import');return}
  if(action==='goRecords'){setTab('records');return}
@@ -739,6 +759,10 @@ function onClick(e){
  if(action==='preview'){previewFile();return}
  if(action==='discardPreview'){M.preview=null;renderImport(getId());return}
  if(action==='commitImport'){importCommit();return}
+ if(action==='correct'){showCorrection(b.dataset.record);return}
+ if(action==='audit'){showAudit(b.dataset.record);return}
+ if(action==='closeCorrection'){const box=el('mw-record-editor');if(box)box.innerHTML='';return}
+ if(action==='rollback'){void rollbackClick(b.dataset.importId);return}
 }
 async function dashboardMaintenance(){
  const container=el('dashboardContent');
