@@ -8,17 +8,18 @@ const el=id=>document.getElementById(id);
 const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=x=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(x||0));
 const prettyDate=x=>x?String(x).slice(0,10):'—';
-const accessible=()=>document.body.dataset.auth==='ready'&&typeof signedIn==='function'&&signedIn();
-const isStation=()=>typeof currentRole!=='undefined'&&currentRole==='station';
-const getStations=()=>typeof stations==='undefined'?[]:stations.filter(s=>s&&s.id);
-const owns=id=>accessible()&&getStations().some(s=>s.id===id)&&(!isStation()||id===currentStationId);
-const getId=()=>isStation()?currentStationId:(owns(M.stationId)?M.stationId:getStations()[0]?.id||'');
+const host=()=>window.WSMaintenanceHost;
+const accessible=()=>document.body.dataset.auth==='ready'&&!!host()?.signedIn?.();
+const isStation=()=>host()?.role?.()==='station';
+const getStations=()=>host()?.stations?.().filter(s=>s&&s.id)||[];
+const owns=id=>accessible()&&getStations().some(s=>s.id===id)&&(!isStation()||id===host()?.stationId?.());
+const getId=()=>isStation()?host()?.stationId?.():(owns(M.stationId)?M.stationId:getStations()[0]?.id||'');
 const stationName=id=>getStations().find(s=>s.id===id)?.name||id;
 const message=(txt,isError=false)=>'<div class="mw-notice'+(isError?' mw-error':'')+'">'+h(txt)+'</div>';
 const badge=s=>'<span class="mw-tag '+(s==='DONE'?'done':s==='NOT DONE'?'not':'unknown')+'">'+h(s==='UNVERIFIED'?'غير محدد':s||'غير محدد')+'</span>';
 const url=(table,params)=>'/rest/v1/'+table+'?'+new URLSearchParams(params).toString();
 async function request(path,options){
- const r=await authedFetch(path,options||{});
+ const r=await host().authedFetch(path,options||{});
  if(!r.ok){const detail=await r.json().catch(()=>null);throw Error((detail&&typeof detail.message==='string'?detail.message:'تعذر الاتصال بقاعدة البيانات')+' ('+r.status+')')}
  const raw=await r.text();return raw?JSON.parse(raw):[];
 }
@@ -49,7 +50,7 @@ function build(){
 }
 function toolbar(){
  const all=getStations();
- const options=(isStation()?all.filter(s=>s.id===currentStationId):all);
+ const options=(isStation()?all.filter(s=>s.id===host()?.stationId?.()):all);
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong><br><span class="mw-muted">سجل الصيانة والمعدات الخاصة بالمحطة</span></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
@@ -362,7 +363,7 @@ async function loadAllAssets(id){
  return new Map(all.map(x=>[x.normalized_key,x.id]));
 }
 function assign(data,id){
- return {...data,station_id:id,created_by:currentUserId};
+ return {...data,station_id:id,created_by:host().userId()};
 }
 async function importCommit(){
  const p=M.preview,id=getId();if(M.importing||!p||p.stationId!==id||!owns(id))return;
