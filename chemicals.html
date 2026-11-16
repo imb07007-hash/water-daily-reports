@@ -100,6 +100,8 @@ header{background:linear-gradient(115deg,#f1f5fb 0%,#e7edf8 52%,#fafaff 100%);bo
 .plant .tag.unknown{background:#eaf0f5;color:#7b8b9b}
 .plant .outdate{background:#eff5fa;color:#3874a4;font-weight:700}
 #editor{margin-top:15px;border:1px solid #dbe5ed;box-shadow:0 3px 12px #1234520a}
+.ws-no-motion .ws-needle,.ws-no-motion .material .track i{transition:none!important}
+.ws-no-motion .ws-pack svg > rect,.ws-no-motion .ws-pack svg > path{animation:none!important}
 @media(max-width:650px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.plant{padding:10px}.plant-gauges{gap:2px}.gauge-item{width:105px}.gauge-item svg{width:105px;height:60px}.material{grid-template-columns:63px minmax(0,1fr)}.material .ws-pack{width:60px}.material .ws-pack svg{width:54px}.formgrid{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.material .track i{transition:none}}
 
@@ -142,6 +144,7 @@ header{background:linear-gradient(115deg,#f1f5fb 0%,#e7edf8 52%,#fafaff 100%);bo
 </div><div class="form-actions"><button class="btn primary" id="save" type="submit">حفظ قراءة المخزون</button><span id="feedback" role="status"></span></div></form></section>
 <div class="foot">شركة حلول المياه — متابعة المواد الكيميائية · التواريخ معروضة بالتقويم الميلادي</div>
 </div>
+<script src="/assets/ops-motion.js" defer></script>
 <script>
 'use strict';
 (function(){
@@ -243,7 +246,7 @@ function animateChemicalIn(root){
   });
  }));
 }
-function render(){
+function render(shouldAnimate=true){
  const query=$('search').value.trim().toLowerCase(),station=$('stationFilter').value,sort=$('sort').value;
  const selected=records.filter(r=>(!station||station==='ALL'||r.station_id===station)&&(filterStage==='ALL'||r.stage===filterStage)&&(!query||(r.material+' '+(stations.find(s=>s.id===r.station_id)?.name||'')).toLowerCase().includes(query)));
  const allRecords=records,crit=allRecords.filter(x=>x.coverage_days!==null&&x.coverage_days<30);
@@ -283,7 +286,21 @@ function render(){
  (r.notes?'<span class="note">'+esc(r.notes)+'</span>':'')+'</div></section>';
  }).join('')+'</article>';
  }).join(''):'<div class="empty">لا توجد قراءات مخزون تطابق الفلاتر الحالية. أدخل أول قراءة من النموذج أدناه.</div>';
- animateChemicalIn($('plantGrid'));
+ const grid=$('plantGrid');
+ grid.classList.toggle('ws-no-motion',!shouldAnimate);
+ if(shouldAnimate){
+  animateChemicalIn(grid);
+  window.WSMotion?.animate(grid);
+  window.WSMotion?.animate($('stats'));
+ }else{
+  // Searches update immediately, without replaying needle motion per keystroke.
+  grid.querySelectorAll('.ws-needle[data-target-angle]').forEach(el=>{
+   el.style.transition='none';el.style.transform='rotate('+el.dataset.targetAngle+'deg)';
+  });
+  grid.querySelectorAll('.track i[data-target-width]').forEach(el=>{
+   el.style.transition='none';el.style.width=el.dataset.targetWidth+'%';
+  });
+ }
 }
 async function save(e){
  e.preventDefault();if(!user||role==='admin')return;
@@ -301,7 +318,7 @@ async function save(e){
 $('refresh').onclick=()=>load();
 $('goEditor').onclick=()=>$('editor').scrollIntoView({behavior:'smooth',block:'start'});
 $('chemForm').onsubmit=save;
-$('search').oninput=render;$('sort').onchange=render;$('stationFilter').onchange=render;
+$('search').oninput=()=>render(false);$('sort').onchange=()=>render(true);$('stationFilter').onchange=()=>render(true);
 document.querySelectorAll('[data-stage]').forEach(el=>el.onclick=()=>{filterStage=el.dataset.stage;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('active',b===el));render()});
 init();
 })();
