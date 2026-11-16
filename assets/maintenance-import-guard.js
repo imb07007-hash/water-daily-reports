@@ -11,7 +11,11 @@
   return m&&t&&row>0?m+'|'+t+'|'+row:'';
  };
  const datesEqual=(a,b)=>String(a||'').slice(0,10)===String(b||'').slice(0,10);
- const numberEqual=(a,b)=>(a==null||a==='')&&(b==null||b==='')||Number(a)===Number(b);
+ const numberEqual=(a,b)=>{
+  const blankA=a==null||a==='',blankB=b==null||b==='';
+  if(blankA||blankB)return blankA===blankB;
+  return Number.isFinite(Number(a))&&Number.isFinite(Number(b))&&Number(a)===Number(b);
+ };
  const name=r=>norm(r.original_equipment||r.asset_name||'');
  const area=r=>norm(r.original_area||r.area||'');
  const fields=(r,planned)=>planned
