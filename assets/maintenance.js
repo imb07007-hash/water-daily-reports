@@ -280,17 +280,29 @@ function parseGeneric(rows,sheet,out){
   cost:headerIndex(head,['COST','PRICE','TOTAL COST','التكلفة','السعر']),
   type:headerIndex(head,['TYPE','نوع الصيانة','النوع'])
  };
- let lastArea='',period=monthFrom(sheet)||monthFrom(out.filename);
+ let lastArea='',period=monthFrom(sheet)||monthFrom(out.filename),sectionType=typeOf('',sheet);
  for(let i=start+1;i<rows.length;i++){
-  const r=rows[i]||[];const v=key=>ind[key]>=0?clean(r[ind[key]]):'';
+  const r=rows[i]||[],section=normalized(r.slice(0,6).join(' '));
+  if(section.includes('PREVENTIVE MAINTENANCE')||section.includes('الصيانة الوقائية'))sectionType='PM';
+  else if(section.includes('CORRECTIVE MAINTENANCE')||section.includes('الصيانة التصحيحية'))sectionType='CM';
+  else if(section.includes('SERVICE WORK')||section.includes('SERVICE SCHEDULE')||section.includes('الاعمال الخدمية'))sectionType='SS';
+  const v=key=>ind[key]>=0?clean(r[ind[key]]):'';
   let name=v('name');if(!name)continue;
   const area=v('area')||lastArea;if(v('area'))lastArea=v('area');
-  const typ=typeOf(v('type'),sheet);
+  const typ=typeOf(v('type'),sectionType);
   const obj={name,area,code:v('code'),sheet,row:i+1,period,type:typ,frequency:v('frequency'),
    rawDate:v('date'),rawStatus:v('status'),description:v('description'),notes:v('notes'),cost:v('cost'),sourceRef:''};
   if(!area)out.issues.push('منطقة غير محددة: '+sheet+' / صف '+(i+1));
   if(!typ&&(obj.rawDate||obj.rawStatus||obj.description||obj.notes||obj.cost))out.issues.push('نوع الصيانة غير محدد؛ ستُضاف المعدة فقط: '+sheet+' / صف '+(i+1));
   addParsed(out,obj);
+ }
+}
+function parseGuide(rows,sheet,out){
+ const ix=rows.findIndex(r=>r.some(v=>normalized(v).includes('معرف الاصل'))&&r.some(v=>normalized(v).includes('اسم المعدة')));
+ if(ix<0)return;
+ for(let i=ix+1;i<rows.length;i++){
+  const r=rows[i]||[];if(!clean(r[2]))continue;
+  addParsed(out,{code:clean(r[0]),area:clean(r[1]),name:clean(r[2]),type:'',sheet,row:i+1,period:'',rawStatus:'',rawDate:''});
  }
 }
 async function loadExcel(){
@@ -317,6 +329,10 @@ async function previewFile(){
    const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,defval:'',raw:false,blankrows:false});
    if(uni)parseUnified(rows,sheet,out);
    else parseGeneric(rows,sheet,out);
+  }
+  if(uni&&wb.Sheets['دليل المعدات']){
+   const guide=XLSX.utils.sheet_to_json(wb.Sheets['دليل المعدات'],{header:1,defval:'',raw:false,blankrows:false});
+   parseGuide(guide,'دليل المعدات',out);
   }
   // Pure asset guide in a unified workbook is not treated as proof of completed work.
   if(!out.assets.size)throw Error('لم يتم التعرف على معدات صحيحة. راجع أسماء الأعمدة أو اختر الجدول الأصلي.');
