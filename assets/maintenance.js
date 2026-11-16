@@ -16,7 +16,7 @@ const owns=id=>accessible()&&getStations().some(s=>s.id===id)&&(!isStation()||id
 const getId=()=>isStation()?host()?.stationId?.():(owns(M.stationId)?M.stationId:getStations()[0]?.id||'');
 const stationName=id=>getStations().find(s=>s.id===id)?.name||id;
 const message=(txt,isError=false)=>'<div class="mw-notice'+(isError?' mw-error':'')+'">'+h(txt)+'</div>';
-const badge=s=>'<span class="mw-tag '+(s==='DONE'?'done':s==='NOT DONE'?'not':'unknown')+'">'+h(s==='UNVERIFIED'?'غير محدد':s||'غير محدد')+'</span>';
+const badge=s=>'<span class="mw-tag '+(s==='DONE'?'done':s==='NOT DONE'?'not':s==='NEED CM'?'cm':s==='NOT IN SERVICE'?'offline':'unknown')+'">'+h(s==='UNVERIFIED'?'غير محدد':s||'غير محدد')+'</span>';
 const url=(table,params)=>'/rest/v1/'+table+'?'+new URLSearchParams(params).toString();
 async function request(path,options){
  const r=await host().authedFetch(path,options||{});
@@ -257,6 +257,9 @@ function validDate(y,m,d){
 }
 function statusOf(raw,date,type){
  let s=normalized(raw);
+ if(s==='NEED CM'||s==='NEED CORRECTIVE MAINTENANCE')return 'NEED CM';
+ if(s==='NOT IN SERVICE'||s==='OUT OF SERVICE')return 'NOT IN SERVICE';
+ if(s==='OTHERS')return 'OTHERS';
  if(s==='DONE'||s==='تم'||s==='مكتمل'||s==='COMPLETED'||s==='YES'||s==='تم التنفيذ')return 'DONE';
  if(s==='NOT DONE'||s==='NOTDONE'||s==='لم يتم'||s==='لم ينفذ'||s==='NO'||s==='PENDING')return 'NOT DONE';
  if(!s&&date&&type)return 'DONE';
@@ -287,7 +290,7 @@ function hash(str){
  return (a>>>0).toString(16).padStart(8,'0')+(b>>>0).toString(16).padStart(8,'0');
 }
 function makeImporter(file){
- return {filename:file.name,assets:new Map(),records:[],skipped:0,issues:[],sample:[],seen:new Set(),validRows:0};
+ return {filename:file.name,assets:new Map(),records:[],definitions:[],skipped:0,issues:[],sample:[],seen:new Set(),seenPlans:new Set(),validRows:0};
 }
 function addParsed(out,obj){
  const name=clean(obj.name),area=clean(obj.area),code=clean(obj.code);
