@@ -15,7 +15,7 @@ body[data-auth="ready"] .edit-section h3{background:#f0f6fc}
 #chemicalsLink{display:inline-flex;align-items:center;text-decoration:none}
 body[data-auth="locked"] #chemicalsLink{display:none!important}
 #dashboardModal .modal{width:min(1490px,98vw)!important}
-#dashboardModal .modal-body{background:#f3f5f8}
+
 #dashboardModal .modal-head{background:linear-gradient(100deg,#f1f7ff,#fff);border-bottom:4px solid #0362AF}
 #dashboardModal .dashboard-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 #dashboardModal .dashboard-kpi{border-top:4px solid #0362AF}
@@ -32,7 +32,7 @@ body[data-auth="locked"] #chemicalsLink{display:none!important}
 .ws-instrument .ws-instrument-status.down,.ws-station-trend.down{color:#cd4343}
 .ws-instrument .ws-instrument-status.neutral,.ws-station-trend.neutral{color:#788a9c}
 .ws-dial{width:104px;height:104px;max-width:100%;overflow:visible}
-.ws-dial text{font-family:Tahoma,Arial,sans-serif}
+
 .ws-instrument .ws-instrument-sub{font-size:10px;color:#8290a0;margin-top:5px}
 .ws-station-trend{font-size:11px;font-weight:700;border-top:1px solid #e8edf3;margin-top:9px;padding-top:9px}
 #dashboardModal .dashboard-plant{border-radius:12px}
