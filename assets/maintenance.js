@@ -81,7 +81,7 @@ async function update(){
 async function renderOverview(id){
  const [list,imports,months,history]=await Promise.all([
   summary(id),
-  getRows('maintenance_imports',{select:'file_name,inserted_records,inserted_assets,created_at',station_id:'eq.'+id,order:'created_at.desc',limit:5}),
+  getRows('maintenance_imports',{select:'file_name,inserted_records,inserted_assets,inserted_definitions,created_at',station_id:'eq.'+id,order:'created_at.desc',limit:5}),
   getRows('maintenance_monthly_summary',{select:'period_month,work_count,done_count,not_done_count,needs_cm_count',station_id:'eq.'+id,order:'period_month.asc',limit:'100'}),
   getRows('maintenance_historical_imports',{select:'source_name,expected_assets,expected_records,expected_definitions,imported_at',station_id:'eq.'+id,limit:'5'})
  ]);
@@ -441,12 +441,12 @@ async function previewFile(){
  }catch(err){status.innerHTML=message(err.message||'تعذر قراءة Excel.',true)}
 }
 function previewHtml(p){
- const issues=p.issues.length,assets=p.assets.size,works=p.records.length;
+ const issues=p.issues.length,assets=p.assets.size,works=p.records.length,plans=p.definitions.length;
  return '<div class="mw-card"><h3>معاينة قبل الحفظ — '+h(p.filename)+'</h3>'+
- '<div class="mw-kpis">'+[['المعدات المميزة',assets],['سجلات الصيانة',works],['الصفوف المستبعدة',p.skipped],['ملاحظات الفحص',issues]].map(([t,v])=>
+ '<div class="mw-kpis">'+[['المعدات المميزة',assets],['سجلات التنفيذ',works],['الأعمال المجدولة',plans],['ملاحظات الفحص',issues]].map(([t,v])=>
  '<div class="mw-kpi"><small>'+h(t)+'</small><strong>'+fmt(v)+'</strong></div>').join('')+'</div>'+
  (issues?message('توجد '+issues+' ملاحظة. أمثلة: '+p.issues.slice(0,4).join('؛ ')):'')+
- '<p class="mw-muted">الأعمال غير المؤكدة لن تتحول إلى DONE. ستُتجاهل السجلات الموجودة سابقًا بالمصدر نفسه دون استبدالها.</p>'+
+ '<p class="mw-muted">الأعمال غير المؤكدة تُحفظ ضمن الجدول المخطط وليس كسجلات تنفيذ. توجد سجلات تاريخية لوادي جيزان بالفعل؛ راجع المعاينة وتأكد من عدم إعادة استيراد نفس السجل من ملف مختلف.</p>'+
  '<div class="mw-preview"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>التاريخ المدون</th><th>الحالة</th></tr></thead><tbody>'+
  (p.sample.length?p.sample.map(x=>'<tr><td>'+h(x.name)+'</td><td>'+h(x.area)+'</td><td>'+h(x.type)+'</td><td>'+h(x.date)+'</td><td>'+badge(x.status)+'</td></tr>').join(''):'<tr><td colspan="5">الملف يحتوي على قائمة معدات فقط</td></tr>')+
  '</tbody></table></div><div id="mw-import-status"></div><div class="mw-actions" style="margin-top:12px">'+
