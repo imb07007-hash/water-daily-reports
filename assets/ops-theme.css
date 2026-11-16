@@ -38,3 +38,44 @@ body[data-auth="locked"] #chemicalsLink{display:none!important}
 #dashboardModal .dashboard-plant{border-radius:12px}
 @media(max-width:1050px){.ws-dashboard-instruments{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.ws-dashboard-instruments{grid-template-columns:1fr 1fr;gap:7px}.ws-instrument{grid-template-columns:1fr;text-align:center;justify-items:center;padding:11px 8px;gap:2px}.ws-dial{width:90px;height:90px}.ws-instrument .ws-instrument-number{font-size:19px}#dashboardModal .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboardModal .modal{width:100vw!important;max-width:100vw}}
+
+/* 16-11 reference: airy white station cards, half gauges and subtle trend strips. */
+#dashboardModal .modal{border-radius:13px;box-shadow:0 15px 40px #17324d24}
+#dashboardModal .modal-body{background:#f3f5f8}
+#dashboardModal .modal-head{border-bottom:3px solid #0362AF}
+#dashboardModal .dashboard-filters{background:white;border:1px solid #dde3ea;border-radius:11px;padding:12px}
+.ws-dashboard-instruments{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:6px 0 14px}
+.ws-instrument{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:228px;padding:15px 12px 13px;border:1px solid #dde3ea;border-radius:13px;background:#fff;gap:0;box-shadow:0 2px 8px #17324d0a;position:relative}
+.ws-instrument:before{content:"";height:4px;position:absolute;top:0;right:0;left:0;background:linear-gradient(90deg,#87329A,#0362AF);border-radius:13px 13px 0 0}
+.ws-dial{width:170px;height:102px;max-width:100%;display:block;overflow:visible;margin:2px auto 0}
+.ws-dial text{font-family:Tahoma,Arial,sans-serif}
+.ws-instrument .ws-instrument-meta{text-align:center;width:100%;min-width:0}
+.ws-instrument .ws-instrument-label{font-size:13px;font-weight:800;color:#17324d;display:block;line-height:1.6}
+.ws-instrument .ws-instrument-number{font-size:clamp(20px,2.2vw,28px);font-weight:900;color:#0362AF;line-height:1.3;overflow-wrap:anywhere}
+.ws-instrument:nth-child(3) .ws-instrument-number{color:#87329A}
+.ws-instrument .ws-instrument-unit{font-size:10px;color:#748599;line-height:1.5}
+.ws-instrument .ws-instrument-status{margin-top:8px;padding:4px 9px;border-radius:8px;font-size:11px;display:inline-block;font-weight:800}
+.ws-instrument .ws-instrument-status.up{color:#247948;background:#e4f5e9}
+.ws-instrument .ws-instrument-status.down{color:#ad3246;background:#fcecef}
+.ws-instrument .ws-instrument-status.neutral{color:#63798f;background:#edf3f8}
+.ws-instrument .ws-instrument-sub{margin-top:6px;font-size:10px;color:#8290a0}
+#dashboardModal .dashboard-summary{grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-bottom:14px}
+#dashboardModal .dashboard-kpi{min-height:89px;border:1px solid #dde3ea;border-radius:11px;background:white;padding:12px}
+#dashboardModal .dashboard-kpi strong{font-size:23px;text-align:center}
+#dashboardModal .dashboard-kpi small{text-align:center;font-size:11px;color:#728398}
+#dashboardModal .dashboard-section{background:transparent}
+#dashboardModal .dashboard-plant-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#dashboardModal .dashboard-plant{border:1px solid #dde3ea;border-right:1px solid #dde3ea;border-radius:13px;background:#fff;box-shadow:0 2px 9px #17324d0a;padding:15px}
+#dashboardModal .dashboard-plant:hover{box-shadow:0 5px 18px #17324d14}
+#dashboardModal .dashboard-plant-head{border-bottom:1px solid #e6ebf1;padding-bottom:9px}
+#dashboardModal .dashboard-plant-name{font-size:14px;color:#17324d}
+#dashboardModal .dashboard-station-values{margin:10px 0}
+#dashboardModal .dashboard-station-value{border-color:#e8eff5}
+#dashboardModal .ws-station-trend{display:block;border-top:1px dashed #e5edf3;font-size:12px;border-radius:0;padding:10px 2px 3px;margin-top:9px}
+#dashboardModal .ws-station-trend.up{color:#248450}
+#dashboardModal .ws-station-trend.down{color:#c0444b}
+#dashboardModal .dashboard-week{border:1px solid #dde3ea;border-radius:12px}
+#dashboardModal .dashboard-week-track{background:#e7ebef;border-color:#e2e6ed}
+#dashboardModal .dashboard-week-fill{background:linear-gradient(180deg,#50B4F2,#0362AF)}
+@media(max-width:1200px){.ws-dashboard-instruments{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboardModal .dashboard-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.ws-dashboard-instruments{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ws-instrument{min-height:207px;padding:12px 5px}.ws-dial{width:136px;height:90px}.ws-instrument .ws-instrument-number{font-size:19px}.ws-instrument .ws-instrument-label{font-size:12px}.ws-instrument .ws-instrument-status{font-size:10px}#dashboardModal .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboardModal .dashboard-plant-grid{grid-template-columns:1fr}}
