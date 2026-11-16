@@ -461,7 +461,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 .archive-trend-tag.down{background:#fff1e9}
 @media(max-width:650px){.archive-trend-cards{grid-template-columns:1fr 1fr}.archive-trend-kpi strong{font-size:17px}}
 
-</style></head>
+</style><link rel="stylesheet" href="/assets/ops-theme.css"></head>
 <body data-auth="locked">
 
 <section id="loginScreen" class="login-screen" aria-label="بوابة تسجيل الدخول إلى نظام تشغيل المحطات">
@@ -521,7 +521,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   </div>
 </section>
 
-<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
+<header class="app-bar"><div class="app-bar-inner"><div class="app-brand"><div class="app-brand-logo-shell"><img data-brand-logo class="brand-logo-header" alt="شعار شركة حلول المياه" width="122" height="61"></div><div class="app-brand-copy"><h1>نظام التقارير التشغيلية اليومية</h1><small>شركة حلول المياه | تشغيل المحطات ومتابعة التقارير</small></div></div><div class="app-tools"><button class="btn primary" id="saveBtn">☁ إرسال التقرير</button><button class="btn hidden" id="restoreBtn">↶ استرجاع</button><button class="btn" id="newBtn">＋ تقرير جديد</button><button class="btn" id="clearBtn">مسح الحقول</button><button class="btn purple" id="exportBtn">⬇ حفظ التقرير كصورة</button><button class="btn" id="shareBtn">↗ مشاركة عبر واتساب</button><button class="btn" id="printBtn">⎙ طباعة</button><button class="btn" id="fullBtn">⛶ معاينة كاملة</button><button class="btn hidden" id="backupBtn">↓ JSON</button><button class="btn hidden" id="importBtn">↑ استيراد</button><button class="btn hidden" id="settingsBtn">⚙ إدارة المحطات</button><button class="btn" id="archiveBtn">🗂 أرشيف التقارير</button><button class="btn hidden" id="dashboardBtn">📊 داشبورد المحطات</button><a class="btn" id="chemicalsLink" href="/chemicals.html">🧪 مخزون المواد الكيميائية</a><button class="btn hidden" id="accountsBtn">👥 حسابات المحطات</button><button class="btn hidden" id="auditBtn">🕘 سجل النشاط</button><span id="accountRole" class="role-chip hidden"></span><button class="btn hidden" id="changeOwnPasswordBtn">🔑 تغيير كلمة المرور</button><button class="btn" id="signoutBtn">⎋ تسجيل الخروج</button></div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
 <div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2 id="settingsTitle">إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
@@ -1929,6 +1929,50 @@ function dashboardTotal(rows,metric){
 function dashboardMetricLabel(value){
  return value===null?'غير مسجل':fmt(value);
 }
+
+/* Paired values only: no fabricated zero for a missing daily report. */
+function wsCompare(rows,dayMap,previousDate,key){
+ let a=0,b=0,count=0;
+ rows.forEach(row=>{
+  const old=dayMap.get(row.station_id+'@'+previousDate);
+  const nowValue=dashboardNumeric(row?.data?.metrics?.[key]);
+  const oldValue=dashboardNumeric(old?.data?.metrics?.[key]);
+  if(nowValue===null||oldValue===null)return;
+  a+=nowValue;b+=oldValue;count++;
+ });
+ return {count,delta:a-b,pct:count&&b!==0?(a-b)/b*100:null};
+}
+function wsTrend(c){
+ if(!c.count)return {cls:'neutral',txt:'لا تتوفر قراءة للمقارنة'};
+ if(c.pct===null)return {cls:'neutral',txt:'الفرق '+(c.delta<0?'−':'+')+fmt(Math.abs(c.delta))+' (قراءة الأمس صفر)'};
+ const cls=c.pct>0?'up':c.pct<0?'down':'neutral';
+ return {cls,txt:(c.pct>0?'↑ +':c.pct<0?'↓ −':'= ')+
+  Math.abs(c.pct).toLocaleString('en-US',{maximumFractionDigits:1})+'% عن أمس'};
+}
+function wsDial(pct,tint){
+ const valid=pct!==null&&Number.isFinite(pct),value=valid?Math.min(100,Math.abs(pct)):0,len=2*Math.PI*35;
+ return '<svg class="ws-dial" viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" stroke="#e5edf3" fill="none" stroke-width="9"/>'+
+ '<circle cx="50" cy="50" r="35" stroke="'+tint+'" fill="none" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(len*value/100)+' '+len+'" transform="rotate(-90 50 50)"/>'+
+ '<text x="50" y="55" text-anchor="middle" fill="'+tint+'" font-size="16" font-weight="bold">'+
+ (valid?Math.abs(pct).toLocaleString('en-US',{maximumFractionDigits:1})+'%':'—')+'</text></svg>';
+}
+function wsInstruments(rows,dayMap,date,rate){
+ const previousDate=dashboardShiftDate(date,-1);
+ const defs=[['production','الإنتاج','م³','#0362AF'],['raw','المياه الخام','م³','#87329A'],['export','التصدير','م³','#1B998B']];
+ const cards=defs.map(([key,label,unit,base])=>{
+  const total=dashboardTotal(rows,key),cmp=wsCompare(rows,dayMap,previousDate,key),t=wsTrend(cmp);
+  const tint=t.cls==='up'?'#2e9e5b':t.cls==='down'?'#d64545':base;
+  return '<article class="ws-instrument">'+wsDial(cmp.pct,tint)+'<div class="ws-instrument-meta">'+
+   '<span class="ws-instrument-label">'+label+'</span><strong class="ws-instrument-number">'+(total===null?'غير مسجل':fmt(total))+'</strong>'+
+   '<span class="ws-instrument-unit">'+unit+'</span><span class="ws-instrument-status '+t.cls+'">'+esc(t.txt)+'</span>'+
+   '<div class="ws-instrument-sub">'+(cmp.count?cmp.count+' محطة متطابقة في اليومين':'تستلزم المقارنة تقريرين متتاليين')+'</div></div></article>';
+ });
+ cards.unshift('<article class="ws-instrument">'+wsDial(rate,'#0362AF')+'<div class="ws-instrument-meta"><span class="ws-instrument-label">نسبة استلام التقارير</span>'+
+  '<strong class="ws-instrument-number">'+rate+'%</strong><span class="ws-instrument-unit">من المحطات المفعلة</span>'+
+  '<span class="ws-instrument-status neutral">بتاريخ '+esc(dashboardShortDate(date))+'</span></div></article>');
+ return '<section class="ws-dashboard-instruments" aria-label="مؤشرات التشغيل">'+cards.join('')+'</section>';
+}
+
 function dashboardOpen(){
  if(!isAdmin())return;
  $('dashboardModal').classList.remove('hidden');
@@ -1989,6 +2033,10 @@ async function dashboardRefresh(){
    const metrics=r?.data?.metrics||{};
    const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)]];
    const status=r?'تقرير محفوظ':'لم يُرسل';
+   const past=byDayStation.get(s.id+'@'+dashboardShiftDate(date,-1));
+   const nowProduction=dashboardNumeric(r?.data?.metrics?.production),pastProduction=dashboardNumeric(past?.data?.metrics?.production);
+   const trend=nowProduction!==null&&pastProduction!==null?wsTrend({count:1,delta:nowProduction-pastProduction,
+    pct:pastProduction===0?null:100*(nowProduction-pastProduction)/pastProduction}):{cls:'neutral',txt:'مقارنة الإنتاج غير متاحة'};
    return '<div class="dashboard-plant '+(r?'received':'pending')+'">'+
     '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+(r?.source==='migration'?'<small style="display:block;font-size:10px;font-weight:500">من سجل واتساب التاريخي</small>':'')+'</h4>'+
      '<span class="dashboard-status '+(r?'received':'pending')+'">'+status+'</span></div>'+
@@ -1998,6 +2046,7 @@ async function dashboardRefresh(){
     '</div>'+
     '<div class="dashboard-station-values">'+present.map(([label,value])=>
      '<div class="dashboard-station-value"><small>'+esc(label)+'</small><strong>'+esc(dashboardMetricLabel(value))+'</strong></div>').join('')+'</div>'+
+    '<div class="ws-station-trend '+trend.cls+'">'+esc(trend.txt)+'</div>'+ 
     (r?'<div class="dashboard-plant-actions"><button type="button" class="btn" data-dashboard-report="'+esc(r.id)+'">عرض التقرير</button></div>':'')+
     '</div>';
   }).join('');
@@ -2032,7 +2081,7 @@ async function dashboardRefresh(){
   }).join(''):'<div class="dashboard-empty">لا توجد تقارير مرسلة حتى الآن.</div>';
   const recentSection='<section class="dashboard-section"><div class="dashboard-section-head"><h3>آخر عمليات إرسال التقارير</h3>'+
    '<small>توقيت السعودية (UTC+3)</small></div><div class="dashboard-recent">'+recentRows+'</div></section>';
-  view.innerHTML=summary+stationSection+historySection+recentSection;
+  view.innerHTML=wsInstruments(selectedRows,byDayStation,date,readyRate)+summary+stationSection+historySection+recentSection;
  }catch(e){
   view.innerHTML='<div class="archive-empty">'+esc(e.message||'تعذّر تحميل الداشبورد.')+'</div>';
  }finally{
