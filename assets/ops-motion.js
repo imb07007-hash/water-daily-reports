@@ -9,7 +9,7 @@
  const SHOW='.ws-instrument,.dashboard-kpi,.dashboard-plant,.dashboard-section,.dashboard-recent-row,.archive-block,.archive-kpi,.archive-trend-kpi,.archive-entry,.archive-report-list,.audit-row,.sec-row,.stat,.plant,.material,.gauge-item';
  const NUMBERS='.ws-instrument-number,.dashboard-kpi strong,.dashboard-station-value strong,.archive-kpi strong,.archive-trend-kpi strong,.audit-stat strong,.stat strong,.material .quant';
  const MAX_REVEALS=110,MAX_NUMBERS=45;
- let observer=null,active=new Set(),timers=new Set();
+ let observer=null,active=new Set();
  function visible(el){return !!(el&&el.isConnected&&el.getClientRects().length&&!el.closest('.hidden,[hidden],.report-sheet'))}
  function isSafe(el){return !!el&&!el.closest('.report-sheet,.entry-panel,.login-screen,.settings-controls')}
  function ready(el){
@@ -64,13 +64,15 @@
    // Never add counting text to editable report fields or exported report DOM.
    el.textContent=value.prefix+fmt(0)+value.suffix;
    const duration=930,start=performance.now();
+   let cancelled=false;
    function frame(now){
+    if(cancelled)return;
     if(!el.isConnected||!visible(el)){el.textContent=original;active.delete(stop);return}
     const p=Math.min(1,(now-start)/duration);
     el.textContent=p>=1?original:value.prefix+fmt(value.value*EASE(p))+value.suffix;
     if(p<1)requestAnimationFrame(frame);else active.delete(stop);
    }
-   const stop=()=>{el.textContent=original};
+   const stop=()=>{cancelled=true;el.textContent=original};
    active.add(stop);
    requestAnimationFrame(frame);
    count++;
