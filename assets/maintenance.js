@@ -54,7 +54,7 @@ function toolbar(){
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong><br><span class="mw-muted">سجل الصيانة والمعدات الخاصة بالمحطة</span></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
-function setTab(tab){M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
+function setTab(tab){if(M.importing)return;M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
  build();M.stationId=getId();M.tab=tab||M.tab||'overview';root.classList.remove('hidden');document.body.style.overflow='hidden';update();
@@ -169,6 +169,8 @@ function recordsParams(id){
 }
 async function renderRecords(id){
  const list=await getRows('maintenance_records',recordsParams(id));
+ M.visibleRecords=list;
+ const canCorrect=host()?.role?.()==='superadmin';
  let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>السجل التاريخي لأعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
  '<button class="mw-button" data-mw="clearFilters">عرض جميع السجلات</button></div>'+
  '<div class="mw-actions"><label>النوع <select class="mw-select" id="mw-type"><option value="">الكل</option>'+
@@ -177,7 +179,7 @@ async function renderRecords(id){
  [['','الكل'],['DONE','DONE'],['NOT DONE','NOT DONE'],['NEED CM','NEED CM'],['OTHERS','OTHERS'],['NOT IN SERVICE','NOT IN SERVICE'],['UNVERIFIED','غير محدد']].
  map(([v,t])=>'<option value="'+v+'"'+(M.status===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
  '<label>الشهر <input type="month" class="mw-input" id="mw-period" value="'+h(M.period)+'"></label></div>';
- html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ الصيانة الأصلي</th><th>التكرار</th><th>الحالة</th><th>الملاحظات الأصلية</th><th>التكلفة (ر.س)</th><th>المصدر</th></tr></thead><tbody>'+
+ html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ الصيانة الأصلي</th><th>التكرار</th><th>الحالة</th><th>الملاحظات الأصلية</th><th>التكلفة (ر.س)</th><th>المصدر</th>'+ (canCorrect?'<th>المراجعة</th>':'') +'</tr></thead><tbody>'+
  list.map(r=>{
   const unlinked=Array.isArray(r.import_issues)&&r.import_issues.includes('غير مرتبط بمعدة مؤكدة');
   const name=r.original_equipment||r.maintenance_assets?.asset_name||'—',area=r.original_area||r.maintenance_assets?.area||'—';
@@ -186,10 +188,11 @@ async function renderRecords(id){
    '<td dir="ltr">'+h(r.original_date||prettyDate(r.work_date))+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+'</td>'+
    '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td>'+
    '<td>'+h(r.cost==null?'—':fmt(r.cost))+'</td><td class="mw-note"><small>'+h(r.source_sheet||r.source_file||'إدخال مباشر')+
-   (r.source_row?' — صف '+h(r.source_row):'')+'</small></td></tr>';
+   (r.source_row?' — صف '+h(r.source_row):'')+'</small></td>'+
+ (canCorrect?'<td class="mw-actions"><button type="button" class="mw-button" data-mw="correct" data-record="'+h(r.id)+'">تصحيح</button><button type="button" class="mw-button" data-mw="audit" data-record="'+h(r.id)+'">السجل</button></td>':'')+'</tr>';
  }).join('')+'</tbody></table></div>':
  '<div class="mw-empty">لا توجد أعمال صيانة مسجلة ضمن الفلاتر الحالية.</div>';
- html+='<div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
+ html+='<div id="mw-record-editor"></div><div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  el('maintenanceBody').innerHTML=html;
 }
 async function renderPlanned(id){
@@ -210,6 +213,66 @@ async function renderPlanned(id){
  html+='<div class="mw-pager"><button class="mw-button" data-mw="plannedPrev" '+(M.plannedPage?'':'disabled')+'>السابق</button>'+
  '<span class="mw-muted">الصفحة '+(M.plannedPage+1)+'</span><button class="mw-button" data-mw="plannedNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  el('maintenanceBody').innerHTML=html;
+}
+function showCorrection(id){
+ if(host()?.role?.()!=='superadmin')return;
+ const r=(M.visibleRecords||[]).find(x=>x.id===id),box=el('mw-record-editor');
+ if(!r||!box)return;
+ const states=['DONE','NOT DONE','NEED CM','OTHERS','NOT IN SERVICE','UNVERIFIED'];
+ box.innerHTML='<div class="mw-card mw-correction"><h3>تصحيح سجل الصيانة</h3><p class="mw-muted">'+
+  h(r.original_equipment||r.maintenance_assets?.asset_name||'')+' — '+h(r.source_sheet||'')+
+  ' / صف '+h(r.source_row||'')+'</p>'+
+  '<div class="mw-notice">التعديل لا يمحو التاريخ الأصلي أو بيانات المصدر. سيُحفظ السبب والقيم السابقة والجديدة في سجل المراجعة.</div>'+
+  '<form id="mw-correct-form" data-record="'+h(r.id)+'"><div class="mw-form-grid">'+
+  '<label class="mw-label">الحالة<select class="mw-select" name="status">'+
+  states.map(v=>'<option value="'+v+'"'+(v===r.status?' selected':'')+'>'+h(v)+'</option>').join('')+'</select></label>'+
+  '<label class="mw-label">تاريخ التنفيذ الصحيح<input type="date" class="mw-input" name="workDate" value="'+h(prettyDate(r.work_date)==='—'?'':prettyDate(r.work_date))+'"></label>'+
+  '<label class="mw-label">التكلفة المدونة (ريال)<input type="number" step="0.01" min="0" class="mw-input" name="cost" value="'+h(r.cost??'')+'"></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">الملاحظات<textarea class="mw-input" name="notes" rows="3" maxlength="4000">'+h(r.notes||'')+'</textarea></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">سبب التصحيح (إلزامي)<textarea class="mw-input" name="reason" rows="2" minlength="5" maxlength="700" required placeholder="اذكر سبب التصحيح والمرجع الذي استندت إليه"></textarea></label>'+
+  '</div><div class="mw-actions" style="margin-top:12px"><button class="mw-button main" type="submit">حفظ التصحيح وتوثيقه</button>'+
+  '<button class="mw-button" type="button" data-mw="closeCorrection">إلغاء</button></div></form><div id="mw-correction-feedback"></div></div>';
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function showAudit(id){
+ if(host()?.role?.()!=='superadmin')return;
+ const target=el('mw-record-editor');if(!target)return;
+ target.innerHTML=message('جارٍ تحميل سجل تصحيحات الصيانة...');
+ try{
+  const rows=await getRows('maintenance_record_change_log',{
+   select:'changed_at,reason,old_value,new_value',record_id:'eq.'+id,order:'changed_at.desc',limit:30
+  });
+  target.innerHTML='<div class="mw-card"><div class="mw-top"><h3>سجل التصحيحات</h3>'+
+   '<button class="mw-button" data-mw="closeCorrection">إغلاق</button></div>'+
+   (rows.length?'<div class="mw-table-wrap"><table><thead><tr><th>التاريخ</th><th>السبب</th><th>قبل التعديل</th><th>بعد التعديل</th></tr></thead><tbody>'+
+    rows.map(x=>'<tr><td>'+h(new Date(x.changed_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}))+'</td>'+
+    '<td class="mw-note">'+h(x.reason)+'</td><td class="mw-note">'+h(JSON.stringify(x.old_value))+'</td>'+
+    '<td class="mw-note">'+h(JSON.stringify(x.new_value))+'</td></tr>').join('')+'</tbody></table></div>':
+    '<div class="mw-empty">لا توجد تصحيحات مسجلة لهذا السجل.</div>')+'</div>';
+ }catch(err){target.innerHTML=message(err.message,true)}
+}
+async function submitCorrection(form){
+ if(host()?.role?.()!=='superadmin')throw Error('هذه العملية متاحة للسوبر أدمن فقط.');
+ const id=form.dataset.record,r=(M.visibleRecords||[]).find(x=>x.id===id);
+ if(!r)throw Error('السجل غير متاح للتصحيح.');
+ const reason=String(form.elements.reason.value||'').trim();
+ if(reason.length<5)throw Error('يرجى إدخال سبب واضح للتصحيح.');
+ const costText=form.elements.cost.value.trim(),cost=costText===''?null:Number(costText);
+ if(cost!==null&&(!Number.isFinite(cost)||cost<0))throw Error('التكلفة غير صالحة.');
+ const button=form.querySelector('[type=submit]');button.disabled=true;
+ try{
+  await request('/rest/v1/rpc/maintenance_correct_record',{
+   method:'POST',body:JSON.stringify({
+    p_id:id,p_status:form.elements.status.value,
+    p_work_date:form.elements.workDate.value||null,p_notes:form.elements.notes.value,
+    p_cost:cost,p_reason:reason
+   })
+  });
+  M.page=0;
+  await update();
+  alertInline('تم حفظ التصحيح في السجل وتوثيق القيمة القديمة والجديدة.');
+  refreshDashboardMaintenance();
+ }finally{button.disabled=false}
 }
 function renderImport(id){
  el('maintenanceBody').innerHTML=toolbar()+'<div class="mw-card"><h3>استيراد المعدات وسجلات الصيانة من Excel</h3>'+
