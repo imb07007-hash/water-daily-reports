@@ -79,3 +79,10 @@ body[data-auth="locked"] #chemicalsLink{display:none!important}
 #dashboardModal .dashboard-week-fill{background:linear-gradient(180deg,#50B4F2,#0362AF)}
 @media(max-width:1200px){.ws-dashboard-instruments{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboardModal .dashboard-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.ws-dashboard-instruments{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ws-instrument{min-height:207px;padding:12px 5px}.ws-dial{width:136px;height:90px}.ws-instrument .ws-instrument-number{font-size:19px}.ws-instrument .ws-instrument-label{font-size:12px}.ws-instrument .ws-instrument-status{font-size:10px}#dashboardModal .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#dashboardModal .dashboard-plant-grid{grid-template-columns:1fr}}
+
+/* Motion copied from the source dashboard: progressive fill + eased needle rotation. */
+#dashboardModal .ws-needle{transform-origin:70px 64px;transition:transform 1.2s cubic-bezier(.2,.9,.3,1.15);will-change:transform}
+#dashboardModal .dashboard-week-fill{transition:height 1.1s ease-out}
+@media(prefers-reduced-motion:reduce){
+ #dashboardModal .ws-needle,#dashboardModal .dashboard-week-fill{transition:none!important}
+}
