@@ -79,24 +79,60 @@ async function update(){
  finally{M.loading=false}
 }
 async function renderOverview(id){
- const [list,imports]=await Promise.all([
+ const [list,imports,months,history]=await Promise.all([
   summary(id),
-  getRows('maintenance_imports',{select:'file_name,inserted_records,inserted_assets,created_at',station_id:'eq.'+id,order:'created_at.desc',limit:5})
+  getRows('maintenance_imports',{select:'file_name,inserted_records,inserted_assets,created_at',station_id:'eq.'+id,order:'created_at.desc',limit:5}),
+  getRows('maintenance_monthly_summary',{select:'period_month,work_count,done_count,not_done_count,needs_cm_count',station_id:'eq.'+id,order:'period_month.asc',limit:'100'}),
+  getRows('maintenance_historical_imports',{select:'source_name,expected_assets,expected_records,expected_definitions,imported_at',station_id:'eq.'+id,limit:'5'})
  ]);
- const x=list[0]||{};const kpis=[
-  ['إجمالي المعدات',x.asset_count],['سجلات الصيانة',x.work_count],['PM',x.pm_count],['CM',x.cm_count],
-  ['SS',x.ss_count],['DONE',x.done_count],['NOT DONE',x.not_done_count],['غير محدد',x.unverified_count]
+ const x=list[0]||{},n=k=>Number(x[k]||0),known=n('done_count')+n('not_done_count');
+ const rate=known?Math.round(100*n('done_count')/known):null;
+ const gauge=host()?.gauge?.(rate,'#0362AF','level')||'';
+ const panel=(label,value,caption)=>'<article class="mw-instrument"><span class="mw-instrument-label">'+h(label)+'</span>'+
+  '<strong class="mw-instrument-number">'+h(value)+'</strong><span class="mw-instrument-sub">'+h(caption)+'</span></article>';
+ let html=toolbar()+'<div class="mw-instrument-grid">'+
+ '<article class="mw-instrument">'+gauge+'<span class="mw-instrument-label">نسبة DONE</span>'+
+ '<strong class="mw-instrument-number">'+(rate===null?'—':rate+'%')+'</strong>'+
+ '<span class="mw-instrument-sub">من السجلات ذات الحالة DONE أو NOT DONE فقط</span></article>'+
+ panel('المعدات المؤكدة',fmt(n('asset_count')),'سجل الأصول المرتبط بالمحطة')+
+ panel('سجلات الصيانة',fmt(n('work_count')),'PM + CM + SS')+
+ panel('أعمال الصيانة المجدولة',fmt(n('planned_count')),'تعريفات ودوريات؛ لا تُحسب منفذة')+
+ '</div>';
+ const kpis=[
+  ['PM',n('pm_count')],['CM',n('cm_count')],['SS',n('ss_count')],
+  ['DONE',n('done_count')],['NOT DONE',n('not_done_count')],['NEED CM',n('needs_cm_count')],
+  ['NOT IN SERVICE',n('out_of_service_count')],['غير محدد',n('unverified_count')]
  ];
- const full=Number(x.work_count||0),pct=(n)=>full?Math.max(2,Math.round(Number(n||0)/full*100)):2;
- let html=toolbar()+'<div class="mw-kpis">'+kpis.map(([label,v])=>'<div class="mw-kpi"><small>'+h(label)+'</small><strong>'+fmt(v)+'</strong></div>').join('')+'</div>'+
- '<div class="mw-card" style="margin-top:14px"><h3>توزيع أعمال الصيانة حسب النوع</h3><div class="mw-chart">'+
- [['PM',x.pm_count],['CM',x.cm_count],['SS',x.ss_count]].map(([label,v])=>'<div class="mw-chart-col"><span class="mw-muted">'+fmt(v)+'</span><div class="bar" style="height:'+pct(v)+'%"></div><small>'+label+'</small></div>').join('')+
- '</div><p class="mw-muted">التكاليف المسجلة: '+fmt(x.registered_cost)+' ريال. هذه مبالغ مدونة وليست بالضرورة مصروفات فعلية.</p></div>'+
- '<div class="mw-card"><div class="mw-top"><h3>آخر عمليات الاستيراد</h3><button class="mw-button main" data-mw="goImport">استيراد Excel</button></div>';
- html+=imports.length?'<div class="mw-table-wrap"><table><thead><tr><th>اسم الملف</th><th>السجلات المضافة</th><th>المعدات المضافة</th><th>وقت الاستيراد</th></tr></thead><tbody>'+
+ html+='<div class="mw-kpis">'+kpis.map(([label,value])=>'<div class="mw-kpi"><small>'+h(label)+'</small><strong>'+fmt(value)+'</strong></div>').join('')+'</div>';
+ html+='<div class="mw-card" style="margin-top:14px"><div class="mw-top"><h3>أعمال الصيانة خلال آخر 12 شهرًا مسجلًا</h3><span class="mw-muted">اضغط على الشهر لعرض سجلاته</span></div>';
+ const visible=months.slice(-12),maximum=Math.max(1,...visible.map(m=>Number(m.work_count||0)));
+ html+='<div class="mw-month-chart">'+visible.map(m=>{
+   const count=Number(m.work_count||0),done=Number(m.done_count||0);
+   const height=Math.max(4,Math.round(count/maximum*115));
+   const doneH=count?Math.round(done/count*100):0;
+   const label=String(m.period_month||'').slice(0,7);
+   return '<button type="button" class="mw-month-item" data-mw="month" data-period="'+h(label)+'" title="'+h(label+' — '+count+' سجل')+'">'+
+    '<span class="mw-month-total">'+fmt(count)+'</span>'+
+    '<span class="mw-month-bar" style="height:'+height+'px"><span class="mw-month-done" style="height:'+doneH+'%"></span>'+
+    '<span class="mw-month-other" style="height:'+(100-doneH)+'%"></span></span><small dir="ltr">'+h(label.slice(2))+'</small></button>';
+  }).join('')+'</div><p class="mw-small-note">الأزرق: DONE. البنفسجي: الحالات الأخرى. يعتمد العرض على شهر الجدول، ولا يعيد تفسير تواريخ الصيانة المدونة.</p></div>';
+ html+='<div class="mw-card"><h3>ملخص جودة السجل والتكاليف</h3><div class="mw-status-grid">'+
+ [['التكاليف المسجلة',fmt(x.registered_cost||0)+' ر.س',''],['سجلات تحتاج ربطًا بمعدة',fmt(n('unlinked_count')),'warning'],['حالة OTHERS',fmt(n('other_count')),'purple']].map(([label,val,cls])=>
+  '<div class="mw-status-item '+cls+'"><span>'+h(label)+'</span><strong>'+h(val)+'</strong></div>').join('')+
+ '</div><p class="mw-small-note">التكاليف هي القيم المسجلة في جداول الصيانة، وقد تشمل أعمال NOT DONE؛ لا تُعرض باعتبارها مصروفات فعلية. السجلات غير المرتبطة بمعدة مؤكدة محفوظة مع اسمها الأصلي وملاحظاتها.</p></div>';
+ if(history.length){
+  html+='<div class="mw-card"><h3>الأرشيف التاريخي لمحطة وادي جيزان</h3>'+
+  '<p class="mw-small-note">تم نقل بيانات الصيانة من ملف المصدر، مع الاحتفاظ بالفترة والأحوال والتكاليف المدونة. لا تغيّر عملية النقل تاريخ الصيانة الأصلي.</p>'+
+  '<div class="mw-status-grid">'+history.map(a=>
+   '<div class="mw-status-item"><span>'+h(a.source_name)+'</span><strong>'+fmt(a.expected_records)+' سجل</strong></div>').join('')+
+  '</div></div>';
+ }
+ html+='<div class="mw-card"><div class="mw-top"><h3>آخر عمليات استيراد Excel بواسطة المستخدمين</h3><button class="mw-button main" data-mw="goImport">استيراد Excel</button></div>';
+ html+=imports.length?'<div class="mw-table-wrap"><table><thead><tr><th>اسم الملف</th><th>سجلات جديدة</th><th>معدات جديدة</th><th>وقت الاستيراد</th></tr></thead><tbody>'+
  imports.map(i=>'<tr><td class="mw-note">'+h(i.file_name)+'</td><td>'+fmt(i.inserted_records)+'</td><td>'+fmt(i.inserted_assets)+'</td><td>'+h(new Date(i.created_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}))+'</td></tr>').join('')+
- '</tbody></table></div>':'<div class="mw-empty">لا توجد عمليات استيراد محفوظة حتى الآن.</div>';
+ '</tbody></table></div>':'<div class="mw-empty">لا توجد عمليات استيراد إضافية بواسطة المستخدمين.</div>';
  el('maintenanceBody').innerHTML=html+'</div>';
+ host()?.animateGauges?.(el('maintenanceBody'));
 }
 function assetQuery(id){
  const params={select:'id,asset_code,asset_name,area,normalized_key,created_at',station_id:'eq.'+id,asset_code:'neq.UNVERIFIED_LINK',order:'asset_name.asc',limit:String(PAGE),offset:String(M.assetPage*PAGE)};
