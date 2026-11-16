@@ -662,6 +662,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 
 <div class="fullscreen-overlay hidden" id="fullscreenOverlay"><div class="fullscreen-controls"><button class="btn" id="exitFullBtn">إغلاق ✕</button><button class="btn purple" id="exportFullBtn">حفظ PNG</button></div><div id="fullscreenContent"></div></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden><div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+<script src="/assets/ops-motion.js" defer></script>
 <script>
 'use strict';
 (()=>{
@@ -1553,6 +1554,7 @@ function archiveRender(){
  }
  $('archiveResults').classList.remove('archive-empty');
  $('archiveResults').innerHTML=content;
+ window.WSMotion?.animate($('archiveResults'));
  $('archiveScopeLabel').textContent=name+' — '+(period.mode==='yearly'?'عام '+period.year:
   period.mode==='monthly'?'شهر '+period.month:'التقارير اليومية');
  $('archiveExports').classList.toggle('hidden',rows.length===0&&historical.length===0);
@@ -1820,6 +1822,7 @@ async function enterApplication(){
  $('accountRole').classList.remove('hidden');
  $('accountRole').textContent=isSuperAdmin()?'سوبر أدمن':isAdmin()?'أدمن':'محطة '+currentLoginName;
  document.body.dataset.auth='ready';
+ window.WSMotion?.enterApplication();
  $('loginScreen').classList.add('hidden');
  $('loginPassword').value='';
  $('accessNote').textContent=isAdmin()
@@ -2113,6 +2116,7 @@ async function dashboardRefresh(){
    '<small>توقيت السعودية (UTC+3)</small></div><div class="dashboard-recent">'+recentRows+'</div></section>';
   view.innerHTML=wsInstruments(selectedRows,byDayStation,date,readyRate)+summary+stationSection+historySection+recentSection;
   wsAnimateInstruments(view);
+  window.WSMotion?.animate(view);
  }catch(e){
   view.innerHTML='<div class="archive-empty">'+esc(e.message||'تعذّر تحميل الداشبورد.')+'</div>';
  }finally{
@@ -2192,6 +2196,7 @@ async function accountsRefresh(){
      (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
     '</div></div>';
   }).join(''):'<div class="archive-empty">لا توجد حسابات بعد.</div>';
+  window.WSMotion?.animate($('accountList'));
  }catch(err){$('accountList').innerHTML='<div class="archive-empty">'+esc(err.message)+'</div>'}
 }
 function makePassword(){
@@ -2478,6 +2483,7 @@ async function auditSearch(reset=false){
   auditLastRows=data.rows;auditTotal=Number(data.total)||0;
   $('auditResults').innerHTML=auditLastRows.length?auditLastRows.map(auditRowHtml).join(''):
       '<div class="archive-empty">لا توجد عمليات مسجلة تطابق الفلاتر.</div>';
+  window.WSMotion?.animate($('auditResults'));
   $('auditCount').textContent='إجمالي العمليات: '+auditTotal.toLocaleString('ar-SA');
   $('auditPageLabel').textContent='صفحة '+(auditPage+1)+' من '+Math.max(1,Math.ceil(auditTotal/auditPageSize));
   $('auditPrevious').disabled=auditPage===0;
