@@ -81,7 +81,7 @@ async function update(){
 async function renderOverview(id){
  const [list,imports,months,history]=await Promise.all([
   summary(id),
-  getRows('maintenance_imports',{select:'file_name,inserted_records,inserted_assets,inserted_definitions,created_at',station_id:'eq.'+id,order:'created_at.desc',limit:5}),
+  getRows('maintenance_imports',{select:'id,file_name,inserted_records,inserted_assets,inserted_definitions,created_at,created_by,status',station_id:'eq.'+id,order:'created_at.desc',limit:8}),
   getRows('maintenance_monthly_summary',{select:'period_month,work_count,done_count,not_done_count,needs_cm_count',station_id:'eq.'+id,order:'period_month.asc',limit:'100'}),
   getRows('maintenance_historical_imports',{select:'source_name,expected_assets,expected_records,expected_definitions,imported_at',station_id:'eq.'+id,limit:'5'})
  ]);
@@ -128,8 +128,10 @@ async function renderOverview(id){
   '</div></div>';
  }
  html+='<div class="mw-card"><div class="mw-top"><h3>آخر عمليات استيراد Excel بواسطة المستخدمين</h3><button class="mw-button main" data-mw="goImport">استيراد Excel</button></div>';
- html+=imports.length?'<div class="mw-table-wrap"><table><thead><tr><th>اسم الملف</th><th>سجلات جديدة</th><th>معدات جديدة</th><th>وقت الاستيراد</th></tr></thead><tbody>'+
- imports.map(i=>'<tr><td class="mw-note">'+h(i.file_name)+'</td><td>'+fmt(i.inserted_records)+'</td><td>'+fmt(i.inserted_assets)+'</td><td>'+h(new Date(i.created_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}))+'</td></tr>').join('')+
+ html+=imports.length?'<div class="mw-table-wrap"><table><thead><tr><th>اسم الملف</th><th>سجلات جديدة</th><th>معدات جديدة</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody>'+
+ imports.map(i=>'<tr><td class="mw-note">'+h(i.file_name)+'</td><td>'+fmt(i.inserted_records)+'</td><td>'+fmt(i.inserted_assets)+'</td><td>'+h(i.status==='completed'?'مكتمل':i.status==='rolled_back'?'تم التراجع':i.status==='pending'?'غير مكتمل':'متوقف')+'</td><td>'+h(new Date(i.created_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}))+'</td><td>'+
+ (i.created_by===host()?.userId?.()&&['completed','pending','failed'].includes(i.status)&&Date.now()-new Date(i.created_at).getTime()<24*3600000?'<button type="button" class="mw-button" data-mw="rollback" data-import-id="'+h(i.id)+'">التراجع</button>':'—')+
+ '</td></tr>').join('')+
  '</tbody></table></div>':'<div class="mw-empty">لا توجد عمليات استيراد إضافية بواسطة المستخدمين.</div>';
  el('maintenanceBody').innerHTML=html+'</div>';
  host()?.animateGauges?.(el('maintenanceBody'));
