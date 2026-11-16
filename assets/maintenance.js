@@ -1,7 +1,7 @@
 /* Maintenance module: one signed-in site, shared Supabase session, station-scoped Excel import. */
 (function(){
 'use strict';
-const M={tab:'overview',stationId:'',page:0,assetPage:0,assetId:'',assetName:'',type:'',status:'',period:'',search:'',preview:null,importing:false,loading:false};
+const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetId:'',assetName:'',type:'',status:'',period:'',search:'',preview:null,importing:false,loading:false};
 const PAGE=40,BATCH=100;
 let root=null,observer=null,bodyObserver=null,updatingDash=false;
 const el=id=>document.getElementById(id);
@@ -39,8 +39,8 @@ function build(){
  if(root)return;
  root=document.createElement('section');
  root.id='maintenanceModal';root.className='hidden';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','إدارة صيانة المحطات');
- root.innerHTML='<div class="mw-dialog"><div class="mw-header"><div><h2>إدارة الصيانة</h2><small>شركة حلول المياه | سجلات المعدات والصيانة داخل الموقع الرئيسي</small></div><button class="mw-button" data-mw="close" type="button">✕ إغلاق والعودة للتقارير</button></div><nav class="mw-tabs" aria-label="أقسام الصيانة">'+
-  [['overview','لوحة الصيانة'],['assets','المعدات والأصول'],['records','سجلات الصيانة'],['import','استيراد Excel']].map(([key,title])=>'<button type="button" class="mw-tab" data-mw="tab" data-tab="'+key+'">'+title+'</button>').join('')+
+ root.innerHTML='<div class="mw-dialog"><div class="mw-header"><div class="mw-brand"><img alt="شعار شركة حلول المياه" src="'+h(host()?.logo?.()||'')+'"><div><h2>إدارة الصيانة</h2><small>شركة حلول المياه | متابعة المعدات وأعمال الصيانة</small></div></div><button class="mw-button" data-mw="close" type="button">✕ إغلاق والعودة للتقارير</button></div><nav class="mw-tabs" aria-label="أقسام الصيانة">'+
+  [['overview','لوحة الصيانة'],['assets','المعدات والأصول'],['records','سجلات الصيانة'],['planned','الجدول والدوريات'],['import','استيراد Excel']].map(([key,title])=>'<button type="button" class="mw-tab" data-mw="tab" data-tab="'+key+'">'+title+'</button>').join('')+
   '</nav><div class="mw-body" id="maintenanceBody"></div><div class="mw-foot">يُعرض لكل حساب نطاق المحطات المسموح له فقط • التواريخ غير المؤكدة تبقى مميزة عن التنفيذ الفعلي</div></div>';
  document.body.appendChild(root);
  root.addEventListener('click',onClick);
@@ -54,7 +54,7 @@ function toolbar(){
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong><br><span class="mw-muted">سجل الصيانة والمعدات الخاصة بالمحطة</span></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
-function setTab(tab){M.tab=tab;M.page=0;M.assetPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
+function setTab(tab){M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
  build();M.stationId=getId();M.tab=tab||M.tab||'overview';root.classList.remove('hidden');document.body.style.overflow='hidden';update();
@@ -73,6 +73,7 @@ async function update(){
   if(M.tab==='overview')await renderOverview(id);
   else if(M.tab==='assets')await renderAssets(id);
   else if(M.tab==='records')await renderRecords(id);
+  else if(M.tab==='planned')await renderPlanned(id);
   else renderImport(id);
  }catch(err){area.innerHTML=toolbar()+message(err.message||'تعذر تحميل البيانات.',true)}
  finally{M.loading=false}
@@ -98,7 +99,7 @@ async function renderOverview(id){
  el('maintenanceBody').innerHTML=html+'</div>';
 }
 function assetQuery(id){
- const params={select:'id,asset_code,asset_name,area,normalized_key,created_at',station_id:'eq.'+id,order:'asset_name.asc',limit:String(PAGE),offset:String(M.assetPage*PAGE)};
+ const params={select:'id,asset_code,asset_name,area,normalized_key,created_at',station_id:'eq.'+id,asset_code:'neq.UNVERIFIED_LINK',order:'asset_name.asc',limit:String(PAGE),offset:String(M.assetPage*PAGE)};
  const search=(M.search||'').trim().replace(/[(),.*]/g,' ').slice(0,70);
  if(search)params.or='(asset_name.ilike.*'+search+'*,area.ilike.*'+search+'*,asset_code.ilike.*'+search+'*)';
  return params;
@@ -120,7 +121,7 @@ async function renderAssets(id){
  el('maintenanceBody').innerHTML=html;
 }
 function recordsParams(id){
- const p={select:'id,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,source_file,source_sheet,source_row,original_date,original_status,maintenance_assets(asset_name,area,asset_code)',
+ const p={select:'id,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,source_file,source_sheet,source_row,original_date,original_status,original_equipment,original_area,import_issues,maintenance_assets(asset_name,area,asset_code)',
  station_id:'eq.'+id,order:'period_month.desc.nullslast,work_date.desc.nullslast,created_at.desc',limit:String(PAGE),offset:String(M.page*PAGE)};
  if(M.assetId)p.asset_id='eq.'+M.assetId;
  if(M.type)p.work_type='eq.'+M.type;
