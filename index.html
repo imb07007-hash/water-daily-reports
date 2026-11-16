@@ -3018,6 +3018,16 @@ window.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&!$('chemicalsModal').classList.contains('hidden'))chemicalsClose();
 });
 
+// Scoped integration API for the embedded maintenance panel.
+window.WSMaintenanceHost=Object.freeze({
+ signedIn:()=>signedIn(),
+ role:()=>currentRole,
+ stationId:()=>currentStationId,
+ stations:()=>stations.map(s=>({id:s.id,name:s.name})),
+ userId:()=>currentUserId,
+ authedFetch:(path,options)=>authedFetch(path,options)
+});
+
 void (async()=>{if(!(await checkRecoveryLink()))await restoreSession()})();
 })();
 
