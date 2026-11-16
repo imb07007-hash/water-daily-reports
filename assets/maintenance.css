@@ -198,3 +198,14 @@ body[data-auth="locked"] #maintenanceLink{display:none!important}
 #maintenanceModal .mw-tag.unknown{background:#fff4df;color:#926719}
 #maintenanceModal .mw-tag.cm{background:#fdf0e8;color:#bd542d}
 #maintenanceModal .mw-tag.offline{background:#f0eff6;color:#74608f}
+
+/* The maintenance panel can be opened from the dashboard (z-index 300).
+   Keep it above that modal and preserve the original page on closing. */
+#maintenanceModal{z-index:390!important}
+#maintenanceModal .mw-correction textarea{min-height:78px;resize:vertical;line-height:1.8}
+#maintenanceModal .mw-correction .mw-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#maintenanceModal .mw-correction .mw-card{margin-top:12px}
+#maintenanceModal .mw-table-wrap td[dir=ltr]{font-variant-numeric:tabular-nums;text-align:right}
+#maintenanceModal .mw-preview{border:1px solid #e0e8ef;border-radius:9px}
+#maintenanceModal [data-mw]:focus-visible,#maintenanceModal input:focus-visible,#maintenanceModal select:focus-visible{outline:2px solid #50B4F2;outline-offset:2px}
+@media(max-width:720px){#maintenanceModal .mw-correction .mw-form-grid{grid-template-columns:1fr}}
