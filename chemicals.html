@@ -102,6 +102,19 @@ header{background:linear-gradient(115deg,#f1f5fb 0%,#e7edf8 52%,#fafaff 100%);bo
 #editor{margin-top:15px;border:1px solid #dbe5ed;box-shadow:0 3px 12px #1234520a}
 @media(max-width:650px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.plant{padding:10px}.plant-gauges{gap:2px}.gauge-item{width:105px}.gauge-item svg{width:105px;height:60px}.material{grid-template-columns:63px minmax(0,1fr)}.material .ws-pack{width:60px}.material .ws-pack svg{width:54px}.formgrid{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.material .track i{transition:none}}
+
+/* Reference animations: ease-out moving needle, material fill, and container rise. */
+.ws-needle{transform-origin:70px 64px;transition:transform 1.2s cubic-bezier(.2,.9,.3,1.15);will-change:transform}
+.material .track i{transition:width 1.1s ease-out}
+@keyframes wsMaterialPop{from{transform:translateY(13px);opacity:.1}to{transform:translateY(0);opacity:1}}
+.ws-pack svg > rect,.ws-pack svg > path{animation:wsMaterialPop .6s ease-out both}
+.ws-pack svg > :nth-child(2){animation-delay:70ms}
+.ws-pack svg > :nth-child(3){animation-delay:140ms}
+.ws-pack svg > :nth-child(4){animation-delay:210ms}
+@media (prefers-reduced-motion:reduce){
+ .ws-needle,.material .track i{transition:none!important}
+ .ws-pack svg > rect,.ws-pack svg > path{animation:none!important}
+}
 </style></head><body>
 <header><div class="brand-row"><div class="brand"><h1>لوحة مخزون المواد الكيميائية</h1><small>شركة حلول المياه · متابعة التغطية والكميات بالمحطات</small></div><a class="btn" href="/">↩ العودة إلى التقارير التشغيلية</a></div>
 <div class="toolbar"><button type="button" class="btn primary" id="refresh">⟳ تحديث المؤشرات</button><button type="button" class="btn" id="goEditor">＋ تسجيل تحديث مخزون</button><span id="account" style="font-size:11px;color:#617990"></span></div></header>
@@ -156,7 +169,7 @@ function dial(days,title=''){
  segment(0,29.3,'#e05252',active('critical'))+segment(30.7,59.3,'#f0a92b',active('warning'))+segment(60.7,120,'#2fa865',active('good'))+
  ticks+label(30,'30')+label(60,'60')+
  '<text x="16" y="76" font-size="9" fill="#8998a8" text-anchor="middle">0</text><text x="124" y="76" font-size="9" fill="#8998a8" text-anchor="middle">120+</text>'+
- '<g transform="rotate('+angle+' 70 64)"><path d="M66.8,64 L70,22 L73.2,64 Z" fill="#17324d"/></g>'+
+ '<g class="ws-needle" data-target-angle="'+angle+'" style="transform:rotate(-90deg)"><path d="M66.8,64 L70,22 L73.2,64 Z" fill="#17324d"/></g>'
  '<circle cx="70" cy="64" r="7" fill="#17324d"/><circle cx="70" cy="64" r="2.7" fill="#fff"/></svg>';
 }
 function packIcon(row,dayState){
@@ -216,6 +229,20 @@ async function load(){
  }catch(e){$('plantGrid').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; $('stats').innerHTML='';$('alerts').textContent=''}
 }
 
+/* Same two-frame animation trigger as the user's reference dashboard:
+   render at zero first, then animate needle and fill to their data values. */
+function animateChemicalIn(root){
+ if(!root)return;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  if(!root.isConnected)return;
+  root.querySelectorAll('.ws-needle[data-target-angle]').forEach(el=>{
+   el.style.transform='rotate('+el.dataset.targetAngle+'deg)';
+  });
+  root.querySelectorAll('.track i[data-target-width]').forEach(el=>{
+   el.style.width=el.dataset.targetWidth+'%';
+  });
+ }));
+}
 function render(){
  const query=$('search').value.trim().toLowerCase(),station=$('stationFilter').value,sort=$('sort').value;
  const selected=records.filter(r=>(!station||station==='ALL'||r.station_id===station)&&(filterStage==='ALL'||r.stage===filterStage)&&(!query||(r.material+' '+(stations.find(s=>s.id===r.station_id)?.name||'')).toLowerCase().includes(query)));
@@ -250,12 +277,13 @@ function render(){
  return '<section class="material">'+packIcon(r,status)+'<div class="material-detail"><h3>'+esc(r.material)+' <span class="tag">'+esc(stages[r.stage]||'غير محدد')+'</span></h3>'+
  '<div class="mat-balance"><span class="days-text" style="color:'+shade+'">'+(n===null?'تغطية غير مسجلة':'يكفي '+fixed(n)+' <small>يوم</small>')+'</span>'+
  '<span class="quant">· المتوفر '+(r.quantity===null?'غير مسجل':fixed(r.quantity))+'</span><span class="unit">'+esc(r.quantity===null?'':r.unit)+'</span></div>'+
- '<div class="track"><i class="'+status+'" style="width:'+width+'%"></i>'+
+ '<div class="track"><i class="'+status+'" data-target-width="'+width+'" style="width:0%"></i>'
  '<em class="mark" style="right:25%"></em><em class="mark" style="right:50%"></em><em class="mark" style="right:75%"></em></div>'+
  '<div class="footerrow"><small>قراءة المخزون: '+esc(r.reading_date)+'</small>'+(ageDays(r.reading_date)>14?'<span class="outdate">تاريخ قديم</span>':'')+'</div>'+
  (r.notes?'<span class="note">'+esc(r.notes)+'</span>':'')+'</div></section>';
  }).join('')+'</article>';
  }).join(''):'<div class="empty">لا توجد قراءات مخزون تطابق الفلاتر الحالية. أدخل أول قراءة من النموذج أدناه.</div>';
+ animateChemicalIn($('plantGrid'));
 }
 async function save(e){
  e.preventDefault();if(!user||role==='admin')return;
