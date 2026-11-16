@@ -86,6 +86,7 @@
    const target=el.style.height;
    if(!/^\d+(?:\.\d+)?%$/.test(target)||el.dataset.wsFilled==='1')continue;
    el.dataset.wsFilled='1';
+   el.dataset.wsTargetHeight=target;
    el.style.height='0%';
    el.classList.add('ws-animated-chart-fill');
    requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -114,7 +115,9 @@
    el.classList.remove('ws-reveal-pending','ws-reveal-running');
    el.style.opacity='1';el.style.transform='none';
   });
-  document.querySelectorAll('.archive-barfill.ws-animated-chart-fill,.archive-trend-fill.ws-animated-chart-fill').forEach(el=>el.style.transition='none');
+  document.querySelectorAll('.archive-barfill.ws-animated-chart-fill,.archive-trend-fill.ws-animated-chart-fill').forEach(el=>{
+   el.style.transition='none';el.style.height=el.dataset.wsTargetHeight||el.style.height;
+  });
  }
  window.addEventListener('beforeprint',finish);
  window.WSMotion={animate,enterApplication,finish};
