@@ -167,19 +167,46 @@ function recordsParams(id){
 }
 async function renderRecords(id){
  const list=await getRows('maintenance_records',recordsParams(id));
- let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>سجل أعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
+ let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>السجل التاريخي لأعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
  '<button class="mw-button" data-mw="clearFilters">عرض جميع السجلات</button></div>'+
  '<div class="mw-actions"><label>النوع <select class="mw-select" id="mw-type"><option value="">الكل</option>'+
  [['PM','PM'],['CM','CM'],['SS','SS']].map(([v,t])=>'<option value="'+v+'"'+(M.type===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
- '<label>الحالة <select class="mw-select" id="mw-status">'+[['','الكل'],['DONE','DONE'],['NOT DONE','NOT DONE'],['UNVERIFIED','غير محدد']].map(([v,t])=>'<option value="'+v+'"'+(M.status===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
+ '<label>الحالة <select class="mw-select" id="mw-status">'+
+ [['','الكل'],['DONE','DONE'],['NOT DONE','NOT DONE'],['NEED CM','NEED CM'],['OTHERS','OTHERS'],['NOT IN SERVICE','NOT IN SERVICE'],['UNVERIFIED','غير محدد']].
+ map(([v,t])=>'<option value="'+v+'"'+(M.status===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
  '<label>الشهر <input type="month" class="mw-input" id="mw-period" value="'+h(M.period)+'"></label></div>';
- html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>التاريخ المدون</th><th>التكرار</th><th>الحالة</th><th>الملاحظات</th><th>التكلفة (ر.س)</th><th>المصدر</th></tr></thead><tbody>'+
- list.map(r=>'<tr><td class="mw-note">'+h(r.maintenance_assets?.asset_name||'—')+'</td><td class="mw-note">'+h(r.maintenance_assets?.area||'—')+'</td><td>'+h(r.work_type)+'</td><td>'+h(r.period_month?String(r.period_month).slice(0,7):'—')+'</td>'+
- '<td>'+h(r.original_date||prettyDate(r.work_date))+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+'</td>'+
- '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td><td>'+h(r.cost==null?'—':fmt(r.cost))+'</td>'+
- '<td class="mw-note"><small>'+h(r.source_file||'إدخال مباشر')+' '+h(r.source_sheet||'')+' '+h(r.source_row||'')+'</small></td></tr>').join('')+'</tbody></table></div>':
+ html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ الصيانة الأصلي</th><th>التكرار</th><th>الحالة</th><th>الملاحظات الأصلية</th><th>التكلفة (ر.س)</th><th>المصدر</th></tr></thead><tbody>'+
+ list.map(r=>{
+  const unlinked=Array.isArray(r.import_issues)&&r.import_issues.includes('غير مرتبط بمعدة مؤكدة');
+  const name=r.original_equipment||r.maintenance_assets?.asset_name||'—',area=r.original_area||r.maintenance_assets?.area||'—';
+  return '<tr><td class="mw-note"><span class="mw-original">'+h(name)+'</span>'+(unlinked?'<small class="mw-source-warning" style="display:block">الربط بمعدة غير مؤكد</small>':'')+
+   '</td><td class="mw-note">'+h(area)+'</td><td>'+h(r.work_type)+'</td><td>'+h(r.period_month?String(r.period_month).slice(0,7):'—')+'</td>'+
+   '<td dir="ltr">'+h(r.original_date||prettyDate(r.work_date))+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+'</td>'+
+   '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td>'+
+   '<td>'+h(r.cost==null?'—':fmt(r.cost))+'</td><td class="mw-note"><small>'+h(r.source_sheet||r.source_file||'إدخال مباشر')+
+   (r.source_row?' — صف '+h(r.source_row):'')+'</small></td></tr>';
+ }).join('')+'</tbody></table></div>':
  '<div class="mw-empty">لا توجد أعمال صيانة مسجلة ضمن الفلاتر الحالية.</div>';
  html+='<div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
+ el('maintenanceBody').innerHTML=html;
+}
+async function renderPlanned(id){
+ const p={select:'id,work_type,frequency,period_month,source_sheet,source_row,original_equipment,original_area,maintenance_assets(asset_name,area,asset_code)',
+ station_id:'eq.'+id,order:'period_month.desc,source_row.asc',limit:String(PAGE),offset:String(M.plannedPage*PAGE)};
+ if(M.period&&/^\d{4}-\d{2}$/.test(M.period))p.period_month='eq.'+M.period+'-01';
+ const list=await getRows('maintenance_definitions',p);
+ let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>جدول الأعمال والدوريات المخططة</h3>'+
+ '<span class="mw-muted">هذه الصفوف مواعيد وتعريفات، وليست إثبات تنفيذ للصيانة.</span></div>'+
+ '<div class="mw-actions"><label>الشهر <input type="month" class="mw-input" id="mw-plan-period" value="'+h(M.period)+'"></label>'+
+ '<button class="mw-button" data-mw="clearPlan">كل الأشهر</button></div>';
+ html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>نوع الصيانة</th><th>التكرار</th><th>شهر الجدول</th><th>الحالة</th><th>مصدر التعريف</th></tr></thead><tbody>'+
+ list.map(r=>'<tr><td class="mw-note">'+h(r.original_equipment||r.maintenance_assets?.asset_name||'—')+'</td>'+
+ '<td class="mw-note">'+h(r.original_area||r.maintenance_assets?.area||'—')+'</td><td>'+h(r.work_type||'PM')+'</td><td>'+h(r.frequency||'—')+'</td>'+
+ '<td dir="ltr">'+h(String(r.period_month||'').slice(0,7))+'</td><td><span class="mw-tag">مجدول</span></td>'+
+ '<td>'+h(r.source_sheet||'—')+' — '+h(r.source_row||'')+'</td></tr>').join('')+'</tbody></table></div>':
+ '<div class="mw-empty">لا توجد أعمال مخططة ضمن الشهر المحدد.</div>';
+ html+='<div class="mw-pager"><button class="mw-button" data-mw="plannedPrev" '+(M.plannedPage?'':'disabled')+'>السابق</button>'+
+ '<span class="mw-muted">الصفحة '+(M.plannedPage+1)+'</span><button class="mw-button" data-mw="plannedNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  el('maintenanceBody').innerHTML=html;
 }
 function renderImport(id){
@@ -456,6 +483,7 @@ function onChange(e){
  if(e.target.id==='mw-type'){M.type=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-status'){M.status=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-period'){M.period=e.target.value;M.page=0;update()}
+ if(e.target.id==='mw-plan-period'){M.period=e.target.value;M.plannedPage=0;update()}
 }
 function onClick(e){
  const b=e.target.closest('[data-mw]');if(!b)return;
@@ -471,6 +499,10 @@ function onClick(e){
  if(action==='assetNext'){M.assetPage++;update();return}
  if(action==='recordsPrev'){M.page=Math.max(0,M.page-1);update();return}
  if(action==='recordsNext'){M.page++;update();return}
+ if(action==='month'){M.period=b.dataset.period;M.page=0;M.assetId='';M.assetName='';M.tab='records';update();return}
+ if(action==='clearPlan'){M.period='';M.plannedPage=0;update();return}
+ if(action==='plannedPrev'){M.plannedPage=Math.max(0,M.plannedPage-1);update();return}
+ if(action==='plannedNext'){M.plannedPage++;update();return}
  if(action==='preview'){previewFile();return}
  if(action==='discardPreview'){M.preview=null;renderImport(getId());return}
  if(action==='commitImport'){importCommit();return}
