@@ -109,9 +109,13 @@
    '<span class="mw-day-badge">'+h(settings.day)+'</span></div>'+ 
    '<form id="mw-daily-form" autocomplete="off"><div class="mw-daily-section-label">01 · بيانات العمل</div><div class="mw-form-grid">'+
    '<label class="mw-label">تاريخ الصيانة<input class="mw-input" name="workDate" type="date" required value="'+h(settings.day)+'"></label>'+
-   '<label class="mw-label">نوع العمل<select class="mw-select" name="workType">'+types()+'</select></label>'+
+   '<label class="mw-label">نوع العمل<select class="mw-select" name="workType">'+types()+'</select></label>'+ 
+   '<label class="mw-label">تكرار الصيانة / FREQUENCY<select class="mw-select" name="frequency" required><option value="">اختر التكرار</option>'+ 
+    '<option value="M">شهري — MONTHLY (M)</option><option value="Q">ربع سنوي — QUARTERLY (Q)</option>'+ 
+    '<option value="H">نصف سنوي — HALF YEARLY (H)</option><option value="Y">سنوي — YEARLY (Y)</option></select></label>'+
    '<label class="mw-label">المنطقة / AREA<select class="mw-select" name="area"></select></label>'+
-   '<label class="mw-label mw-unit-field">المعدة / UNIT<select class="mw-select" name="equipment" required></select></label>'+
+   '<label class="mw-label mw-col-full">بحث المعدات / UNIT SEARCH<input class="mw-input" type="search" name="equipmentSearch" placeholder="ابحث باسم المعدة أو AREA أو رقم الصف" autocomplete="off"></label>'+ 
+   '<label class="mw-label mw-col-full">المعدة / UNIT<select class="mw-select" name="equipment" required></select><small id="mw-equipment-count" class="mw-inline-hint" aria-live="polite"></small></label>'+
    '<label class="mw-label" data-cm-desc hidden>وصف عمل CM / SS<input class="mw-input" name="description" maxlength="3000" placeholder="وصف مختصر للعمل"></label>'+
    '<label class="mw-label">الحالة / STATUS<select class="mw-select" name="status">'+statuses.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select></label>'+
    '</div><div id="wj-link-status" class="mw-inline-hint"></div>'+ 
@@ -143,6 +147,8 @@
   }
   root.innerHTML=renderDailyMarkup(ctx,id,header);
   const form=ui('mw-daily-form');form.elements.workType.value=settings.type;
+  form.elements.frequency.value=settings.frequency||'';
+  form.elements.equipmentSearch.value=settings.search||'';
   rebuildEquipment(form,ctx);
   if(settings.area&&optionsAreas(ctx,settings.type).includes(settings.area)){
    form.elements.area.value=settings.area;
@@ -150,12 +156,6 @@
   }
   if(settings.choice&&form.elements.equipment.querySelector('option[value="'+CSS.escape(settings.choice)+'"]'))form.elements.equipment.value=settings.choice;
   void renderToday(settings.day,id);
- }
- function rebuildEquipmentChoiceOnly(form,ctx){
-  const type=form.elements.workType.value,opts=optionsEquipment(ctx,type,form.elements.area.value),sel=form.elements.equipment;
-  const previous=sel.value;
-  sel.innerHTML=opts.map(a=>'<option value="'+h(a.id)+'">'+h(a.name)+'</option>').join('');
-  sel.value=opts.some(a=>a.id===previous)?previous:opts[0]?.id||'';updateLink(form,ctx);
  }
  async function renderToday(date,id){
   const stats=ui('mw-today-summary'),list=ui('mw-today-records');if(!stats||!list)return;
@@ -181,7 +181,10 @@
   const id=settings.stationId,ctx=await loadContext(id),date=form.elements.workDate.value,type=form.elements.workType.value;
   if(!allowed(id)||!/^20\d{2}-\d{2}-\d{2}$/.test(date))throw Error('تاريخ أو صلاحية المحطة غير صحيح.');
   const chosen=form.elements.equipment.value;
-  if(!chosen)throw Error('اختر المعدة قبل الحفظ.');
+  if(!chosen)throw Error('اختر المعدة من قائمة UNIT قبل الحفظ.');
+  const freq=String(form.elements.frequency.value||'');
+  if(type==='PM'&&!['M','Q','H','Y'].includes(freq))throw Error('يجب تحديد دورية الصيانة: شهرية، ربع سنوية، نصف سنوية أو سنوية.');
+  if(freq&&!['M','Q','H','Y'].includes(freq))throw Error('قيمة تكرار الصيانة غير صحيحة.');
   let asset,originalEquipment,originalArea,templateRow=null;
   if(type==='PM'&&ctx.template){
    templateRow=Number(chosen.replace('row:',''));
@@ -202,7 +205,7 @@
   if(form.elements.status.value==='DONE WITH COMMENT'&&!form.elements.notes.value.trim())throw Error('اكتب ملاحظة عند اختيار DONE WITH COMMENT.');
   const totalCost=readNum(form.elements.cost.value),partsCost=readNum(form.elements.sparePartsCost.value);
   const dateMonth=date.slice(0,7)+'-01';
-  const row={station_id:id,asset_id:asset.id,work_type:type,frequency:'',period_month:dateMonth,work_date:date,
+  const row={station_id:id,asset_id:asset.id,work_type:type,frequency:freq,period_month:dateMonth,work_date:date,
    status:form.elements.status.value,description:type==='PM'?'':form.elements.description.value.trim(),
    notes:form.elements.notes.value.trim(),cost:totalCost,spare_parts_cost:partsCost,
    workers:readNum(form.elements.workers.value),hours:readNum(form.elements.hours.value),
@@ -219,7 +222,8 @@
   try{
    const inserted=await api('/rest/v1/maintenance_records',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)});
    if(!Array.isArray(inserted)||inserted.length!==1)throw Error('لم يرجع تأكيد الحفظ من قاعدة البيانات.');
-   settings.day=date;settings.month=date.slice(0,7);settings.type=type;settings.area=originalArea;settings.choice=chosen;
+   settings.day=date;settings.month=date.slice(0,7);settings.type=type;settings.area=form.elements.area.value;
+   settings.choice=chosen;settings.search=form.elements.equipmentSearch.value;settings.frequency=freq;
    if(afterSave==='again'){
     form.elements.notes.value='';form.elements.materials.value='';form.elements.sparePartsCost.value='';
     form.elements.cost.value='';form.elements.workers.value='';form.elements.hours.value='';form.elements.description.value='';
@@ -306,9 +310,22 @@
    }
   }
   if(target.name==='equipment')updateLink(form,contexts.get(settings.stationId));
+  if(target.name==='frequency')settings.frequency=target.value;
   if(target.name==='workDate'&&/^20\d{2}-\d{2}-\d{2}$/.test(target.value)){
    settings.day=target.value;void renderToday(target.value,settings.stationId);
   }
+  return true;
+ }
+ function input(target){
+  if(target.name!=='equipmentSearch'||!target.closest('#mw-daily-form'))return false;
+  const form=target.closest('#mw-daily-form'),ctx=contexts.get(settings.stationId);
+  if(ctx){settings.search=target.value;drawEquipment(form,ctx)}
+  return true;
+ }
+ function selectTemplateRow(templateRow,area){
+  if(!Number.isInteger(Number(templateRow)))return false;
+  settings.type='PM';settings.area=String(area||'');settings.choice='row:'+templateRow;
+  settings.search='';settings.frequency='';
   return true;
  }
  function action(node){
@@ -324,5 +341,5 @@
   try{await save(form,submitter?.value||'stay')}catch(err){if(feedback)feedback.innerHTML='<div class="mw-notice mw-error">'+h(err.message)+'</div>'}
   return true;
  }
- global.WSMaintenanceDaily=Object.freeze({renderDaily,renderMonthly,submit,change,action,loadContext});
+ global.WSMaintenanceDaily=Object.freeze({renderDaily,renderMonthly,submit,change,input,selectTemplateRow,action,loadContext});
 })(window);
