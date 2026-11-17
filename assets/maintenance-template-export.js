@@ -223,6 +223,11 @@
   }
   zip.file('xl/worksheets/sheet1.xml',serialize(doc));
   zip.file('xl/workbook.xml',serialize(workbook));
+  const appPart=zip.file('docProps/app.xml');
+  if(appPart){
+   const appXml=await appPart.async('string');
+   zip.file('docProps/app.xml',appXml.replace(/NOV 26/g,targetSheet));
+  }
   const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
   const output='WADI JAZAN '+month.slice(5)+'-'+month.slice(2,4)+'.xlsx';
   downloadBlob(blob,output);
