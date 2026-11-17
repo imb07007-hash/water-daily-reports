@@ -51,16 +51,14 @@ async function main(){
  // Report date comes only from the scheduler's local date (yesterday in Riyadh).
  // The Excel header date is ignored completely.
  console.log(`Excel read-only check: date=${parsed.productionDate}, stations=${parsed.rows.length}, sha256=${hash.slice(0,12)}`);
- if(process.argv.includes('--dry-run')||process.argv.includes('--check-source')){
-  console.log('Validation mode: no database writes');
-  return;
- }
- if(hash.startsWith(BOOTSTRAP_IMPORTED_SOURCE_SHA)){
-  console.log('No import: same Excel snapshot as reports already imported on 16 Nov 2026');
+ const sourceOnly=process.argv.includes('--check-source');
+ const dryRun=process.argv.includes('--dry-run');
+ if(sourceOnly){
+  console.log('Source validation passed (GET only): no database access or writes');
   return;
  }
  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
- if(!key||key.length<25)throw Error('Missing protected SUPABASE_SERVICE_ROLE_KEY, database write blocked');
+ if(!key||key.length<25)throw Error('Protected Supabase key is missing: full validation cannot run, database writes blocked');
  const confRows=await db(`stations?select=id,active,config&id=in.(${IDS.join(',')})`,key);
  if(confRows.length!==IDS.length||confRows.some(x=>!x.active))throw Error('Station configuration invalid, no import');
  const configs=new Map(confRows.map(x=>[x.id,x.config]));
@@ -82,9 +80,11 @@ async function main(){
  const previousRevisions=await db(
   'reports?select=imported_from&imported_from=like.*'+hash.slice(0,16)+'*&limit=10',key
  );
- if(core.sourceRevisionAlreadyImported(hash,previousRevisions)){
-  console.log('No import: this exact Excel file revision was imported previously');
-  return;
+ const sameFile=core.sourceRevisionAlreadyImported(hash,previousRevisions) ||
+   hash.startsWith(BOOTSTRAP_IMPORTED_SOURCE_SHA);
+ if(sameFile){
+  console.log('No import: this exact Excel file revision was imported previously or matches the protected 16 Nov bootstrap snapshot');
+  if(!dryRun)return;
  }
  const marker='sha256='+hash.slice(0,16);
  const exists=new Set(history.map(x=>`${x.station_id}:${x.report_date}`));
@@ -96,6 +96,18 @@ async function main(){
   source:'migration',
   imported_from:`google_drive_xlsx:${ID}:${core.REPORT_SHEET}:${parsed.productionDate}:${marker}:row=${r.excelRow}`
  }));
+ console.log('Import assessment:',JSON.stringify({
+  reportDate:parsed.productionDate,
+  selectedStations:IDS.length,
+  existingReports:parsed.rows.length-inserts.length,
+  plannedInserts:sameFile?0:inserts.length,
+  candidateStations:sameFile?[]:inserts.map(r=>r.station_id),
+  fileAlreadyUsed:sameFile,
+  dryRun,
+  sourceFileReadOnly:true
+ }));
+ if(dryRun){console.log('SAFE DRY RUN PASSED — no database POST, PATCH or DELETE');return;}
+ if(sameFile){console.log('Stale source ignored; no database writes');return;}
  if(!inserts.length){console.log('All station reports already exist; no writes');return;}
  const created=await db('reports?on_conflict=station_id,report_date',key,{method:'POST',body:inserts});
  const verify=await db(`reports?select=station_id,report_date,imported_from&station_id=in.(${IDS.join(',')})&report_date=eq.${parsed.productionDate}`,key);
