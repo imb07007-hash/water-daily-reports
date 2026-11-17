@@ -69,7 +69,7 @@
    if(!b)return attrCell(a,after,count);
    const row1=Number(a.match(/\d+$/)?.[0]||0),row2=Number(b.match(/\d+$/)?.[0]||0);
    const na=row1>after?attrCell(a,after,count):a;
-   const nb=row2>after?attrCell(b,after,count):b;
+   const nb=(row2>after||row2===after&&row1<row2)?attrCell(b,row2===after?after-1:after,count):b;
    return na+':'+nb;
   });
  }
