@@ -493,7 +493,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     <div id="loginError" class="login-error" role="alert" aria-live="polite"></div>
     <form id="forgotForm" class="hidden">
       <h3 style="color:#0362af">استعادة كلمة المرور</h3>
-      <p class="recovery-hint">أدخل البريد الإلكتروني المسجل.</p>
+      
       <div class="login-form-field"><label for="forgotEmail">البريد الإلكتروني</label><input class="login-input" id="forgotEmail" type="email" autocomplete="email" required dir="ltr" placeholder="email@example.com"></div>
       <button id="sendRecoveryButton" class="btn primary login-submit" type="submit">إرسال رابط استعادة</button>
       <div id="forgotNotice" class="recovery-message" role="status" aria-live="polite"></div>
@@ -559,7 +559,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  <span id="accountRole" class="role-chip hidden"></span>
  <button class="btn ws-logout" id="signoutBtn">⎋ خروج</button>
 </div></div></header><aside id="accessNote" class="hidden" aria-hidden="true"></aside>
-<div id="cloudNotice" class="cloud-notice">جاري الاتصال الآمن بقاعدة البيانات المركزية…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
+<div id="cloudNotice" class="cloud-notice">الاتصال…</div><main class="app-main"><section class="panel entry-panel"><div class="panel-top"><h2>إدخال البيانات التشغيلية</h2><small id="saveStatus">غير محفوظ</small></div><div class="entry-body"><div class="fields-row"><div class="field"><label for="stationSelect">المحطة</label><select class="control" id="stationSelect"></select></div><div class="field"><label for="reportDate">تاريخ التقرير</label><input class="control" id="reportDate" type="date"></div></div><div id="reportInputFields"></div></div></section><section class="panel preview-panel"><div class="preview-header"><h2>معاينة التقرير النهائي</h2></div><div class="preview-viewport" id="previewViewport"><div class="preview-scale-wrap" id="scaleWrap"><article class="report-sheet" id="reportSheet" dir="rtl"></article></div></div></section></main>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h2 id="settingsTitle">إدارة المحطات</h2><button class="btn" id="closeSettings">✕ حفظ وإغلاق</button></div><div class="modal-body" id="settingsBody"></div><div class="modal-foot"><button class="btn danger" id="deleteStationBtn">تعطيل المحطة</button><button class="btn" id="resetStationsBtn">إلغاء التعديلات</button><button class="btn primary" id="settingsDone">حفظ التعديلات</button></div></div></div>
 <div class="modal-backdrop cloud-archive hidden" id="archiveModal" role="dialog" aria-modal="true">
  <div class="modal" style="width:min(1160px,97vw)">
@@ -599,7 +599,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
   <div class="modal-body">
    <section id="chemRoot" dir="rtl">
     <div class="chem-embed-toolbar">
-     <div class="chem-embed-note">شركة حلول المياه · متابعة المواد الكيميائية بمحطات التشغيل</div>
+     
      <div class="toolbar">
       <button type="button" class="btn primary" id="chem-widget-refresh">⟳ تحديث المؤشرات</button>
       <button type="button" class="btn" id="chem-widget-goEditor">＋ تسجيل تحديث مخزون</button>
@@ -607,16 +607,16 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
      </div>
     </div>
     <div class="container">
-<div class="notice">تعكس هذه اللوحة آخر قراءة مخزون محفوظة لكل مادة. <strong>مدة التغطية تخص تاريخ القراءة</strong>، ولا تعني بالضرورة الكمية المتاحة اليوم إذا كانت البيانات قديمة.</div>
+
 <div class="stats" id="chem-widget-stats"></div>
 <div class="filterbar"><input type="search" id="chem-widget-search" placeholder="بحث عن محطة أو مادة كيميائية" aria-label="البحث">
 <select id="chem-widget-stationFilter" aria-label="المحطة"></select>
 <select id="chem-widget-sort"><option value="risk">الأقل أيام تغطية أولًا</option><option value="station">الترتيب حسب المحطة</option></select>
 <button type="button" class="chip active" data-stage="ALL">كل المراحل</button><button type="button" class="chip" data-stage="PRE">المعالجة الأولية</button><button type="button" class="chip" data-stage="RO">التناضح العكسي</button><button type="button" class="chip" data-stage="POST">المعالجة النهائية</button><button type="button" class="chip" data-stage="CIP">الغسيل الكيميائي</button><button type="button" class="chip" data-stage="GENERAL">غير محدد</button>
 </div>
-<div class="legend"><span><i style="background:#d64545"></i>أقل من 30 يوم</span><span><i style="background:#e6a117"></i>30–60 يومًا</span><span><i style="background:#2e9e5b"></i>أكثر من 60 يومًا</span><span><i style="background:#a1adba"></i>لم تُسجّل فترة تغطية</span><span>القراءات التي لم تُحدّث خلال 14 يومًا تميّز بتاريخ قديم</span></div>
+<div class="legend"><span><i style="background:#d64545"></i>أقل من 30 يوم</span><span><i style="background:#e6a117"></i>30–60 يومًا</span><span><i style="background:#2e9e5b"></i>أكثر من 60 يومًا</span><span><i style="background:#a1adba"></i>لم تُسجّل فترة تغطية</span><span>قراءة أقدم من 14 يومًا</span></div>
 <div class="plantgrid" id="chem-widget-plantGrid" aria-live="polite"><div class="empty">جارٍ الاتصال بقاعدة البيانات…</div></div>
-<section class="editor" id="chem-widget-editor"><h2>تحديث المخزون الكيميائي</h2><p class="caption">سجّل قراءة بتاريخها الفعلي. سيتم الاحتفاظ بقراءات الأيام السابقة، ويمكن تحديث قراءة التاريخ نفسه.</p>
+<section class="editor" id="chem-widget-editor"><h2>تحديث المخزون الكيميائي</h2>
 <form id="chem-widget-chemForm"><div class="formgrid">
 <label>المحطة<select id="chem-widget-fStation" required></select></label>
 <label>المادة الكيميائية<input id="chem-widget-fMaterial" maxlength="140" required placeholder="مثال: PAC / غاز الكلور"></label>
@@ -627,7 +627,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
 <label>مدة التغطية بالأيام<input type="number" id="chem-widget-fDays" min="0" step="any" placeholder="أيام"></label>
 <label class="full">ملاحظات<textarea id="chem-widget-fNotes" maxlength="1500" placeholder="التوريد، حالة التخزين، ملاحظات التشغيل"></textarea></label>
 </div><div class="form-actions"><button class="btn primary" id="chem-widget-save" type="submit">حفظ قراءة المخزون</button><span id="chem-widget-feedback" role="status"></span></div></form></section>
-<div class="foot">شركة حلول المياه — متابعة المواد الكيميائية · التواريخ معروضة بالتقويم الميلادي</div>
+
 </div>
    </section>
   </div>
@@ -673,7 +673,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  <div class="modal" style="width:min(1020px,97vw)">
   <div class="modal-head"><h2>إدارة الحسابات</h2><button class="btn" id="accountsClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p style="font-size:12px;color:#607889;line-height:1.9">يمكن إضافة حسابات متعددة لكل محطة وتحديد اسم المستخدم وكلمة المرور لكل حساب.</p>
+   
    <div class="sec-panel" id="accountCreatePanel">
     <h3>إضافة حساب جديد</h3>
     <div class="sec-fields">
@@ -687,7 +687,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
     <div id="accountResponse" class="sec-response hidden"></div>
    </div>
    <div class="sec-panel">
-    <div class="sec-row"><h3>جميع الحسابات والصلاحيات</h3><button class="btn" id="refreshAccounts">↻ تحديث</button></div><p style="font-size:11px;color:#697e8c">لا يمكن عرض كلمات المرور السابقة. يمكن عرض كلمات المرور التي عيّنتها خلال الجلسة الحالية أو استبدالها.</p>
+    <div class="sec-row"><h3>جميع الحسابات والصلاحيات</h3><button class="btn" id="refreshAccounts">↻ تحديث</button></div>
     <div id="accountResetPanel" class="sec-panel hidden" style="background:#fff">
      <div class="sec-row"><h3>تعيين كلمة المرور</h3><strong id="accountResetName" dir="auto"></strong></div>
      <div class="sec-fields">
@@ -706,7 +706,7 @@ body{color:var(--text);background:linear-gradient(180deg,#f3f8fd 0%,#fbfdff 58%,
  <div class="modal">
   <div class="modal-head"><h2>سجل النشاط والمراجعة — السوبر أدمن</h2><button class="btn" id="auditClose">✕ إغلاق</button></div>
   <div class="modal-body">
-   <p class="audit-intro">سجل عمليات المستخدمين والتقارير وإدارة الحسابات.</p>
+   
    <div class="audit-filters">
     <div class="field"><label for="auditActor">المستخدم / اسم الحساب</label><input class="control" type="search" id="auditActor" placeholder="اسم المستخدم أو البريد"></div>
     <div class="field"><label for="auditScope">القسم</label><select class="control" id="auditScope">
