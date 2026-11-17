@@ -14,12 +14,22 @@ function mock(){
  rows.forEach((r,i)=>{const row=i+4;for(const [j,col]of ['C','F','G','H','I','J','K','L','M','N','O','P','R'].entries())m[col+row]={value:r[j]};});
  return {rowCount:100,getCell:(coord)=>m[coord]??{value:null}};
 }
-test('previous-day production date based on source header plus one',()=>{
- const p=sync.parse(mock(),new Date('2026-11-17T04:00:00Z'));
- assert.equal(p.productionDate,'2026-11-16');
- assert.equal(p.rows.length,6);
- const stale=sync.parse(mock(),new Date('2026-11-21T04:00:00Z'));
- assert.equal(stale.reason,'stale_or_future');
+test('production date always equals previous Saudi calendar day, ignoring the Excel header',()=>{
+ const fake=mock(),read=fake.getCell;
+ // Header can be wrong, absent, or unchanged across reporting days.
+ fake.getCell=cell=>cell==='Q2'?{value:'Date shown here is wrong'}:read(cell);
+ const nov17=sync.parse(fake,new Date('2026-11-17T04:00:00Z'));
+ assert.equal(nov17.productionDate,'2026-11-16');
+ assert.equal(nov17.rows.length,6);
+ const nov18=sync.parse(fake,new Date('2026-11-18T04:00:00Z'));
+ assert.equal(nov18.productionDate,'2026-11-17');
+ const nov21=sync.parse(fake,new Date('2026-11-21T04:00:00Z'));
+ assert.equal(nov21.productionDate,'2026-11-20');
+});
+test('production date uses Riyadh local midnight, not UTC midnight',()=>{
+ const fake=mock();
+ assert.equal(sync.parse(fake,new Date('2026-11-17T20:59:59Z')).productionDate,'2026-11-16');
+ assert.equal(sync.parse(fake,new Date('2026-11-17T21:00:00Z')).productionDate,'2026-11-17');
 });
 test('correct metric mapping with no fabricated mixed tank percentages',()=>{
  const rows=sync.parse(mock(),new Date('2026-11-17T04:00:00Z')).rows;
