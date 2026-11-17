@@ -56,12 +56,13 @@ function toolbar(){
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong><br><span class="mw-muted">سجل الصيانة والمعدات الخاصة بالمحطة</span></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
-function setTab(tab){if(M.importing)return;if((tab==='daily'||tab==='monthly')&&!isStation()&&getStations().some(s=>s.id==='jizan'))M.stationId='jizan';M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
+function setTab(tab){if(M.importing)return;if(tab==='assets'){M.assetView='template';M.areaFilter='';M.search='';}if((tab==='daily'||tab==='monthly')&&!isStation()&&getStations().some(s=>s.id==='jizan'))M.stationId='jizan';M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
  build();
  if(root.classList.contains('hidden')){restoreFocus=document.activeElement;restoreOverflow=document.body.style.overflow;}
  const requested=tab||M.tab||'overview';
+ if(requested==='assets'){M.assetView='template';M.areaFilter='';M.search='';}
  if(requested==='daily'&&!isStation()&&getStations().some(x=>x.id==='jizan'))M.stationId='jizan';
  else M.stationId=getId();
  M.tab=requested==='daily'&&isStation()&&getId()!=='jizan'?'overview':requested;
