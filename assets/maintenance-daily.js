@@ -29,20 +29,10 @@
   const template=templates[0]||null;
   const layout=template?.template_rows||[],assetList=assets.filter(a=>a.asset_code!=='UNVERIFIED_LINK');
   const placeholder=assets.find(a=>a.asset_code==='UNVERIFIED_LINK');
-  const byName=new Map();
-  for(const asset of assetList){
-   for(const n of [asset.asset_name,...(Array.isArray(asset.source_aliases)?asset.source_aliases:[])]){
-    const key=norm(n);if(!key)continue;
-    if(!byName.has(key))byName.set(key,[]);
-    const list=byName.get(key);if(!list.some(a=>a.id===asset.id))list.push(asset);
-   }
-  }
   const links=new Map();
   for(const row of layout){
-   const matches=byName.get(norm(row.unit))||[];
-   const sameArea=matches.filter(x=>norm(x.area)===norm(row.area));
-   const found=sameArea.length===1?sameArea[0]:matches.length===1?matches[0]:null;
-   links.set(row.row,found||null);
+   const found=global.WSMaintenanceCatalog?.matchTemplateAsset?.(row,assetList)||null;
+   links.set(row.row,found);
   }
   const ctx={template,layout,assets:assetList,placeholder,links};contexts.set(id,ctx);return ctx;
  }
