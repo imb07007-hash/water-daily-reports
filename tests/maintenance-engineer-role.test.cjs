@@ -39,7 +39,7 @@ test('station-specific daily maintenance remains available without Jizan templat
  assert.ok(daily.includes("const template=templates[0]||null"));
  assert.ok(daily.includes("type==='PM'&&ctx.template"));
  assert.ok(daily.includes("source_key:'SITE-DAILY:'+crypto.randomUUID()"));
- assert.ok(daily.includes('تصدير Excel بنفس تصميم المقاول يحتاج ملف القالب الأصلي لهذه المحطة.'));
+ assert.ok(daily.includes('تصدير Excel غير متاح: قالب المحطة غير مرفوع.'));
 });
 test('maintenance code remains valid after role addition',()=>{
  for(const path of ['assets/core-app.js','assets/maintenance.js','assets/maintenance-daily.js','assets/maintenance-template-export.js'])
