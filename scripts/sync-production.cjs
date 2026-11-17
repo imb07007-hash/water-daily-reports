@@ -51,7 +51,7 @@ async function main(){
   console.log('Validation mode: no database writes');
   return;
  }
- const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!key||key.length<25)throw Error('Missing protected SUPABASE_SERVICE_ROLE_KEY, database write blocked');
  const confRows=await db(`stations?select=id,active,config&id=in.(${IDS.join(',')})`,key);
  if(confRows.length!==IDS.length||confRows.some(x=>!x.active))throw Error('Station configuration invalid, no import');
