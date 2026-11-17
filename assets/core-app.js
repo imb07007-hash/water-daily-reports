@@ -102,16 +102,21 @@ function emptyRecord(){return{metrics:{},groups:{},notes:{},lastModified:null}}
 function fetchRecord(){let k=reportKey();return clone(drafts[k]||emptyRecord())}
 function preserveDraft(){if(!signedIn()||archiveViewing)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
 function toast(message,error=false){let t=$('toast');t.textContent=message;t.className='toast '+(error?'error':'success');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3600)}
+function isExcelImportedReport(r){return !!r&&r.source==='migration'&&String(r.imported_from||'').startsWith('google_drive_xlsx:')}
+function importedReportTimestamp(r){return r?(isExcelImportedReport(r)?r.created_at:r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at):null}
+function reportImportLabel(r){return isExcelImportedReport(r)?'Excel — مزامنة آلية':r?.source==='migration'?'واتساب — أرشيف تاريخي':'الموقع'}
 function updateSaveStatus(){
  const x=$('saveStatus'),key=reportKey();
  const saved=dailySelectedReport;
- const sourceTime=saved?(saved.source==='migration'?saved.source_sent_at:saved.created_at):null;
+ const sourceTime=importedReportTimestamp(saved);
  const stamp=sourceTime?dashboardSubmitTime(sourceTime):null;
  if(dailyLookupBusy)x.textContent='جارٍ استرجاع التقرير من قاعدة البيانات…';
  else if(dailyLookupError)x.textContent='تعذّر التحقق من بيانات هذا التاريخ؛ لا يمكن الإرسال قبل إعادة المحاولة';
  else if(editingReportId)x.textContent='تعديل تقرير محفوظ — سوبر أدمن';
  else if(archiveViewing&&saved){
-  x.textContent=saved.source==='migration'
+  x.textContent=isExcelImportedReport(saved)
+   ?'تقرير مستورد من ملف Excel — تاريخ ووقت حفظه في الموقع: '+(stamp?.date||'—')+'، '+(stamp?.time||'—')
+   :saved.source==='migration'
    ?'تقرير يومي محفوظ — وقت رسالة واتساب الأصلية: '+(stamp?.date||'—')+'، '+(stamp?.time||'—')+' (استيراد تاريخي لاحق)'
    :'تقرير يومي محفوظ — وقت إرساله عبر الموقع: '+(stamp?.date||'—')+'، '+(stamp?.time||'—');
  }else if(archiveViewing)x.textContent='تقرير محفوظ — للقراءة فقط';
@@ -128,7 +133,7 @@ async function loadSelectedDailyReport(){
  if(!signedIn()||!cloudReady)return;
  dailyLookupBusy=true;dailyLookupError=false;updateSaveStatus();
  try{
-  const query=new URLSearchParams({select:'id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at',
+  const query=new URLSearchParams({select:'id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at,imported_from',
     station_id:'eq.'+lookupStation,report_date:'eq.'+lookupDate,limit:'1'});
   const response=await authedFetch('/rest/v1/reports?'+query.toString());
   if(!response.ok)throw Error('تعذّر جلب التقرير من قاعدة البيانات ('+response.status+').');
@@ -581,7 +586,7 @@ async function archiveFetchAll(scope,period,searchVersion){
  for(let offset=0;offset<=20000;offset+=ARCHIVE_PAGE_SIZE){
   if(searchVersion!==archiveSearchVersion)throw Error('تم تغيير البحث.');
   const p=new URLSearchParams({
-   select:'id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at',
+   select:'id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at,imported_from',
    order:'report_date.desc,created_at.desc',limit:String(ARCHIVE_PAGE_SIZE),offset:String(offset)
   });
   if(scope)p.set('station_id','eq.'+scope);
@@ -680,6 +685,10 @@ function archiveSummary(rows,period,scope){
    '</p>':'');
 }
 function archiveTimeLabel(r){
+ if(isExcelImportedReport(r)){
+  const d=dashboardSubmitTime(r.created_at);
+  return 'استيراد Excel: '+d.date+'، '+d.time;
+ }
  if(r.source==='migration'){
   const d=r.source_sent_at?dashboardSubmitTime(r.source_sent_at):null;
   return d?'رسالة واتساب: '+d.date+'، '+d.time:'تقرير واتساب مستورد (وقت الرسالة غير متاح)';
@@ -936,8 +945,8 @@ function archiveExportDataRow(r){
  const row={
   'المحطة':s?.name||r.station_id,
   'تاريخ التقرير':r.report_date,
-  'المصدر':r.source==='migration'?'واتساب - استيراد تاريخي':'الموقع',
-  'تاريخ الإرسال الأصلي':r.source==='migration'?(r.source_sent_at||''):r.created_at,
+  'المصدر':reportImportLabel(r),
+  'تاريخ الإرسال الأصلي':isExcelImportedReport(r)?'غير متاح من ملف Excel':r.source==='migration'?(r.source_sent_at||''):r.created_at,
   'وقت حفظه في النظام':r.created_at
  };
  const metrics=r.data?.metrics||{};
@@ -1056,7 +1065,7 @@ async function archiveShow(id,editable=false){
  if(!signedIn())return;
  const lookupGuard=++dailyLookupVersion;
  try{
-  const resp=await authedFetch('/rest/v1/reports?select=id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at&id=eq.'+encodeURIComponent(id)+'&limit=1');
+  const resp=await authedFetch('/rest/v1/reports?select=id,station_id,report_date,data,config_snapshot,created_at,source,source_sent_at,imported_from&id=eq.'+encodeURIComponent(id)+'&limit=1');
   if(!resp.ok)throw Error('تعذر الوصول للتقرير.');
   const arr=await resp.json(),r=arr[0];
   if(!r||!r.data||!stations.some(x=>x.id===r.station_id))throw Error('ليس لديك صلاحية عرض التقرير.');
@@ -1068,7 +1077,7 @@ async function archiveShow(id,editable=false){
   record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
   $('reportDate').disabled=editable;$('stationSelect').disabled=editable||!isAdmin();
-  archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':r.source==='migration'?'تقرير تاريخي مستورد من واتساب — للقراءة فقط.':'عرض التقرير المحفوظ — للقراءة فقط.');
+  archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':isExcelImportedReport(r)?'تقرير إنتاج مستورد آليًا من ملف Excel — للقراءة فقط.':r.source==='migration'?'تقرير تاريخي مستورد من واتساب — للقراءة فقط.':'عرض التقرير المحفوظ — للقراءة فقط.');
  }catch(e){toast(e.message,true)}
 }
 
@@ -1389,13 +1398,13 @@ async function dashboardRefresh(){
  try{
   const begin=dashboardShiftDate(date,-6);
   const windowQuery=new URLSearchParams({
-   select:'id,station_id,report_date,data,created_at,source,source_sent_at,updated_at',
+   select:'id,station_id,report_date,data,created_at,source,source_sent_at,imported_from,updated_at',
    order:'report_date.desc,created_at.desc',limit:String(Math.max(300,stations.length*8))
   });
   windowQuery.append('report_date','gte.'+begin);
   windowQuery.append('report_date','lte.'+date);
   const latestQuery=new URLSearchParams({
-   select:'id,station_id,report_date,created_at,source,source_sent_at,effective_sent_at',order:'effective_sent_at.desc',limit:'50'
+   select:'id,station_id,report_date,created_at,source,source_sent_at,imported_from,effective_sent_at',order:'effective_sent_at.desc',limit:'50'
   });
   const [rangeResponse,latestResponse]=await Promise.all([
    authedFetch('/rest/v1/reports?'+windowQuery.toString()),
@@ -1425,7 +1434,7 @@ async function dashboardRefresh(){
   const sorted=stations.slice().sort((a,b)=>Number(!byDayStation.has(b.id+'@'+date))-Number(!byDayStation.has(a.id+'@'+date)));
   const cards=sorted.map(s=>{
    const r=byDayStation.get(s.id+'@'+date);
-   const submit=r?dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at):null;
+   const submit=r?dashboardSubmitTime(importedReportTimestamp(r)):null;
    const metrics=r?.data?.metrics||{};
    const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)]];
    const status=r?'تقرير محفوظ':'لم يُرسل';
@@ -1434,11 +1443,11 @@ async function dashboardRefresh(){
    const trend=nowProduction!==null&&pastProduction!==null?wsTrend({count:1,delta:nowProduction-pastProduction,
     pct:pastProduction===0?null:100*(nowProduction-pastProduction)/pastProduction}):{cls:'neutral',txt:'مقارنة الإنتاج غير متاحة'};
    return '<div class="dashboard-plant '+(r?'received':'pending')+'">'+
-    '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+(r?.source==='migration'?'<small style="display:block;font-size:10px;font-weight:500">من سجل واتساب التاريخي</small>':'')+'</h4>'+
+    '<div class="dashboard-plant-head"><h4 class="dashboard-plant-name">'+esc(s.name)+(isExcelImportedReport(r)?'<small style="display:block;font-size:10px;font-weight:500">مزامنة آلية من Excel</small>':r?.source==='migration'?'<small style="display:block;font-size:10px;font-weight:500">من سجل واتساب التاريخي</small>':'')+'</h4>'+
      '<span class="dashboard-status '+(r?'received':'pending')+'">'+status+'</span></div>'+
     '<div class="dashboard-submission">'+
-     '<div class="dashboard-field"><small>'+(r?.source==='migration'?'تاريخ رسالة واتساب':'تاريخ إرسال التقرير')+'</small><strong>'+esc(submit?.date||'—')+'</strong></div>'+
-     '<div class="dashboard-field"><small>'+(r?.source==='migration'?'وقت رسالة واتساب — السعودية':'وقت إرسال الموقع — السعودية')+'</small><strong dir="auto">'+esc(submit?.time||'—')+'</strong></div>'+
+     '<div class="dashboard-field"><small>'+(isExcelImportedReport(r)?'تاريخ حفظ التقرير الآلي':r?.source==='migration'?'تاريخ رسالة واتساب':'تاريخ إرسال التقرير')+'</small><strong>'+esc(submit?.date||'—')+'</strong></div>'+
+     '<div class="dashboard-field"><small>'+(isExcelImportedReport(r)?'وقت الحفظ الآلي — السعودية':r?.source==='migration'?'وقت رسالة واتساب — السعودية':'وقت إرسال الموقع — السعودية')+'</small><strong dir="auto">'+esc(submit?.time||'—')+'</strong></div>'+
     '</div>'+
     '<div class="dashboard-station-values">'+present.map(([label,value])=>
      '<div class="dashboard-station-value"><small>'+esc(label)+'</small><strong>'+esc(dashboardMetricLabel(value))+'</strong></div>').join('')+'</div>'+
@@ -1470,10 +1479,10 @@ async function dashboardRefresh(){
   const recent=latestItems.filter(r=>ids.has(r.station_id)).slice(0,10);
   const recentRows=recent.length?recent.map(r=>{
    const station=stations.find(s=>s.id===r.station_id);
-   const stamp=dashboardSubmitTime(r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at);
+   const stamp=dashboardSubmitTime(importedReportTimestamp(r));
    return '<div class="dashboard-recent-row"><div class="dashboard-recent-station">'+esc(station?.name||r.station_id)+'</div>'+
     '<div><span class="dashboard-recent-label">تاريخ التقرير</span><div class="dashboard-recent-value">'+esc(dashboardShortDate(r.report_date))+'</div></div>'+
-    '<div><span class="dashboard-recent-label">'+(r.source==='migration'?'وقت رسالة واتساب':'وقت الإرسال من الموقع')+'</span><div class="dashboard-recent-value">'+esc(stamp.date)+' — '+esc(stamp.time)+'</div></div></div>';
+    '<div><span class="dashboard-recent-label">'+(isExcelImportedReport(r)?'وقت الحفظ الآلي من Excel':r.source==='migration'?'وقت رسالة واتساب':'وقت الإرسال من الموقع')+'</span><div class="dashboard-recent-value">'+esc(stamp.date)+' — '+esc(stamp.time)+'</div></div></div>';
   }).join(''):'<div class="dashboard-empty">لا توجد تقارير مرسلة حتى الآن.</div>';
   const recentSection='<section class="dashboard-section"><div class="dashboard-section-head"><h3>آخر عمليات إرسال التقارير</h3>'+
    '<small>توقيت السعودية (UTC+3)</small></div><div class="dashboard-recent">'+recentRows+'</div></section>';

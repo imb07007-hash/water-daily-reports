@@ -15,6 +15,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
       - name: Validate all browser JavaScript syntax
         run: |
           for f in assets/*.js; do
