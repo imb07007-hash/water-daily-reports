@@ -64,3 +64,22 @@
  #maintenanceModal .mw-month-export-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
  #maintenanceModal .mw-daily-actions .mw-button{flex:1;min-width:145px}
 }
+
+/* Full source equipment visibility: no hidden default AREA filter. */
+#maintenanceModal .mw-daily-card input[type="search"]{direction:auto}
+#maintenanceModal #mw-equipment-count{display:block;margin-top:4px;font-weight:800;color:#0362AF}
+#maintenanceModal .mw-equipment-filters{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+#maintenanceModal .mw-equipment-filters .mw-select{min-width:210px;flex:1}
+#maintenanceModal .mw-original-catalog{max-height:min(60vh,700px);overflow:auto;scrollbar-width:thin}
+#maintenanceModal .mw-original-catalog table{width:100%;border-collapse:separate;border-spacing:0}
+#maintenanceModal .mw-original-catalog thead{position:sticky;top:0;z-index:3;background:#f2f7fb}
+#maintenanceModal .mw-original-catalog tr:hover td{background:#f3f9fe}
+#maintenanceModal .mw-original-catalog td:nth-child(2){font-family:Tahoma,Arial,sans-serif;font-size:12px}
+#maintenanceModal .mw-original-catalog td .mw-button{white-space:nowrap}
+#maintenanceModal .mw-daily-card .mw-input[type="search"]{font-weight:500}
+#maintenanceModal .mw-daily-card [name="frequency"]{border-color:#b1cfea;background:#f9fcff;font-weight:700}
+@media(max-width:720px){
+ #maintenanceModal .mw-equipment-filters .mw-input,#maintenanceModal .mw-equipment-filters .mw-select{flex:1 1 100%;min-width:0}
+ #maintenanceModal .mw-original-catalog{max-height:62vh}
+ #maintenanceModal .mw-original-catalog td .mw-button{padding:7px 9px}
+}
