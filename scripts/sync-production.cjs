@@ -29,7 +29,7 @@ async function getWorkbook(){
 async function db(path,key,options={}){
  const r=await fetch(ALLOWED_URL+'/rest/v1/'+path,{
   method:options.method||'GET',
-  headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json',
+  headers:{apikey:key,...(key.startsWith('sb_secret_')?{}:{Authorization:'Bearer '+key}),'Content-Type':'application/json',
    ...(options.method==='POST'?{'Prefer':'resolution=ignore-duplicates,return=representation'}:{})},
   body:options.body?JSON.stringify(options.body):undefined,
   signal:AbortSignal.timeout(25000)
