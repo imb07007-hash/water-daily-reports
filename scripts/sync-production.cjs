@@ -7,6 +7,9 @@ const core=require('./production-sync-core.cjs');
 const ID=core.SOURCE_ID;
 const ALLOWED_URL='https://vksbjasfoysuwxdyeaed.supabase.co';
 const IDS=['jizan','damad','bish','marbah','matari','muhayil'];
+ // The 17 Nov 2026 file snapshot was already manually imported as 16 Nov reports.
+ // Never import that exact XLSX again under a different calendar date.
+const BOOTSTRAP_IMPORTED_SOURCE_SHA='527d8e6a2f8a';
 const URLS=[
  `https://drive.usercontent.google.com/download?id=${ID}&export=download&confirm=t`,
  `https://drive.google.com/uc?export=download&id=${ID}&confirm=t`
@@ -45,10 +48,18 @@ async function main(){
  const sheet=book.getWorksheet(core.REPORT_SHEET);
  if(!sheet)throw Error('Required worksheet not found');
  const parsed=core.parse(sheet);
- if(parsed.reason){console.log('No import: stale/future source date '+parsed.productionDate);return;}
+ // Report date comes only from the scheduler's local date (yesterday in Riyadh).
+ // The Excel header date is ignored completely.
+ const semanticHash=core.fingerprint(Buffer.from(JSON.stringify(parsed.rows
+   .map(r=>({stationId:r.stationId,data:r.data}))
+   .sort((a,b)=>a.stationId.localeCompare(b.stationId))))).slice(0,16);
  console.log(`Excel read-only check: date=${parsed.productionDate}, stations=${parsed.rows.length}, sha256=${hash.slice(0,12)}`);
  if(process.argv.includes('--dry-run')||process.argv.includes('--check-source')){
   console.log('Validation mode: no database writes');
+  return;
+ }
+ if(hash.startsWith(BOOTSTRAP_IMPORTED_SOURCE_SHA)){
+  console.log('No import: same Excel snapshot as reports already imported on 16 Nov 2026');
   return;
  }
  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -68,8 +79,14 @@ async function main(){
  }
  const from=core.plusDays(parsed.productionDate,-10);
  const history=await db(`reports?select=station_id,report_date,imported_from&station_id=in.(${IDS.join(',')})&report_date=gte.${from}&order=report_date.desc&limit=150`,key);
- const marker='sha256='+hash.slice(0,16);
- if(history.some(x=>(x.imported_from||'').includes(marker))){console.log('Same source revision was already imported; no writes');return;}
+ // Even if only workbook formatting changed, never relabel identical data as a new day.
+ const seen=await db('reports?select=station_id&imported_from=like.*'+semanticHash+'*&limit=1',key);
+ if(seen.length){console.log('No import: station data matches an earlier imported snapshot');return;}
+ const marker='sha256='+hash.slice(0,16)+':data_sha256='+semanticHash;
+ if(history.some(x=>(x.imported_from||'').includes('sha256='+hash.slice(0,16)))){
+  console.log('Same Excel source revision was already imported; no writes');
+  return;
+ }
  const exists=new Set(history.map(x=>`${x.station_id}:${x.report_date}`));
  const inserts=parsed.rows.filter(r=>!exists.has(`${r.stationId}:${parsed.productionDate}`)).map(r=>({
   station_id:r.stationId,
