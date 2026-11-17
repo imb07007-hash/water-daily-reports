@@ -1,0 +1,26 @@
+name: Verify read-only production sync
+on:
+  pull_request:
+    paths:
+      - 'scripts/production-sync-*.cjs'
+      - 'scripts/sync-production.cjs'
+      - 'tests/production-sync-core.test.cjs'
+      - '.github/workflows/daily-production-sync*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install ExcelJS and dependencies
+        run: npm install --no-audit --no-fund
+      - name: Offline parsing tests
+        run: node --test tests/production-sync-core.test.cjs
+      - name: Live read-only Google Drive download and workbook check
+        run: node scripts/sync-production.cjs --check-source
