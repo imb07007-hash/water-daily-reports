@@ -1121,20 +1121,43 @@ async function authedFetch(path,opts={},retried=false){
  return r;
 }
 async function getCurrentProfile(){
- const [admRes,memberRes]=await Promise.all([
+ const [admRes,memberRes,maintenanceRes]=await Promise.all([
   authedFetch('/rest/v1/admin_users?select=user_id,role'),
-  authedFetch('/rest/v1/station_users?select=user_id,station_id,username')
+  authedFetch('/rest/v1/station_users?select=user_id,station_id,username'),
+  authedFetch('/rest/v1/maintenance_users?select=user_id,station_id,username')
  ]);
- if(!admRes.ok||!memberRes.ok)throw Error('تعذر التحقق من صلاحيات الحساب.');
- const admins=await admRes.json(),members=await memberRes.json();
+ if(!admRes.ok||!memberRes.ok||!maintenanceRes.ok)throw Error('تعذر التحقق من صلاحيات الحساب.');
+ const [admins,members,engineers]=await Promise.all([admRes.json(),memberRes.json(),maintenanceRes.json()]);
  const adminRecord=admins.find(a=>a.user_id===currentUserId&&['superadmin','admin'].includes(a.role));
+ const stationMember=members.find(m=>m.user_id===currentUserId);
+ const engineer=engineers.find(m=>m.user_id===currentUserId);
+ if([!!adminRecord,!!stationMember,!!engineer].filter(Boolean).length>1)
+  throw Error('توجد صلاحيات متعارضة لهذا الحساب. تواصل مع السوبر أدمن.');
  if(adminRecord){
-   currentRole=adminRecord.role;currentStationId='';currentLoginName=currentRole==='superadmin'?'السوبر أدمن':'الأدمن';
- } else {
-   const member=members.find(m=>m.user_id===currentUserId);
-   if(!member)throw Error('هذا المستخدم غير مرتبط بأي محطة. تواصل مع المسؤول.');
-   currentRole='station';currentStationId=member.station_id;currentLoginName=member.username;
- }
+  currentRole=adminRecord.role;currentStationId='';
+  currentLoginName=currentRole==='superadmin'?'السوبر أدمن':'الأدمن';
+ }else if(stationMember){
+  currentRole='station';currentStationId=stationMember.station_id;currentLoginName=stationMember.username;
+ }else if(engineer){
+  currentRole='maintenance';currentStationId=engineer.station_id;currentLoginName=engineer.username;
+ }else throw Error('هذا المستخدم غير مرتبط بأي محطة. تواصل مع المسؤول.');
+}
+async function openEngineerWorkspace(){
+ const response=await authedFetch('/rest/v1/stations?select=id,config&active=eq.true&id=eq.'+encodeURIComponent(currentStationId));
+ if(!response.ok)throw Error('تعذر تحميل بيانات محطة الصيانة.');
+ const rows=await response.json();
+ const row=rows.find(x=>x.id===currentStationId&&x.config?.id===currentStationId);
+ if(!row)throw Error('المحطة غير مفعلة أو غير مصرح بها.');
+ stations=[row.config];
+ stationId=currentStationId;
+ document.body.dataset.auth='maintenance';
+ $('loginScreen').classList.add('hidden');
+ $('loginPassword').value='';
+ $('accountRole').textContent='مهندس صيانة — '+(row.config?.name||currentStationId);
+ $('accountRole').classList.remove('hidden');
+ if(location.hash)history.replaceState(null,document.title,location.pathname+location.search);
+ if(!window.WSMaintenance?.open)throw Error('واجهة الصيانة غير جاهزة. يرجى تحديث الصفحة.');
+ window.WSMaintenance.open('daily');
 }
 async function enterApplication(){
  if(!authSession?.access_token)throw Error('أدخل بيانات الدخول');
@@ -1144,6 +1167,10 @@ async function enterApplication(){
  currentUserId=actor.id||'';
  if(!currentUserId)throw Error('هوية الحساب غير متاحة.');
  await getCurrentProfile();
+ if(currentRole==='maintenance'){
+  await openEngineerWorkspace();
+  return;
+ }
  await loadCloudStations();
  $('dashboardBtn').classList.toggle('hidden',!isAdmin());
  $('accountsBtn').classList.toggle('hidden',!isSuperAdmin());
@@ -1192,7 +1219,8 @@ async function loginSubmit(e){
  }
 }
 async function logout(){
- preserveDraft();
+ if(currentRole!=='maintenance')preserveDraft();
+ window.WSMaintenance?.lock?.();
  ++dailyLookupVersion;dailyLookupBusy=false;dailyLookupError=false;dailySelectedReport=null;
  const token=authSession?.access_token;
  authSession=null;currentRole='';currentStationId='';currentUserId='';cloudReady=false;
@@ -1500,7 +1528,7 @@ function accountsOpen(){
  accountsRefresh();
 }
 function accountTypeChanged(){
- const station=$('accountType').value==='station';
+ const station=['station','maintenance'].includes($('accountType').value);
  $('accountStationField').classList.toggle('hidden',!station);
  $('accountUsername').readOnly=false;
  $('accountPassword').readOnly=false;
@@ -1520,16 +1548,16 @@ async function accountsRefresh(){
   const result=await accountAdminRequest('list');
   const accounts=result.accounts||[];
   $('accountList').innerHTML=accounts.length?accounts.map(acc=>{
-   const type=acc.role==='superadmin'?'سوبر أدمن':acc.role==='admin'?'أدمن':'حساب محطة';
+   const type=acc.role==='superadmin'?'سوبر أدمن':acc.role==='admin'?'أدمن':acc.role==='maintenance'?'مهندس صيانة':'حساب محطة';
    const name=acc.username||acc.email||'حساب إداري';
    const station=acc.stationId?stations.find(s=>s.id===acc.stationId)?.name||acc.stationId:'جميع المحطات';
-   const canManage=acc.role==='station'||isSuperAdmin();
+   const canManage=['station','maintenance'].includes(acc.role)||isSuperAdmin();
    const canDelete=canManage&&acc.id!==currentUserId;
    return '<div class="sec-row" data-account-id="'+esc(acc.id)+'"><div><span class="account-username">'+esc(name)+'</span><small>'+esc(type)+' • '+esc(station)+'</small></div>'+
     '<div class="admin-row-btns">'+
      (canManage?'<button class="btn" data-user-action="reset_password" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">تغيير كلمة المرور</button>':'')+
      (isSuperAdmin()&&sessionAssignedPasswords.has(acc.id)?'<button class="btn" data-user-action="show_session_password" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">عرض كلمة المرور المعينة</button>':'')+
-     (isSuperAdmin()&&acc.role==='station'?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">نقل المحطة</button>':'')+
+     (isSuperAdmin()&&['station','maintenance'].includes(acc.role)?'<button class="btn" data-user-action="move_station" data-id="'+esc(acc.id)+'" data-name="'+esc(name)+'">نقل المحطة</button>':'')+
      (canDelete?'<button class="btn danger" data-user-action="delete" data-id="'+esc(acc.id)+'" data-role="'+esc(acc.role)+'" data-name="'+esc(name)+'">حذف الحساب</button>':'')+
     '</div></div>';
   }).join(''):'<div class="archive-empty">لا توجد حسابات بعد.</div>';
@@ -1563,7 +1591,7 @@ async function userWrite(){
  const button=$('createAccount');button.disabled=true;
  try{
   const output=await accountAdminRequest('create',{role,username,password,stationId});
-  accountMessage('تم إنشاء الحساب.\nنوع الحساب: '+(role==='superadmin'?'سوبر أدمن':role==='admin'?'أدمن':'محطة '+(stations.find(s=>s.id===stationId)?.name||stationId))+
+  accountMessage('تم إنشاء الحساب.\nنوع الحساب: '+(role==='superadmin'?'سوبر أدمن':role==='admin'?'أدمن':role==='maintenance'?'مهندس صيانة — '+(stations.find(s=>s.id===stationId)?.name||stationId):'محطة '+(stations.find(s=>s.id===stationId)?.name||stationId))+
    '\nاسم المستخدم: '+output.username+'\nكلمة المرور: '+password);
   if(isSuperAdmin())sessionAssignedPasswords.set(output.id,password);
   $('accountUsername').value='';
@@ -2318,7 +2346,8 @@ window.WSMaintenanceHost=Object.freeze({
  authedFetch:(path,options)=>authedFetch(path,options),
  logo:()=>LOGO,
  gauge:(value,color,mode='level')=>wsDial(value,color,mode),
- animateGauges:node=>wsAnimateInstruments(node)
+ animateGauges:node=>wsAnimateInstruments(node),
+ logout:()=>logout()
 });
 
 void (async()=>{if(!(await checkRecoveryLink()))await restoreSession()})();
