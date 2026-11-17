@@ -268,7 +268,7 @@ async function saveReport(){
   delete drafts[k];store(perUserKey(DRAFTS_KEY),drafts);
   editingReportId=null;$('reportDate').disabled=false;$('stationSelect').disabled=!isAdmin();
   await loadSelectedDailyReport();
-  cloudNotice('تم حفظ التقرير في قاعدة البيانات — يمكن استعراضه من الأرشيف.','ok');
+  cloudNotice('تم حفظ التقرير.','ok');
   toast('تم حفظ التقرير مركزيًا بنجاح');
  }catch(e){toast(e.message||'تعذر الإرسال',true)}
  finally{cloudSubmitting=false;updateSaveStatus()}
@@ -293,7 +293,7 @@ async function restoreReport(){
 }
 function newReport(){
  goTo(stationId,currentDate);
- toast('تم فتح نموذج اليوم. إذا كان محفوظًا فسيظهر من قاعدة البيانات.');
+ toast('تم فتح نموذج اليوم.');
 }
 function clearFields(){
  if(archiveViewing||dailyLookupBusy||dailyLookupError){toast('التقرير المحفوظ للقراءة فقط؛ لا يمكن مسحه.',true);return;}
@@ -869,7 +869,7 @@ function archiveRender(){
  let content='<div class="archive-station-tag">'+esc(name)+'</div>';
  if(!rows.length){
   content+=historical.length?archiveHistoricalSection(historical,period):
-   '<div class="archive-empty">لا توجد تقارير محفوظة لهذه الفترة أو السنة. لا توجد قراءات لعرض رسم بياني، واختر فترة أخرى تحتوي على تقارير.</div>';
+   '<div class="archive-empty">لا توجد تقارير للفترة المحددة.</div>';
  }else if(period.mode==='daily'){
   content+=archiveSummary(rows,period,scope)+archiveDailySummary(rows)+archiveStationTable(rows)+
    '<div class="archive-block"><h3>التقارير اليومية المحفوظة لكل محطة</h3>'+archiveReportEntries(rows)+'</div>';
@@ -1075,7 +1075,7 @@ async function archiveShow(id,editable=false){
 
 async function loadCloudStations(){
  if(!signedIn())throw Error('يرجى تسجيل الدخول أولًا.');
- cloudReady=false;cloudNotice('جاري تحميل المحطات المصرح بها…');
+ cloudReady=false;cloudNotice('تحميل المحطات…');
  const response=await authedFetch('/rest/v1/stations?select=id,config,updated_at&active=eq.true');
  if(!response.ok)throw Error('تعذر قراءة المحطات: '+response.status);
  const rows=await response.json();
@@ -1092,7 +1092,7 @@ async function loadCloudStations(){
  refreshSelects();$('stationSelect').disabled=!isAdmin();
  $('reportDate').value=date;renderInputs();renderReport();
  cloudReady=true;updateSaveStatus();
- cloudNotice('متصل بـ Supabase — '+(isAdmin()?'صلاحيات الإدارة لجميع المحطات':'الصلاحية محددة بمحطة '+selected().name),'ok');
+ cloudNotice('متصل','ok');
  await loadSelectedDailyReport();
 }
 async function authRefresh(){
@@ -1184,9 +1184,7 @@ async function enterApplication(){
  window.WSMotion?.enterApplication();
  $('loginScreen').classList.add('hidden');
  $('loginPassword').value='';
- $('accessNote').textContent=isAdmin()
-   ?'أهلاً بك في لوحة إدارة المحطات. يمكنك اختيار أي محطة أو فتح داشبورد جميع المحطات.'
-   :'تم تسجيل الدخول إلى '+selected().name+' — يمكنك إدخال بيانات المحطة واستعراض تقاريرها فقط.';
+ $('accessNote').textContent=isAdmin()?'إدارة المحطات':selected().name;
  if(location.hash==='#chemicals'){
   // Backward-compatible deep link opens inside the existing signed-in app.
   history.replaceState(null,document.title,location.pathname+location.search);
@@ -1736,7 +1734,7 @@ async function changeOwnPassword(event){
   }
   closeOwnPassword();
   await logout();
-  $('loginError').textContent='تم تغيير كلمة المرور بنجاح. سجّل الدخول بكلمة المرور الجديدة.';
+  $('loginError').textContent='تم تغيير كلمة المرور.';
  }catch(err){feedback.textContent=err.message||'تعذّر تغيير كلمة المرور.'}
  finally{btn.disabled=false}
 }
@@ -2118,7 +2116,7 @@ async function applyRecoveredPassword(event){
   if(!resp.ok)throw Error(data.msg||data.message||'تعذر تحديث كلمة المرور. أعد طلب الرابط.');
   resetBearer='';$('newRecoveryPassword').value='';$('confirmRecoveryPassword').value='';
   $('recoveryForm').classList.add('hidden');
-  showResetNotice('recoveryNotice','تم تغيير كلمة المرور بنجاح. اضغط العودة إلى تسجيل الدخول واستخدم كلمة المرور الجديدة.');
+  showResetNotice('recoveryNotice','تم تغيير كلمة المرور. استخدمها لتسجيل الدخول.');
  }catch(err){showResetNotice('recoveryNotice',err.message||'تعذر حفظ كلمة المرور.',true)}
  finally{btn.disabled=false}
 }
@@ -2260,7 +2258,7 @@ function render(shouldAnimate=true){
  '<div class="footerrow"><small>قراءة المخزون: '+esc(r.reading_date)+'</small>'+(ageDays(r.reading_date)>14?'<span class="outdate">تاريخ قديم</span>':'')+'</div>'+
  (r.notes?'<span class="note">'+esc(r.notes)+'</span>':'')+'</div></section>';
  }).join('')+'</article>';
- }).join(''):'<div class="empty">لا توجد قراءات مخزون تطابق الفلاتر الحالية. أدخل أول قراءة من النموذج أدناه.</div>';
+ }).join(''):'<div class="empty">لا توجد قراءات مطابقة.</div>';
  const grid=$('plantGrid');
  grid.classList.toggle('ws-no-motion',!shouldAnimate);
  if(shouldAnimate){
