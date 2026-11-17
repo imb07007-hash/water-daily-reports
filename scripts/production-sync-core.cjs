@@ -24,8 +24,9 @@ function headerDate(c){const s=digits(value(c)||''),m=s.match(/(20\d{2})\s*[/-]\
 function txt(c){const v=value(c);return v===null?'':String(v).trim();}
 function parse(sheet,now=new Date()){
  for(const [col,title]of Object.entries(HEADERS)){const actual=norm(txt(sheet.getCell(col+'3')));if(!actual.includes(norm(title)))throw Error(`Source layout changed: ${col}3 expected ${title}`);}
- const head=headerDate(sheet.getCell('Q2')),productionDate=plusDays(head,1),today=localDate(now);
- if(productionDate>plusDays(today,-1)||productionDate<plusDays(today,-3))return {productionDate,head,rows:[],reason:'stale_or_future'};
+ // Daily reports always represent yesterday in Saudi Arabia.
+ // The spreadsheet's visual header date is deliberately ignored.
+ const productionDate=plusDays(localDate(now),-1);
  const found=new Map();
  for(let r=4;r<=Math.min(sheet.rowCount,350);r++){
   const id=STATIONS[norm(txt(sheet.getCell('C'+r)))];if(!id)continue;
@@ -47,7 +48,7 @@ function parse(sheet,now=new Date()){
   found.set(id,{stationId:id,excelRow:r,data:{metrics,groups,notes}});
  }
  if(found.size!==6)throw Error('Expected six stations; found '+found.size);
- return {productionDate,head,rows:[...found.values()]};
+ return {productionDate,rows:[...found.values()]};
 }
 function fingerprint(b){return createHash('sha256').update(b).digest('hex');}
 module.exports={SOURCE_ID,REPORT_SHEET,norm,num,pct,plusDays,localDate,headerDate,parse,fingerprint};
