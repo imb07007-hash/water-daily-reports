@@ -53,7 +53,7 @@ function build(){
 function toolbar(){
  const all=getStations();
  const options=(isStation()?all.filter(s=>s.id===host()?.stationId?.()):all);
- return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong><br><span class="mw-muted">سجل الصيانة والمعدات الخاصة بالمحطة</span></div>'+
+ return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
 function setTab(tab){if(M.importing)return;if(tab==='assets'){M.assetView='template';M.areaFilter='';M.search='';}if((tab==='daily'||tab==='monthly')&&!isStation()&&getStations().some(s=>s.id==='jizan'))M.stationId='jizan';M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
