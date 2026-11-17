@@ -73,8 +73,7 @@
    options.map(x=>'<option value="'+h(x.id)+'">'+h(area?x.name:x.area+' — '+x.name)+'</option>').join('');
   choice.value=options.some(x=>x.id===old)?old:'';
   const counter=ui('mw-equipment-count');
-  if(counter)counter.textContent='المعروض '+format(options.length)+' من أصل '+format(total)+' معدة'+
-    '';
+  if(counter)counter.textContent='المعروض '+format(options.length)+' من '+format(total)+' معدة';
   updateLink(form,ctx);
  }
  function rebuildEquipment(form,ctx){
@@ -96,11 +95,11 @@
   if(!selected){box.textContent='اختر UNIT.';return}
   if(selected.startsWith('asset:')){
    const asset=ctx.assets.find(x=>'asset:'+x.id===selected);
-   box.textContent='AREA: '+(asset?.area||'غير محددة')+'';return
+   box.textContent='AREA: '+(asset?.area||'غير محددة');return
   }
   const row=Number(selected.slice(4)),link=ctx.links.get(row);
   const template=ctx.layout.find(x=>x.row===row);
-  box.textContent='AREA: '+(template?.area||'—')+''+(link?'':' · ربط غير مؤكد');
+  box.textContent='AREA: '+(template?.area||'—')+(link?'':' · ربط غير مؤكد');
  }
  function renderDailyMarkup(ctx,stationId,header){
   const areas=optionsAreas(ctx,settings.type),area=areas.includes(settings.area)?settings.area:areas[0]||'';
@@ -274,7 +273,7 @@
    '<div class="mw-table-wrap"><table><thead><tr><th>تاريخ الصيانة</th><th>AREA</th><th>UNIT</th><th>النوع</th><th>FREQUENCY</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+ 
    (rows.length?rows.slice(0,60).map(x=>'<tr><td dir="ltr">'+h(x.work_date||'—')+'</td><td class="mw-note">'+h(x.original_area||x.maintenance_assets?.area||'')+'</td>'+ 
     '<td class="mw-note">'+h(x.original_equipment||x.maintenance_assets?.asset_name||'')+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.frequency||'—')+'</td><td>'+tag(x.status)+'</td>'+ 
-    '<td class="mw-note">'+h(x.notes||'')+'</td><td>'+h(x.cost==null?'—':format(x.cost))+'</td></tr>').join(''):'<tr><td colspan="8">لا توجد أعمال مسجلة للشهر المحدد. يمكنك تصدير القالب فارغًا.</td></tr>')+
+    '<td class="mw-note">'+h(x.notes||'')+'</td><td>'+h(x.cost==null?'—':format(x.cost))+'</td></tr>').join(''):'<tr><td colspan="8">لا توجد أعمال لهذا الشهر.</td></tr>')+
    '</tbody></table></div><div class="mw-report-actions"><button class="mw-button main" data-mw="exactExport" type="button" '+(blockers?'disabled':'')+'>⬇ تصدير Excel بنفس القالب</button>'+ 
    '<button class="mw-button" type="button" data-mw="openExactDaily">＋ إدخال صيانة جديدة</button></div><div id="mw-month-export-status" aria-live="polite"></div></div>';
  }
