@@ -84,7 +84,11 @@ test('exports a readable multi-sheet XLSX with undated NOT DONE and unchanged so
  const layout=[
   {row:8,area:'INTAKE',unit:'GENERATOR INTAKE'},
   {row:9,area:'FLASH MIXER BUILDING',unit:'ALUM. CONTROL PANEL'},
-  {row:10,area:'CARBON FILTER BULDING',unit:'BACKWASH PUMP 1'}
+  {row:10,area:'CARBON FILTER BULDING',unit:'BACKWASH PUMP 1'},
+  {row:11,area:'INTAKE',unit:'PUMP 1'},
+  {row:12,area:'INTAKE',unit:'PUMP 2'},
+  {row:13,area:'INTAKE',unit:'PUMP 3'},
+  {row:14,area:'INTAKE',unit:'PUMP 4'}
  ];
  for(const row of layout){
   sheet.getCell('B'+row.row).value=row.area;
@@ -99,14 +103,18 @@ test('exports a readable multi-sheet XLSX with undated NOT DONE and unchanged so
  const records=[
   {period_month:'2026-11-01',work_type:'PM',status:'NOT DONE',work_date:null,original_area:'INTAKE',original_equipment:'GENERATOR INTAKE',frequency:'M',raw_data:{template_row:8},notes:'Not performed'},
   {period_month:'2026-11-01',work_type:'PM',status:'DONE WITH COMMENT',work_date:'2026-11-15',original_area:'FLASH MIXER BUILDING',original_equipment:'ALUM CONTROL PANEL',frequency:'M',notes:'Checked'},
-  {period_month:'2026-11-01',work_type:'PM',status:'DONE',work_date:'2026-11-16',original_area:'CARBON FILTER BUILDING',original_equipment:'BACKWASH PUMP 1',frequency:'Q'}
+  {period_month:'2026-11-01',work_type:'PM',status:'DONE',work_date:'2026-11-16',original_area:'CARBON FILTER BUILDING',original_equipment:'BACKWASH PUMP 1',frequency:'Q'},
+  {period_month:'2026-11-01',work_type:'PM',status:'NEED CM',work_date:null,original_area:'INTAKE',original_equipment:'PUMP 1',raw_data:{template_row:11}},
+  {period_month:'2026-11-01',work_type:'PM',status:'NOT IN SERVICE',work_date:null,original_area:'INTAKE',original_equipment:'PUMP 2',raw_data:{template_row:12}},
+  {period_month:'2026-11-01',work_type:'PM',status:'UNVERIFIED',work_date:null,original_area:'INTAKE',original_equipment:'PUMP 3',raw_data:{template_row:13}},
+  {period_month:'2026-11-01',work_type:'PM',status:'OTHERS',work_date:null,original_area:'INTAKE',original_equipment:'PUMP 4',raw_data:{template_row:14}}
  ];
  const downloadStarted=page.waitForEvent('download');
  const result=await page.evaluate(async data=>window.WSMaintenanceExcel.exportMonth(data),{
   template:{template_b64:input,template_rows:layout},rows:records,month:'2026-11'
  });
  const download=await downloadStarted;
- expect(result.included).toBe(3);
+ expect(result.included).toBe(7);
  expect(download.suggestedFilename()).toBe('WADI JAZAN 11-26.xlsx');
  const produced=new ExcelJS.Workbook();
  await produced.xlsx.load(await fs.readFile(await download.path()));
@@ -116,6 +124,10 @@ test('exports a readable multi-sheet XLSX with undated NOT DONE and unchanged so
  expect(output.getCell('H8').value).toBeNull();
  expect(output.getCell('N9').value).toBe('DONE WITH COMMENT');
  expect(output.getCell('N10').value).toBe('DONE');
+ for(const [row,status] of [[11,'NEED CM'],[12,'NOT IN SERVICE'],[13,'UNVERIFIED'],[14,'OTHERS']]){
+  expect(output.getCell('N'+row).value).toBe(status);
+  expect(output.getCell('H'+row).value).toBeNull();
+ }
  expect(produced.getWorksheet('SJI').getCell('A1').value).toBe('SJI content must stay unchanged');
  const plan=await page.evaluate(({records,layout})=>window.WSMaintenanceExcel.plan(
   [{...records[0],status:'DONE'}],layout,'2026-11'),{records,layout});

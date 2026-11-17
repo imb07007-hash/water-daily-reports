@@ -5,7 +5,7 @@
  'use strict';
  const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
  const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
- const statuses=new Set(['DONE','NOT DONE','OTHERS','DONE WITH COMMENT']);
+ const statuses=new Set(['DONE','NOT DONE','OTHERS','DONE WITH COMMENT','NEED CM','NOT IN SERVICE','UNVERIFIED']);
  const norm=s=>String(s||'').normalize('NFKC').toUpperCase().replace(/[^A-Z0-9\u0621-\u064A]+/g,' ').trim();
  const num=v=>(v===null||v===undefined||v===''||!Number.isFinite(Number(v)))?null:Number(v);
  const isoDate=v=>/^20\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(String(v||''))?String(v):'';
@@ -32,8 +32,8 @@
    if(String(r.period_month||'').slice(0,7)!==month)continue;
    const date=extractDate(r),status=String(r.status||'');
    if(!statuses.has(status)){invalidStatus.push(r);continue}
-   // NOT DONE means no execution, so an execution date is not mandatory.
-   if(!date&&status!=='NOT DONE'){invalidDate.push(r);continue}
+   // Only completed work requires a verified execution date. Keep the recorded status unchanged.
+   if(!date&&(status==='DONE'||status==='DONE WITH COMMENT')){invalidDate.push(r);continue}
    if(r.work_type==='CM'){cm.push(r);continue}
    if(r.work_type==='SS'){ss.push(r);continue}
    if(r.work_type!=='PM'){unmapped.push(r);continue}
