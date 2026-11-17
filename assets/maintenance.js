@@ -1,7 +1,7 @@
 /* Maintenance module: one signed-in site, shared Supabase session, station-scoped Excel import. */
 (function(){
 'use strict';
-const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',period:'',search:'',preview:null,importing:false,loading:false};
+const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',frequencyFilter:'',period:'',search:'',preview:null,importing:false,loading:false};
 const PAGE=40,BATCH=100;
 let root=null,observer=null,bodyObserver=null,updatingDash=false,restoreFocus=null,restoreOverflow='';
 const el=id=>document.getElementById(id);
@@ -230,6 +230,7 @@ function recordsParams(id){
  if(M.assetId)p.asset_id='eq.'+M.assetId;
  if(M.type)p.work_type='eq.'+M.type;
  if(M.status)p.status='eq.'+M.status;
+ if(M.frequencyFilter)p.frequency='eq.'+M.frequencyFilter;
  if(M.period&&/^\d{4}-\d{2}$/.test(M.period))p.period_month='eq.'+M.period+'-01';
  return p;
 }
@@ -244,6 +245,9 @@ async function renderRecords(id){
  '<label>الحالة <select class="mw-select" id="mw-status">'+
  [['','الكل'],['DONE','DONE'],['NOT DONE','NOT DONE'],['NEED CM','NEED CM'],['OTHERS','OTHERS'],['NOT IN SERVICE','NOT IN SERVICE'],['UNVERIFIED','غير محدد']].
  map(([v,t])=>'<option value="'+v+'"'+(M.status===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
+ '<label>التكرار <select class="mw-select" id="mw-frequency">'+
+ [['','الكل'],['M','شهري M'],['Q','ربع سنوي Q'],['H','نصف سنوي H'],['Y','سنوي Y']].map(([v,t])=>
+ '<option value="'+v+'"'+(M.frequencyFilter===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
  '<label>الشهر <input type="month" class="mw-input" id="mw-period" value="'+h(M.period)+'"></label></div>';
  html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ التنفيذ / المصدر</th><th>التكرار</th><th>الحالة</th><th>الوصف والملاحظات</th><th>التكلفة (ر.س)</th><th>المصدر</th>'+ (canCorrect?'<th>المراجعة</th>':'') +'</tr></thead><tbody>'+
  list.map(r=>{
@@ -804,6 +808,7 @@ function onChange(e){
  if(e.target.id==='mw-station'){if(isStation())return;M.stationId=e.target.value;M.page=0;M.assetPage=0;M.assetId='';M.preview=null;update()}
  if(e.target.id==='mw-type'){M.type=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-status'){M.status=e.target.value;M.page=0;update()}
+ if(e.target.id==='mw-frequency'){M.frequencyFilter=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-period'){M.period=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-plan-period'){M.period=e.target.value;M.plannedPage=0;update()}
  if(e.target.id==='mw-template-area'){M.areaFilter=e.target.value;M.assetPage=0;update()}
@@ -821,7 +826,7 @@ function onClick(e){
  if(action==='goDaily'){setTab('daily');return}
  if(action==='goMonthly'){setTab('monthly');return}
  if(action==='asset'){M.assetId=b.dataset.asset;M.assetName=b.dataset.name;M.tab='records';M.page=0;update();return}
- if(action==='clearFilters'){M.assetId='';M.assetName='';M.type='';M.status='';M.period='';M.page=0;update();return}
+ if(action==='clearFilters'){M.assetId='';M.assetName='';M.type='';M.status='';M.frequencyFilter='';M.period='';M.page=0;update();return}
  if(action==='clearSearch'){M.search='';M.areaFilter='';M.assetPage=0;update();return}
  if(action==='viewRegistered'){M.assetView='registered';M.areaFilter='';M.assetPage=0;M.search='';update();return}
  if(action==='viewTemplate'){M.assetView='template';M.areaFilter='';M.assetPage=0;M.search='';update();return}
