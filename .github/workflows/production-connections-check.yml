@@ -25,6 +25,10 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Verify source can be read (GET only, no writes)
         run: node scripts/sync-production.cjs --check-source
+      - name: Full import preflight (real Excel + real Supabase, no writes)
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/sync-production.cjs --dry-run
       - name: Verify protected Supabase credential with SELECT only
         env:
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
