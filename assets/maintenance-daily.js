@@ -148,13 +148,18 @@
   const stats=ui('mw-today-summary'),list=ui('mw-today-records');if(!stats||!list)return;
   try{
    const rows=await getRows('maintenance_records',{station_id:'eq.'+id,work_date:'eq.'+date,
-    select:'id,work_type,frequency,original_equipment,status,notes,cost,work_date,created_at',order:'created_at.desc',limit:'50'});
+    select:'id,created_by,work_type,frequency,original_equipment,status,notes,cost,work_date,created_at',order:'created_at.desc',limit:'50'});
    if(!stats.isConnected||!list.isConnected)return;
    const done=rows.filter(x=>x.status==='DONE'||x.status==='DONE WITH COMMENT').length;
    stats.innerHTML='<div><strong>'+format(rows.length)+'</strong><small>عمل مسجل</small></div>'+ 
     '<div><strong>'+format(done)+'</strong><small>DONE</small></div>'+ 
     '<div><strong>'+format(rows.reduce((a,x)=>a+Number(x.cost||0),0))+'</strong><small>ر.س مسجلة</small></div>';
-   list.innerHTML=rows.length?rows.slice(0,20).map(r=>'<div class="mw-daily-item"><div><b>'+h(r.original_equipment||'معدة غير مسماة')+'</b><small>'+h(r.work_type)+(r.frequency?' · '+h(r.frequency):'')+' · '+h((r.notes||'').slice(0,110))+'</small></div>'+tag(r.status)+'</div>').join(''):
+   const role=bridge()?.role?.(),uid=bridge()?.userId?.();
+   list.innerHTML=rows.length?rows.slice(0,20).map(r=>{
+    const editable=['admin','superadmin'].includes(role)||!!r.created_by&&r.created_by===uid;
+    return '<div class="mw-daily-item"><div><b>'+h(r.original_equipment||'معدة غير مسماة')+'</b><small>'+h(r.work_type)+(r.frequency?' · '+h(r.frequency):'')+' · '+h((r.notes||'').slice(0,110))+'</small></div>'+
+     tag(r.status)+(editable?'<button type="button" class="mw-button" data-mw="dailyEdit" data-record="'+h(r.id)+'">تعديل</button>':'')+'</div>';
+   }).join(''):
     '<div class="mw-empty">لا توجد صيانة مسجلة لهذا اليوم.</div>';
   }catch(e){list.innerHTML='<div class="mw-notice mw-error">'+h(e.message)+'</div>'}
  }
