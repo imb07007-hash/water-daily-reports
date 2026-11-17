@@ -46,7 +46,7 @@ test('maintenance helper precedes maintenance UI and core executes at document e
 test('maintenance panel stays above operational modal and preserves audit/rollback actions',()=>{
  assert.match(read('assets/maintenance.css'),/#maintenanceModal\s*\{\s*z-index:390/);
  const code=read('assets/maintenance.js');
- for(const term of ['maintenance_correct_record','maintenance_rollback_import','WSMaintenanceImportGuard','preflightImport','restoreFocus']){
+ for(const term of ['maintenance_edit_record','maintenance_rollback_import','WSMaintenanceImportGuard','preflightImport','restoreFocus']){
   assert.ok(code.includes(term),term);
  }
 });
