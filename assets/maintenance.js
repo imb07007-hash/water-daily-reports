@@ -66,7 +66,9 @@ function open(tab){
  M.tab=requested==='daily'&&isStation()&&getId()!=='jizan'?'overview':requested;
  root.classList.remove('hidden');
  document.body.style.overflow='hidden';
- root.querySelector('[data-mw="close"]')?.focus();
+ root.querySelector('.mw-header h2').textContent=isMaintenance()?'صيانة '+stationName(getId()):'إدارة الصيانة';
+ root.querySelector('.mw-header small').textContent=isMaintenance()?'مساحة عمل مهندس الصيانة — محطة واحدة فقط':'شركة حلول المياه | متابعة المعدات وأعمال الصيانة';
+ root.querySelector(isMaintenance()?'[data-mw="engineerLogout"]':'[data-mw="close"]')?.focus();
  update();
 }
 function close(){
@@ -793,6 +795,7 @@ function onClick(e){
  if(action==='rollback'){void rollbackClick(b.dataset.importId);return}
 }
 async function dashboardMaintenance(){
+ if(isMaintenance())return;
  const container=el('dashboardContent');
  const summaryNode=container?.querySelector('.dashboard-summary');
  if(!accessible()||!container||!summaryNode||updatingDash)return;
