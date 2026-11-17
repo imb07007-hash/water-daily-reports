@@ -30,12 +30,12 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Read source safely and import if configured
         env:
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           if [ "$DRY_RUN" = "true" ]; then
             node scripts/sync-production.cjs --dry-run
-          elif [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+          elif [ -z "$SUPABASE_SECRET_KEY" ]; then
             echo "::warning::Missing protected Supabase credential. Source validation only; no data writes."
             node scripts/sync-production.cjs --check-source
           else
