@@ -161,13 +161,13 @@
   const stats=ui('mw-today-summary'),list=ui('mw-today-records');if(!stats||!list)return;
   try{
    const rows=await getRows('maintenance_records',{station_id:'eq.'+id,work_date:'eq.'+date,
-    select:'id,work_type,original_equipment,status,notes,cost,work_date,created_at',order:'created_at.desc',limit:'50'});
+    select:'id,work_type,frequency,original_equipment,status,notes,cost,work_date,created_at',order:'created_at.desc',limit:'50'});
    if(!stats.isConnected||!list.isConnected)return;
    const done=rows.filter(x=>x.status==='DONE'||x.status==='DONE WITH COMMENT').length;
    stats.innerHTML='<div><strong>'+format(rows.length)+'</strong><small>عمل مسجل</small></div>'+ 
     '<div><strong>'+format(done)+'</strong><small>DONE</small></div>'+ 
     '<div><strong>'+format(rows.reduce((a,x)=>a+Number(x.cost||0),0))+'</strong><small>ر.س مسجلة</small></div>';
-   list.innerHTML=rows.length?rows.slice(0,20).map(r=>'<div class="mw-daily-item"><div><b>'+h(r.original_equipment||'معدة غير مسماة')+'</b><small>'+h(r.work_type)+' · '+h((r.notes||'').slice(0,110))+'</small></div>'+tag(r.status)+'</div>').join(''):
+   list.innerHTML=rows.length?rows.slice(0,20).map(r=>'<div class="mw-daily-item"><div><b>'+h(r.original_equipment||'معدة غير مسماة')+'</b><small>'+h(r.work_type)+(r.frequency?' · '+h(r.frequency):'')+' · '+h((r.notes||'').slice(0,110))+'</small></div>'+tag(r.status)+'</div>').join(''):
     '<div class="mw-empty">لا توجد صيانة مسجلة لهذا اليوم.</div>';
   }catch(e){list.innerHTML='<div class="mw-notice mw-error">'+h(e.message)+'</div>'}
  }
@@ -252,9 +252,9 @@
     '<div class="mw-card"><div class="mw-top"><h3>التقرير الشهري — سجل الصيانة</h3>'+
     '<label>الشهر <input id="mw-exact-month" class="mw-input" type="month" value="'+h(month)+'"></label></div>'+
     '<div class="mw-notice">السجل الشهري متاح للعرض الآن. تصدير Excel بنفس تصميم المقاول يحتاج ملف القالب الأصلي لهذه المحطة.</div>'+
-    '<div class="mw-table-wrap"><table><thead><tr><th>DATE</th><th>AREA</th><th>UNIT</th><th>TYPE</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+
-    (rows.length?rows.slice(0,100).map(x=>'<tr><td>'+h(x.work_date||'')+'</td><td>'+h(x.original_area||'')+'</td><td>'+h(x.original_equipment||'')+'</td><td>'+h(x.work_type)+'</td><td>'+tag(x.status)+'</td><td>'+h(x.notes||'')+'</td><td>'+h(x.cost??'')+'</td></tr>').join(''):
-     '<tr><td colspan="7">لا توجد أعمال مسجلة في الشهر المختار.</td></tr>')+
+    '<div class="mw-table-wrap"><table><thead><tr><th>DATE</th><th>AREA</th><th>UNIT</th><th>TYPE</th><th>FREQUENCY</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+
+    (rows.length?rows.slice(0,100).map(x=>'<tr><td>'+h(x.work_date||'')+'</td><td>'+h(x.original_area||'')+'</td><td>'+h(x.original_equipment||'')+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.frequency||'—')+'</td><td>'+tag(x.status)+'</td><td>'+h(x.notes||'')+'</td><td>'+h(x.cost??'')+'</td></tr>').join(''):
+     '<tr><td colspan="8">لا توجد أعمال مسجلة في الشهر المختار.</td></tr>')+
     '</tbody></table></div><div class="mw-actions"><button class="mw-button main" data-mw="openExactDaily">＋ إدخال صيانة</button></div></div>';
    return;
   }
@@ -274,10 +274,10 @@
    '<div class="mw-card"><div class="mw-top"><h3>معاينة قبل التصدير</h3><span class="mw-muted">'+h(ctx.template.template_name)+' · '+h(month)+'</span></div>'+ 
    (blockers?'<div class="mw-notice mw-error">يوجد '+format(blockers)+' سجلًا يحتاج مراجعة للربط بالقالب أو للحالة والتاريخ؛ لن تُحذف السجلات عند التصدير.</div>':'')+
    '<div class="mw-report-readiness">'+(blockers?'تحتاج البيانات مراجعة قبل التصدير.':'جاهز للتصدير بالقالب الأصلي.')+'</div>'+ 
-   '<div class="mw-table-wrap"><table><thead><tr><th>تاريخ الصيانة</th><th>AREA</th><th>UNIT</th><th>النوع</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+ 
+   '<div class="mw-table-wrap"><table><thead><tr><th>تاريخ الصيانة</th><th>AREA</th><th>UNIT</th><th>النوع</th><th>FREQUENCY</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+ 
    (rows.length?rows.slice(0,60).map(x=>'<tr><td dir="ltr">'+h(x.work_date||'—')+'</td><td class="mw-note">'+h(x.original_area||x.maintenance_assets?.area||'')+'</td>'+ 
-    '<td class="mw-note">'+h(x.original_equipment||x.maintenance_assets?.asset_name||'')+'</td><td>'+h(x.work_type)+'</td><td>'+tag(x.status)+'</td>'+ 
-    '<td class="mw-note">'+h(x.notes||'')+'</td><td>'+h(x.cost==null?'—':format(x.cost))+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أعمال مسجلة للشهر المحدد. يمكنك تصدير القالب فارغًا.</td></tr>')+
+    '<td class="mw-note">'+h(x.original_equipment||x.maintenance_assets?.asset_name||'')+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.frequency||'—')+'</td><td>'+tag(x.status)+'</td>'+ 
+    '<td class="mw-note">'+h(x.notes||'')+'</td><td>'+h(x.cost==null?'—':format(x.cost))+'</td></tr>').join(''):'<tr><td colspan="8">لا توجد أعمال مسجلة للشهر المحدد. يمكنك تصدير القالب فارغًا.</td></tr>')+
    '</tbody></table></div><div class="mw-report-actions"><button class="mw-button main" data-mw="exactExport" type="button" '+(blockers?'disabled':'')+'>⬇ تصدير Excel بنفس القالب</button>'+ 
    '<button class="mw-button" type="button" data-mw="openExactDaily">＋ إدخال صيانة جديدة</button></div><div id="mw-month-export-status" aria-live="polite"></div></div>';
  }
