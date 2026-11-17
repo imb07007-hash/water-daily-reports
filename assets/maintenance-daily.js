@@ -2,7 +2,7 @@
    All database calls use the authenticated host bridge; template stays private. */
 (function(global){
  'use strict';
- const settings={stationId:'',type:'PM',area:'',choice:'',day:'',month:'',saving:false,exporting:false};
+ const settings={stationId:'',type:'PM',area:'',choice:'',search:'',frequency:'',day:'',month:'',saving:false,exporting:false};
  const contexts=new Map();
  const dateToday=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  settings.day=dateToday();settings.month=settings.day.slice(0,7);
@@ -51,29 +51,56 @@
  function types(){return '<option value="PM">PM — الصيانة الوقائية</option><option value="CM">CM — الصيانة التصحيحية</option><option value="SS">SS — الأعمال الخدمية</option>'}
  function optionsAreas(ctx,type){
   const source=type==='PM'&&ctx.template?ctx.layout:ctx.assets;
-  return [...new Set(source.map(x=>String(x.area||'').trim()||'غير محددة'))].sort((a,b)=>a.localeCompare(b,'en'));
+  const catalog=global.WSMaintenanceCatalog;
+  return catalog?catalog.areas(source):[...new Set(source.map(x=>String(x.area||'').trim()||'غير محددة'))];
  }
- function optionsEquipment(ctx,type,area){
-  if(type==='PM'&&ctx.template)return ctx.layout.filter(x=>x.area===area).map(x=>({id:'row:'+x.row,name:x.unit,meta:x}));
-  return ctx.assets.filter(a=>(String(a.area||'').trim()||'غير محددة')===area).map(a=>({id:'asset:'+a.id,name:a.asset_name,meta:a}));
+ function optionsEquipment(ctx,type,area='',query=''){
+  const catalog=global.WSMaintenanceCatalog;
+  if(type==='PM'&&ctx.template){
+   const source=catalog?catalog.list(ctx.layout,area,query):ctx.layout.filter(x=>!area||x.area===area);
+   return source.map(x=>({id:'row:'+x.row,name:x.unit,area:x.area||'غير محددة',meta:x}));
+  }
+  const assets=catalog?catalog.assetOptions(ctx.assets,area,query):ctx.assets.filter(x=>!area||x.area===area);
+  return assets.map(x=>({id:'asset:'+x.id,name:x.asset_name,area:x.area||'غير محددة',meta:x}));
+ }
+ function drawEquipment(form,ctx,preferred){
+  const type=form.elements.workType.value,area=form.elements.area.value||'',
+   search=form.elements.equipmentSearch.value||'',
+   options=optionsEquipment(ctx,type,area,search),choice=form.elements.equipment;
+  const old=preferred!==undefined?preferred:choice.value;
+  const total=type==='PM'&&ctx.template?ctx.layout.length:ctx.assets.length;
+  choice.innerHTML='<option value="">اختر المعدة / UNIT</option>'+
+   options.map(x=>'<option value="'+h(x.id)+'">'+h(area?x.name:x.area+' — '+x.name)+'</option>').join('');
+  choice.value=options.some(x=>x.id===old)?old:'';
+  const counter=ui('mw-equipment-count');
+  if(counter)counter.textContent='المعروض '+format(options.length)+' من أصل '+format(total)+' معدة'+
+    (type==='PM'&&ctx.template?' مسجلة في جدول Excel الأصلي':'');
+  updateLink(form,ctx);
  }
  function rebuildEquipment(form,ctx){
   const type=form.elements.workType.value,areas=optionsAreas(ctx,type),areaSelect=form.elements.area;
-  const oldArea=areaSelect.value;
-  areaSelect.innerHTML=areas.map(a=>'<option value="'+h(a)+'">'+h(a.replace(/\s+/g,' '))+'</option>').join('');
-  areaSelect.value=areas.includes(oldArea)?oldArea:areas[0]||'';
-  const options=optionsEquipment(ctx,type,areaSelect.value),choice=form.elements.equipment,oldChoice=choice.value;
-  choice.innerHTML=options.map(a=>'<option value="'+h(a.id)+'">'+h(a.name)+'</option>').join('');
-  choice.value=options.some(a=>a.id===oldChoice)?oldChoice:options[0]?.id||'';
+  const previous=areaSelect.value||settings.area||'';
+  areaSelect.innerHTML='<option value="">جميع المناطق — عرض جميع المعدات</option>'+
+   areas.map(a=>'<option value="'+h(a)+'">'+h(a)+'</option>').join('');
+  areaSelect.value=areas.includes(previous)?previous:'';
   form.querySelector('[data-cm-desc]').hidden=type==='PM';
-  updateLink(form,ctx);
+  form.elements.frequency.required=type==='PM';
+  drawEquipment(form,ctx,settings.choice);
+ }
+ function rebuildEquipmentChoiceOnly(form,ctx){
+  drawEquipment(form,ctx);
  }
  function updateLink(form,ctx){
   const selected=form.elements.equipment.value,box=form.querySelector('#wj-link-status');
   if(!box)return;
-  if(selected.startsWith('asset:')){box.textContent='معدة مرتبطة بدليل الأصول.';return}
+  if(!selected){box.textContent='اختر المعدة المطلوبة؛ منطقة AREA تُحفظ تلقائيًا من بيانات الجدول.';return}
+  if(selected.startsWith('asset:')){
+   const asset=ctx.assets.find(x=>'asset:'+x.id===selected);
+   box.textContent='AREA: '+(asset?.area||'غير محددة')+' — معدة مرتبطة بدليل الأصول.';return
+  }
   const row=Number(selected.slice(4)),link=ctx.links.get(row);
-  box.textContent=link?'مرتبطة بدليل المعدات: '+link.asset_name:'سيُحفظ اسم المعدة الأصلي ورقم صفها في القالب للمراجعة دون إنشاء معدة مكررة.';
+  const template=ctx.layout.find(x=>x.row===row);
+  box.textContent='AREA: '+(template?.area||'—')+' — '+(link?'مرتبطة بدليل المعدات: '+link.asset_name:'سيُحفظ اسم المعدة الأصلي ورقم صفها دون إنشاء معدة مكررة.');
  }
  function renderDailyMarkup(ctx,stationId,header){
   const areas=optionsAreas(ctx,settings.type),area=areas.includes(settings.area)?settings.area:areas[0]||'';
