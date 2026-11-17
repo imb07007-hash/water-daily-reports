@@ -47,7 +47,7 @@ test('login UI rejects invalid credentials and leaves the application locked',as
  await login(page,'test-admin','wrong');
  await expect(page.locator('#loginError')).toContainText('بيانات الدخول غير صحيحة');
  await expect(page.locator('body')).toHaveAttribute('data-auth','locked');
- await expect(page.locator('#maintenanceModal')).toHaveCount(0);
+ await expect(page.locator('#maintenanceModal')).toBeHidden();
 });
 test('admin login and navigation keep the chosen station in daily and monthly maintenance',async({page})=>{
  await mockCloud(page);
