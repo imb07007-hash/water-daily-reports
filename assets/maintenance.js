@@ -42,7 +42,7 @@ function build(){
  root.id='maintenanceModal';root.className='hidden';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','إدارة صيانة المحطات');
  root.innerHTML='<div class="mw-dialog"><div class="mw-header"><div class="mw-brand"><img alt="شعار شركة حلول المياه" src="'+h(host()?.logo?.()||'')+'"><div><h2>إدارة الصيانة</h2><small>شركة حلول المياه | متابعة المعدات وأعمال الصيانة</small></div></div><button class="mw-button mw-regular-close" data-mw="close" type="button">✕ إغلاق والعودة للتقارير</button><button class="mw-button mw-engineer-logout" data-mw="engineerLogout" type="button">⎋ تسجيل الخروج</button></div><nav class="mw-tabs" aria-label="أقسام الصيانة">'+
   [['overview','لوحة الصيانة'],['daily','＋ إدخال صيانة'],['assets','المعدات والأصول'],['records','سجلات الصيانة'],['planned','الجدول والدوريات'],['monthly','التقرير الشهري'],['import','استيراد Excel']].map(([key,title])=>'<button type="button" class="mw-tab" data-mw="tab" data-tab="'+key+'">'+title+'</button>').join('')+
-  '</nav><div class="mw-body" id="maintenanceBody"></div><div class="mw-foot">يُعرض لكل حساب نطاق المحطات المسموح له فقط • التواريخ غير المؤكدة تبقى مميزة عن التنفيذ الفعلي</div></div>';
+  '</nav><div class="mw-body" id="maintenanceBody"></div></div>';
  document.body.appendChild(root);
  root.addEventListener('click',onClick);
  root.addEventListener('change',onChange);
@@ -113,14 +113,14 @@ async function renderOverview(id){
  const rate=known?Math.round(100*n('done_count')/known):null;
  const gauge=host()?.gauge?.(rate,'#0362AF','level')||'';
  const panel=(label,value,caption)=>'<article class="mw-instrument"><span class="mw-instrument-label">'+h(label)+'</span>'+
-  '<strong class="mw-instrument-number">'+h(value)+'</strong><span class="mw-instrument-sub">'+h(caption)+'</span></article>';
+  '<strong class="mw-instrument-number">'+h(value)+'</strong>'+(caption?'<span class="mw-instrument-sub">'+h(caption)+'</span>':'')+'</article>';
  let html=toolbar()+'<div class="mw-actions" style="margin:0 0 12px"><button type="button" class="mw-button main" data-mw="goDaily">＋ إدخال صيانة جديدة</button><button type="button" class="mw-button" data-mw="goMonthly">⬇ التقرير الشهري</button></div><div class="mw-instrument-grid">'+
  '<article class="mw-instrument">'+gauge+'<span class="mw-instrument-label">نسبة DONE</span>'+
  '<strong class="mw-instrument-number">'+(rate===null?'—':rate+'%')+'</strong>'+
- '<span class="mw-instrument-sub">من السجلات ذات الحالة DONE أو NOT DONE فقط</span></article>'+
- panel('المعدات المؤكدة',fmt(n('asset_count')),'سجل الأصول المرتبط بالمحطة')+
+ '<span class="mw-instrument-sub">DONE / NOT DONE</span></article>'+
+ panel('المعدات',fmt(n('asset_count')),'')+
  panel('سجلات الصيانة',fmt(n('work_count')),'PM + CM + SS')+
- panel('أعمال الصيانة المجدولة',fmt(n('planned_count')),'تعريفات ودوريات؛ لا تُحسب منفذة')+
+ panel('الأعمال المجدولة',fmt(n('planned_count')),'')+
  '</div>';
  const kpis=[
   ['PM',n('pm_count')],['CM',n('cm_count')],['SS',n('ss_count')],
@@ -128,7 +128,7 @@ async function renderOverview(id){
   ['NOT IN SERVICE',n('out_of_service_count')],['غير محدد',n('unverified_count')]
  ];
  html+='<div class="mw-kpis">'+kpis.map(([label,value])=>'<div class="mw-kpi"><small>'+h(label)+'</small><strong>'+fmt(value)+'</strong></div>').join('')+'</div>';
- html+='<div class="mw-card" style="margin-top:14px"><div class="mw-top"><h3>أعمال الصيانة خلال آخر 12 شهرًا مسجلًا</h3><span class="mw-muted">اضغط على الشهر لعرض سجلاته</span></div>';
+ html+='<div class="mw-card" style="margin-top:14px"><div class="mw-top"><h3>أعمال الصيانة — آخر 12 شهرًا</h3></div>';
  const visible=months.slice(-12),maximum=Math.max(1,...visible.map(m=>Number(m.work_count||0)));
  html+='<div class="mw-month-chart">'+visible.map(m=>{
    const count=Number(m.work_count||0),done=Number(m.done_count||0);
@@ -139,24 +139,23 @@ async function renderOverview(id){
     '<span class="mw-month-total">'+fmt(count)+'</span>'+
     '<span class="mw-month-bar" style="height:'+height+'px"><span class="mw-month-done" style="height:'+doneH+'%"></span>'+
     '<span class="mw-month-other" style="height:'+(100-doneH)+'%"></span></span><small dir="ltr">'+h(label.slice(2))+'</small></button>';
-  }).join('')+'</div><p class="mw-small-note">الأزرق: DONE. البنفسجي: الحالات الأخرى. يعتمد العرض على شهر الجدول، ولا يعيد تفسير تواريخ الصيانة المدونة.</p></div>';
- html+='<div class="mw-card"><h3>ملخص جودة السجل والتكاليف</h3><div class="mw-status-grid">'+
+  }).join('')+'</div></div>';
+ html+='<div class="mw-card"><h3>التكاليف وحالة السجلات</h3><div class="mw-status-grid">'+
  [['التكاليف المسجلة',fmt(x.registered_cost||0)+' ر.س',''],['سجلات تحتاج ربطًا بمعدة',fmt(n('unlinked_count')),'warning'],['حالة OTHERS',fmt(n('other_count')),'purple']].map(([label,val,cls])=>
   '<div class="mw-status-item '+cls+'"><span>'+h(label)+'</span><strong>'+h(val)+'</strong></div>').join('')+
- '</div><p class="mw-small-note">التكاليف هي القيم المسجلة في جداول الصيانة، وقد تشمل أعمال NOT DONE؛ لا تُعرض باعتبارها مصروفات فعلية. السجلات غير المرتبطة بمعدة مؤكدة محفوظة مع اسمها الأصلي وملاحظاتها.</p></div>';
+ '</div></div>';
  if(history.length){
   html+='<div class="mw-card"><h3>الأرشيف التاريخي لمحطة وادي جيزان</h3>'+
-  '<p class="mw-small-note">تم نقل بيانات الصيانة من ملف المصدر، مع الاحتفاظ بالفترة والأحوال والتكاليف المدونة. لا تغيّر عملية النقل تاريخ الصيانة الأصلي.</p>'+
   '<div class="mw-status-grid">'+history.map(a=>
    '<div class="mw-status-item"><span>'+h(a.source_name)+'</span><strong>'+fmt(a.expected_records)+' سجل</strong></div>').join('')+
   '</div></div>';
  }
- html+='<div class="mw-card"><div class="mw-top"><h3>آخر عمليات استيراد Excel بواسطة المستخدمين</h3><button class="mw-button main" data-mw="goImport">استيراد Excel</button></div>';
+ html+='<div class="mw-card"><div class="mw-top"><h3>سجل الاستيراد</h3><button class="mw-button main" data-mw="goImport">استيراد Excel</button></div>';
  html+=imports.length?'<div class="mw-table-wrap"><table><thead><tr><th>اسم الملف</th><th>سجلات جديدة</th><th>معدات جديدة</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody>'+
  imports.map(i=>'<tr><td class="mw-note">'+h(i.file_name)+'</td><td>'+fmt(i.inserted_records)+'</td><td>'+fmt(i.inserted_assets)+'</td><td>'+h(i.status==='completed'?'مكتمل':i.status==='rolled_back'?'تم التراجع':i.status==='pending'?'غير مكتمل':'متوقف')+'</td><td>'+h(new Date(i.created_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}))+'</td><td>'+
  (i.created_by===host()?.userId?.()&&['completed','pending','failed'].includes(i.status)&&Date.now()-new Date(i.created_at).getTime()<24*3600000?'<button type="button" class="mw-button" data-mw="rollback" data-import-id="'+h(i.id)+'">التراجع</button>':'—')+
  '</td></tr>').join('')+
- '</tbody></table></div>':'<div class="mw-empty">لا توجد عمليات استيراد إضافية بواسطة المستخدمين.</div>';
+ '</tbody></table></div>':'<div class="mw-empty">لا توجد عمليات استيراد.</div>';
  el('maintenanceBody').innerHTML=html+'</div>';
  host()?.animateGauges?.(el('maintenanceBody'));
 }
@@ -178,7 +177,7 @@ async function renderTemplateAssets(id,layout){
  ).join('');
  const html=toolbar()+
  '<div class="mw-card"><div class="mw-top"><div><h3>دليل المعدات من جدول الصيانة الأصلي</h3>'+
- '<p class="mw-muted">AREA / UNIT — القائمة كاملة، مستقلة عن دليل الأصول المسجلة؛ لا يتم دمج المعدات المتشابهة.</p></div>'+
+ '</div>'+
  '<button type="button" class="mw-button" data-mw="viewRegistered">عرض دليل الأصول المسجلة</button></div>'+
  '<div class="mw-kpis" style="margin-bottom:12px">'+
  '<div class="mw-kpi"><small>مجموع معدات الجدول</small><strong>'+fmt(layout.length)+'</strong></div>'+
@@ -195,7 +194,7 @@ async function renderTemplateAssets(id,layout){
  '<table><thead><tr><th>AREA — المنطقة</th><th>UNIT — المعدة</th><th>FREQUENCY — التكرار</th><th>إدخال العمل</th></tr></thead><tbody>'+
  (listed.length?rows:'<tr><td colspan="4" class="mw-muted">لا توجد معدات مطابقة. امسح البحث أو اختر جميع المناطق.</td></tr>')+
  '</tbody></table></div>'+
- '<p class="mw-muted">معدات جدول PM: '+fmt(layout.length)+' صفًا أصليًا. عند اختيار المعدة تفتح شاشة الإدخال ويُحدد تكرار الصيانة لكل عمل بشكل مستقل.</p></div>';
+ '</div>';
  el('maintenanceBody').innerHTML=html;
 }
 async function renderAssets(id){
@@ -271,7 +270,7 @@ async function renderPlanned(id){
  if(M.period&&/^\d{4}-\d{2}$/.test(M.period))p.period_month='eq.'+M.period+'-01';
  const list=await getRows('maintenance_definitions',p);
  let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>جدول الأعمال والدوريات المخططة</h3>'+
- '<span class="mw-muted">هذه الصفوف مواعيد وتعريفات، وليست إثبات تنفيذ للصيانة.</span></div>'+
+ '</div>'+
  '<div class="mw-actions"><label>الشهر <input type="month" class="mw-input" id="mw-plan-period" value="'+h(M.period)+'"></label>'+
  '<button class="mw-button" data-mw="clearPlan">كل الأشهر</button></div>';
  html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>نوع الصيانة</th><th>التكرار</th><th>شهر الجدول</th><th>الحالة</th><th>مصدر التعريف</th></tr></thead><tbody>'+
@@ -292,7 +291,6 @@ function showCorrection(id){
  box.innerHTML='<div class="mw-card mw-correction"><h3>تصحيح سجل الصيانة</h3><p class="mw-muted">'+
   h(r.original_equipment||r.maintenance_assets?.asset_name||'')+' — '+h(r.source_sheet||'')+
   ' / صف '+h(r.source_row||'')+'</p>'+
-  '<div class="mw-notice">التعديل لا يمحو التاريخ الأصلي أو بيانات المصدر. سيُحفظ السبب والقيم السابقة والجديدة في سجل المراجعة.</div>'+
   '<form id="mw-correct-form" data-record="'+h(r.id)+'"><div class="mw-form-grid">'+
   '<label class="mw-label">الحالة<select class="mw-select" name="status">'+
   states.map(v=>'<option value="'+v+'"'+(v===r.status?' selected':'')+'>'+h(v)+'</option>').join('')+'</select></label>'+
@@ -346,8 +344,7 @@ async function submitCorrection(form){
 }
 function renderImport(id){
  el('maintenanceBody').innerHTML=toolbar()+'<div class="mw-card"><h3>استيراد المعدات وسجلات الصيانة من Excel</h3>'+
- '<p class="mw-muted">يمكن لحساب كل محطة استيراد ملفه الخاص. تُقرأ أوراق العمل محليًا في المتصفح، ويُحفظ في قاعدة البيانات فقط ما تؤكده بعد المعاينة.</p>'+
- '<div class="mw-notice">التنسيقات المدعومة: ملف قاعدة البيانات الموحدة (ورقة «قاعدة البيانات») أو الجداول الشهرية ذات أعمدة AREA / UNIT / FREQUENCY / DATE / STATUS / NOTES / COST، إضافة إلى قوائم المعدات. لا تُحوَّل الحالات غير المؤكدة إلى DONE.</div>'+
+  '<p class="mw-muted">Excel: AREA / UNIT / FREQUENCY / DATE / STATUS / NOTES / COST</p>'+
  '<div class="mw-actions"><input type="file" class="mw-input" accept=".xlsx,.xls" id="mw-file" aria-label="اختيار ملف Excel"><button type="button" class="mw-button main" data-mw="preview">فحص الملف ومعاينة البيانات</button></div>'+
  '<div id="mw-import-result">'+(M.preview?previewHtml(M.preview):'')+'</div></div>';
 }
@@ -641,8 +638,7 @@ function previewHtml(p){
  conflicts.slice(0,25).map(x=>'<tr><td>'+h(x.kind)+'</td><td class="mw-note">'+h(x.incoming.original_equipment||'—')+'</td>'+
  '<td>'+h(x.incoming.period_month?.slice(0,7)||'—')+'</td><td>'+h(x.incoming.status||'مجدول')+
  '</td><td>'+h(x.existing.status||'مجدول')+'</td><td class="mw-note">'+h(x.reason)+'</td></tr>').join('')+'</tbody></table></div>':'')+
- '<p class="mw-muted">لا تُحتسب الأعمال المخططة كصيانة منفذة. التكرارات تُتجاوز دون تعديل الأصل؛ التعارضات تتطلب تصحيح الملف أو مراجعة السجل الموجود.</p>'+
- '<div class="mw-preview"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>التاريخ الأصلي</th><th>الحالة</th></tr></thead><tbody>'+
+  '<div class="mw-preview"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>التاريخ الأصلي</th><th>الحالة</th></tr></thead><tbody>'+
  (p.sample.length?p.sample.map(x=>'<tr><td>'+h(x.name)+'</td><td>'+h(x.area)+'</td><td>'+h(x.type)+'</td><td>'+h(x.date)+'</td><td>'+badge(x.status)+'</td></tr>').join(''):'<tr><td colspan="5">الملف يحتوي على قائمة معدات فقط</td></tr>')+
  '</tbody></table></div><div id="mw-import-status"></div><div class="mw-actions" style="margin-top:12px">'+
  '<button class="mw-button main" type="button" data-mw="commitImport" '+(blocked||noNew?'disabled':'')+
@@ -779,7 +775,7 @@ function alertInline(text,err=false){
 }
 async function rollbackClick(id){
  if(!id||M.importing)return;
- if(!confirm('التراجع سيحذف فقط المعدات والأعمال التي أُضيفت ضمن عملية الاستيراد المختارة. لن يغير الأرشيف التاريخي أو التقارير التشغيلية. متابعة؟'))return;
+ if(!confirm('التراجع عن الاستيراد؟ ستُحذف الإضافات التي أُنشئت خلاله فقط.'))return;
  M.importing=true;
  try{
   const result=await rollbackImport(id);
