@@ -5,7 +5,7 @@ const vm=require('node:vm');
 
 const window={};
 vm.runInNewContext(fs.readFileSync('assets/maintenance-template-export.js','utf8'),{window});
-const {plan,excelSheetName,dateSerial}=window.WSMaintenanceExcel;
+const {plan,excelSheetName,dateSerial,frequencyColumn}=window.WSMaintenanceExcel;
 const layout=[{row:8,unit:'INTAKE WATER PUMP 1',area:'INTAKE'},{row:9,unit:'INTAKE WATER PUMP 2',area:'INTAKE'}];
 const rec=(id,type,row,more={})=>({
  id:String(id),work_type:type,period_month:'2026-11-01',
@@ -50,4 +50,14 @@ test('a named PM item can match unique canonical name without row ID',()=>{
 test('records from adjacent months never enter selected export',()=>{
  const result=plan([rec(1,'PM',8,{period_month:'2026-10-01'}),rec(2,'PM',8)],layout,'2026-11');
  assert.equal(result.included,1);
+});
+
+test('selected frequency follows the original D/E/F/G PM columns',()=>{
+ assert.equal(frequencyColumn('M'),'D');
+ assert.equal(frequencyColumn('Q'),'E');
+ assert.equal(frequencyColumn('H'),'F');
+ assert.equal(frequencyColumn('Y'),'G');
+ assert.equal(frequencyColumn('monthly'),'D');
+ assert.equal(frequencyColumn('half yearly'),'F');
+ assert.equal(frequencyColumn(''),null);
 });
