@@ -74,7 +74,7 @@
   choice.value=options.some(x=>x.id===old)?old:'';
   const counter=ui('mw-equipment-count');
   if(counter)counter.textContent='المعروض '+format(options.length)+' من أصل '+format(total)+' معدة'+
-    (type==='PM'&&ctx.template?' مسجلة في جدول Excel الأصلي':'');
+    '';
   updateLink(form,ctx);
  }
  function rebuildEquipment(form,ctx){
@@ -93,19 +93,19 @@
  function updateLink(form,ctx){
   const selected=form.elements.equipment.value,box=form.querySelector('#wj-link-status');
   if(!box)return;
-  if(!selected){box.textContent='اختر المعدة المطلوبة؛ منطقة AREA تُحفظ تلقائيًا من بيانات الجدول.';return}
+  if(!selected){box.textContent='اختر UNIT.';return}
   if(selected.startsWith('asset:')){
    const asset=ctx.assets.find(x=>'asset:'+x.id===selected);
-   box.textContent='AREA: '+(asset?.area||'غير محددة')+' — معدة مرتبطة بدليل الأصول.';return
+   box.textContent='AREA: '+(asset?.area||'غير محددة')+'';return
   }
   const row=Number(selected.slice(4)),link=ctx.links.get(row);
   const template=ctx.layout.find(x=>x.row===row);
-  box.textContent='AREA: '+(template?.area||'—')+' — '+(link?'مرتبطة بدليل المعدات: '+link.asset_name:'سيُحفظ اسم المعدة الأصلي ورقم صفها دون إنشاء معدة مكررة.');
+  box.textContent='AREA: '+(template?.area||'—')+''+(link?'':' · ربط غير مؤكد');
  }
  function renderDailyMarkup(ctx,stationId,header){
   const areas=optionsAreas(ctx,settings.type),area=areas.includes(settings.area)?settings.area:areas[0]||'';
   return header+'<section class="mw-daily-grid"><article class="mw-card mw-daily-card">'+
-   '<div class="mw-daily-heading"><div><span class="mw-overline">DAILY MAINTENANCE</span><h3>＋ إدخال صيانة جديدة</h3><p>سجل العمل مرة واحدة ليظهر في السجل اليومي والتقرير الشهري.</p></div>'+ 
+   '<div class="mw-daily-heading"><div><h3>＋ إدخال صيانة جديدة</h3></div>'+ 
    '<span class="mw-day-badge">'+h(settings.day)+'</span></div>'+ 
    '<form id="mw-daily-form" autocomplete="off"><div class="mw-daily-section-label">01 · بيانات العمل</div><div class="mw-form-grid">'+
    '<label class="mw-label">تاريخ الصيانة<input class="mw-input" name="workDate" type="date" required value="'+h(settings.day)+'"></label>'+
@@ -131,8 +131,7 @@
    '<div id="mw-daily-feedback" aria-live="polite"></div></form></article>'+ 
    '<aside class="mw-daily-side"><div class="mw-card"><h3>أعمال اليوم</h3><div id="mw-today-summary" class="mw-daily-kpis">جارٍ التحديث…</div>'+ 
    '<div id="mw-today-records" class="mw-daily-list"></div></div><div class="mw-card">'+
-   '<h3>جاهزية التقرير الشهري</h3><p class="mw-muted">'+
-   (ctx.template?'كل سجل تحفظه يظهر تلقائيًا في التقرير الشهري بالقالب الأصلي.':'تُحفظ سجلات الصيانة الشهرية لكل محطة، والتصدير المطابق لـ Excel يحتاج قالب المحطة الأصلي.')+'</p>'+ 
+   '<h3>التقرير الشهري</h3>'+ 
    '<div class="mw-daily-actions"><button type="button" class="mw-button main" data-mw="openExactMonthly">معاينة التقرير الشهري</button></div></div></aside></section>';
  }
  async function renderDaily(root,id,header){
@@ -140,9 +139,8 @@
   contexts.delete(id);
   const ctx=await loadContext(id);settings.stationId=id;
   if(!ctx.assets.length&&!ctx.layout.length){
-   root.innerHTML=header+'<div class="mw-card"><h3>ابدأ بتسجيل معدات المحطة</h3>'+
-    '<p class="mw-muted">لا توجد معدات مسجلة لهذه المحطة بعد. أضف المعدات من دليل الأصول، أو استورد جدول المعدات، ثم ابدأ الصيانة اليومية.</p>'+
-    '<button class="mw-button main" data-mw="tab" data-tab="assets" type="button">＋ إضافة معدات</button></div>';
+   root.innerHTML=header+'<div class="mw-card"><h3>لا توجد معدات</h3>'+
+        '<button class="mw-button main" data-mw="tab" data-tab="assets" type="button">＋ إضافة معدات</button></div>';
    return;
   }
   root.innerHTML=renderDailyMarkup(ctx,id,header);
@@ -228,7 +226,7 @@
     form.elements.notes.value='';form.elements.materials.value='';form.elements.sparePartsCost.value='';
     form.elements.cost.value='';form.elements.workers.value='';form.elements.hours.value='';form.elements.description.value='';
    }
-   if(feedback)feedback.innerHTML='<div class="mw-notice mw-success">تم حفظ الصيانة في سجل اليوم، وستظهر في تقرير '+h(date.slice(0,7))+'.</div>';
+   if(feedback)feedback.innerHTML='<div class="mw-notice mw-success">تم حفظ الصيانة.</div>';
    await renderToday(date,id);
    global.WSMaintenance?.refreshDashboard?.();
   }finally{settings.saving=false;buttons.forEach(b=>b.disabled=false)}
@@ -251,7 +249,7 @@
    root.innerHTML=header+
     '<div class="mw-card"><div class="mw-top"><h3>التقرير الشهري — سجل الصيانة</h3>'+
     '<label>الشهر <input id="mw-exact-month" class="mw-input" type="month" value="'+h(month)+'"></label></div>'+
-    '<div class="mw-notice">السجل الشهري متاح للعرض الآن. تصدير Excel بنفس تصميم المقاول يحتاج ملف القالب الأصلي لهذه المحطة.</div>'+
+    '<div class="mw-notice">تصدير Excel غير متاح: قالب المحطة غير مرفوع.</div>'+
     '<div class="mw-table-wrap"><table><thead><tr><th>DATE</th><th>AREA</th><th>UNIT</th><th>TYPE</th><th>FREQUENCY</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+
     (rows.length?rows.slice(0,100).map(x=>'<tr><td>'+h(x.work_date||'')+'</td><td>'+h(x.original_area||'')+'</td><td>'+h(x.original_equipment||'')+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.frequency||'—')+'</td><td>'+tag(x.status)+'</td><td>'+h(x.notes||'')+'</td><td>'+h(x.cost??'')+'</td></tr>').join(''):
      '<tr><td colspan="8">لا توجد أعمال مسجلة في الشهر المختار.</td></tr>')+
@@ -266,14 +264,13 @@
   const total=rows.reduce((n,x)=>n+Number(x.cost||0),0);
   const done=rows.filter(r=>r.status==='DONE'||r.status==='DONE WITH COMMENT').length;
   const blockers=(plan?.unmapped?.length||0)+(plan?.invalidStatus?.length||0)+(plan?.invalidDate?.length||0);
-  root.innerHTML=header+'<div class="mw-card mw-report-head"><div class="mw-report-intro"><span class="mw-overline">EXACT MONTHLY EXCEL</span>'+ 
-   '<h3>التقرير الشهري — بنفس قالب Excel الأصلي</h3><p>احتفظنا بورقتي القالب، وشعار الملف وألوانه وخطوطه والحدود وقوائم الحالة وورقة SJI.</p></div>'+ 
+  root.innerHTML=header+'<div class="mw-card mw-report-head"><div class="mw-report-intro">'+ 
+   '<h3>التقرير الشهري</h3></div>'+ 
    '<label class="mw-label">الشهر المطلوب<input id="mw-exact-month" class="mw-input" type="month" value="'+h(month)+'"></label></div>'+ 
    '<div class="mw-kpis mw-month-export-kpis">'+[['سجلات الشهر',rows.length],['DONE',done],['CM',rows.filter(x=>x.work_type==='CM').length],['SS',rows.filter(x=>x.work_type==='SS').length],['التكاليف المسجلة (ر.س)',format(total)]].map(x=>
     '<div class="mw-kpi"><small>'+h(x[0])+'</small><strong>'+h(x[1])+'</strong></div>').join('')+'</div>'+ 
    '<div class="mw-card"><div class="mw-top"><h3>معاينة قبل التصدير</h3><span class="mw-muted">'+h(ctx.template.template_name)+' · '+h(month)+'</span></div>'+ 
-   (blockers?'<div class="mw-notice mw-error">يوجد '+format(blockers)+' سجلًا يحتاج مراجعة للربط بالقالب أو للحالة والتاريخ؛ لن تُحذف السجلات عند التصدير.</div>':'')+
-   '<div class="mw-report-readiness">'+(blockers?'تحتاج البيانات مراجعة قبل التصدير.':'جاهز للتصدير بالقالب الأصلي.')+'</div>'+ 
+   (blockers?'<div class="mw-notice mw-error">يتعذر التصدير: '+format(blockers)+' سجل يحتاج مراجعة.</div>':'')+
    '<div class="mw-table-wrap"><table><thead><tr><th>تاريخ الصيانة</th><th>AREA</th><th>UNIT</th><th>النوع</th><th>FREQUENCY</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+ 
    (rows.length?rows.slice(0,60).map(x=>'<tr><td dir="ltr">'+h(x.work_date||'—')+'</td><td class="mw-note">'+h(x.original_area||x.maintenance_assets?.area||'')+'</td>'+ 
     '<td class="mw-note">'+h(x.original_equipment||x.maintenance_assets?.asset_name||'')+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.frequency||'—')+'</td><td>'+tag(x.status)+'</td>'+ 
@@ -291,7 +288,7 @@
   try{
    const ctx=await loadContext(id),rows=await monthRows(id,settings.month);
    const result=await global.WSMaintenanceExcel.exportMonth({template:ctx.template,rows,month:settings.month});
-   if(box)box.innerHTML='<div class="mw-notice mw-success">تم تصدير '+h(result.filename)+' مع '+format(result.included)+' سجلًا دون تغيير قالب SJI.</div>';
+   if(box)box.innerHTML='<div class="mw-notice mw-success">تم تصدير '+h(result.filename)+' — '+format(result.included)+' سجل.</div>';
   }catch(err){if(box)box.innerHTML='<div class="mw-notice mw-error">'+h(err.message)+'</div>';throw err}
   finally{settings.exporting=false;if(button)button.disabled=false}
  }
