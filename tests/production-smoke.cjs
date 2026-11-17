@@ -38,3 +38,4 @@ async function check(){
   }
  }
 })().catch(err=>{console.error(err);process.exitCode=1});
+// Deployment trigger probe (2026-11-17): no application behavior or credentials changed.
