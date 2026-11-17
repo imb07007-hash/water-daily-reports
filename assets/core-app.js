@@ -1528,12 +1528,17 @@ function accountsOpen(){
  accountsRefresh();
 }
 function accountTypeChanged(){
- const station=['station','maintenance'].includes($('accountType').value);
+ const role=$('accountType').value;
+ const station=['station','maintenance'].includes(role);
  $('accountStationField').classList.toggle('hidden',!station);
+ if(role==='maintenance'&&Object.values(STATION_PLANT_CODES).includes($('accountUsername').value)){
+  $('accountUsername').value='maint_'+$('accountStation').value;
+  $('accountPassword').value='';
+ }
  $('accountUsername').readOnly=false;
  $('accountPassword').readOnly=false;
  $('generatePassword').classList.remove('hidden');
- $('accountUsername').placeholder=station?'رمز المحطة أو اسم مخصص':'اسم المستخدم';
+ $('accountUsername').placeholder=role==='maintenance'?'مثال: maint_jizan':station?'رمز المحطة أو اسم مخصص':'اسم المستخدم';
  if(!station&&Object.values(STATION_PLANT_CODES).includes($('accountUsername').value)){
   $('accountUsername').value='';
   $('accountPassword').value='';
@@ -1944,7 +1949,14 @@ $('accountsClose').onclick=()=>{$('accountsModal').classList.add('hidden')};
 $('accountType').addEventListener('change',accountTypeChanged);
 $('accountStation').addEventListener('change',()=>{
  const code=STATION_PLANT_CODES[$('accountStation').value]||'';
- if($('accountType').value!=='station')return;
+ const role=$('accountType').value;
+ if(role==='maintenance'){
+  const name=$('accountUsername').value;
+  if(!name||name.startsWith('maint_')||Object.values(STATION_PLANT_CODES).includes(name))
+   $('accountUsername').value='maint_'+$('accountStation').value;
+  return;
+ }
+ if(role!=='station')return;
  if(!$('accountUsername').value||Object.values(STATION_PLANT_CODES).includes($('accountUsername').value)){
   $('accountUsername').value=code;
   $('accountPassword').value=code;
