@@ -37,7 +37,7 @@ test('CM and SS can grow beyond original four/five rows without truncating recor
 });
 test('unmapped and unsupported-status entries are flagged instead of silently omitted',()=>{
  const missing=rec(1,'PM',0,{raw_data:{},original_equipment:'UNKNOWN UNIT'});
- const unsupported=rec(2,'PM',8,{status:'NEED CM'});
+ const unsupported=rec(2,'PM',8,{status:'UNSUPPORTED SOURCE STATUS'});
  const result=plan([missing,unsupported],layout,'2026-11');
  assert.equal(result.unmapped.length,1);
  assert.equal(result.invalidStatus.length,1);
