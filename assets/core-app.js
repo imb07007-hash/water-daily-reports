@@ -462,12 +462,12 @@ async function closeSettings(){
 }
 function setAttr(e,object,key,value){object[key]=value;saveStations();if(['visible','kind','auto'].includes(key))renderSettings()}
 function renderSettings(){let s=editStation();let options=stations.map(x=>`<option value="${esc(x.id)}" ${x.id===s.id?'selected':''}>${esc(x.name)}</option>`).join('');let html=(isAdmin()?`<div class="settings-controls"><div class="field" style="flex:1;min-width:200px"><label>المحطة الجاري إعدادها</label><select class="control" id="editStationSelect">${options}</select></div><button class="btn primary" data-action="addStation">＋ إضافة محطة</button></div>`:`<div class="settings-controls"><strong>${esc(s.name)}</strong></div>`)+`<div class="settings-controls"><div class="field" style="flex:1"><label>الاسم الرسمي للمحطة</label><input class="control" data-settings-name="1" value="${esc(s.name)}"></div></div>`;
-html+=`<div class="setting-group"><h3>المؤشرات التشغيلية (${s.metrics.length})</h3><p class="setting-subtitle">تغيير الاسم والوحدة والترتيب، وإخفاء المؤشر، وتفعيل الحساب الآلي.</p>`;
+html+=`<div class="setting-group"><h3>المؤشرات التشغيلية (${s.metrics.length})</h3>`;
 for(let [i,m] of s.metrics.entries()){
 let opts=[['','يدوي'],['lines','مجموع الخطوط'],['gates','مجموع البوابات'],['pumps','مجموع محطات الضخ'],['meter','فرق العداد'],['wtp','مجموع WTP']].map(([v,l])=>`<option value="${v}" ${m.auto===v?'selected':''}>${l}</option>`).join('');
 html+=`<div class="setting-item" data-metric-row="${i}"><input class="control" title="اسم المؤشر" data-m-setting="label" data-index="${i}" value="${esc(m.label)}"><input class="control" style="flex:0 1 100px" title="الوحدة" data-m-setting="unit" data-index="${i}" value="${esc(m.unit||'')}"><select class="control" style="flex:0 1 130px" title="مصدر الحساب" data-m-setting="auto" data-index="${i}">${opts}</select><label class="setting-inline"><input type="checkbox" data-m-setting="visible" data-index="${i}" ${m.visible!==false?'checked':''}>ظاهر</label><label class="setting-inline"><input type="checkbox" data-m-setting="required" data-index="${i}" ${m.required?'checked':''}>إلزامي</label><button class="btn icon-btn" data-action="moveMetricUp" data-index="${i}" title="للأعلى">↑</button><button class="btn icon-btn" data-action="moveMetricDown" data-index="${i}" title="للأسفل">↓</button><button class="btn danger icon-btn" data-action="removeMetric" data-index="${i}" title="حذف">×</button></div>`}
 html+=`<button class="btn" data-action="addMetric">＋ إضافة مؤشر</button></div>`;
-html+='<div class="setting-group"><h3>الأقسام والعناصر</h3><p class="setting-subtitle">القسم يمثل مجموعة خزانات أو خطوط أو بوابات أو كيماويات أو وحدات WTP أو قراءات عداد.</p>';
+html+='<div class="setting-group"><h3>الأقسام والعناصر</h3>';
 for(let [gi,g] of s.groups.entries()){
 html+=`<div class="setting-group" style="background:#f9fbfd"><div class="settings-controls"><input class="control" style="flex:1;min-width:150px" data-g-setting="title" data-gi="${gi}" value="${esc(g.title)}"><select class="control" style="flex:0 1 145px" data-g-setting="kind" data-gi="${gi}">${[['tanks','خزانات'],['bars','أشرطة ضخ/بوابات'],['values','كميات مواد ومرافق'],['wtp','WTP / RO'],['meter','قراءات عداد']].map(([k,l])=>`<option value="${k}" ${k===g.kind?'selected':''}>${l}</option>`).join('')}</select>${g.kind==='wtp'?`<select class="control" style="flex:0 1 110px" title="عدد وحدات WTP" data-g-setting="units" data-gi="${gi}">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${n===(g.units||2)?'selected':''}>${n} WTP</option>`).join('')}</select>`:''}<label class="setting-inline"><input type="checkbox" data-g-setting="visible" data-gi="${gi}" ${g.visible!==false?'checked':''}>إظهار</label><button class="btn danger" data-action="removeGroup" data-gi="${gi}">حذف القسم</button></div>`;
 for(let [ii,it] of g.items.entries())html+=`<div class="setting-item"><input class="control" data-it-setting="label" data-gi="${gi}" data-ii="${ii}" value="${esc(it.label)}"><input class="control" style="flex:0 1 105px" title="الوحدة" data-it-setting="unit" data-gi="${gi}" data-ii="${ii}" value="${esc(it.unit||'')}">${g.kind==='wtp'?`<label class="setting-inline"><input type="checkbox" data-it-setting="additive" data-gi="${gi}" data-ii="${ii}" ${it.additive?'checked':''}>قابل للجمع</label>`:''}<button class="btn danger icon-btn" data-action="removeItem" data-gi="${gi}" data-ii="${ii}" title="حذف العنصر">×</button></div>`;
@@ -625,10 +625,9 @@ function archiveHistoricalSection(records,period){
   const value=(r,key)=>r?dashboardNumeric(r[key]):null;
   const sum=(key)=>rows.reduce((n,r)=>n+(value(r,key)??0),0);
   const fileNames=[...new Set(rows.map(r=>r.source_file).filter(Boolean))];
-  const cards=[['إجمالي الإنتاج (م³)',fmt(sum('production_m3'))],['الأشهر المسجلة',fmt(rows.length)],['الديزل (م³ بحسب المصدر)',fmt(sum('diesel_consumption_m3'))],['الكهرباء (MW بحسب المصدر)',fmt(sum('electricity_consumption_mw'))]];
+  const cards=[['إجمالي الإنتاج (م³)',fmt(sum('production_m3'))],['الأشهر المسجلة',fmt(rows.length)],['الديزل (م³)',fmt(sum('diesel_consumption_m3'))],['الكهرباء (MW)',fmt(sum('electricity_consumption_mw'))]];
   html+='<section class="archive-block"><h3>إنتاج شهري تاريخي — '+esc(station)+' — '+esc(period.year)+'</h3>'+
-    '<p class="archive-hint">هذه مجاميع إنتاج شهرية من الملف السنوي الأصلي، وليست تقارير يومية. الفراغ لا يعني صفر إنتاج.</p>'+
-    '<div class="archive-overview">'+cards.map(([label,num])=>'<div class="archive-kpi"><strong>'+esc(num)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>';
+        '<div class="archive-overview">'+cards.map(([label,num])=>'<div class="archive-kpi"><strong>'+esc(num)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>';
   if(period.mode==='yearly')html+=archiveChart(months.map(m=>({id:period.year+'-'+String(m).padStart(2,'0'),label:HIST_MONTHS[m-1],production:value(map.get(m),'production_m3')})));
   let tableRows='';
   for(const m of months){
@@ -641,9 +640,8 @@ function archiveHistoricalSection(records,period){
     '<td class="archive-num">'+esc(value(r,'electricity_consumption_mw')===null?'—':fmt(value(r,'electricity_consumption_mw')))+'</td><td>'+esc(change)+'</td></tr>';
   }
   html+='<div class="archive-table-scroll"><table class="archive-table"><thead><tr><th>الشهر</th><th>الإنتاج (م³)</th><th>الديزل (م³)</th><th>الكهرباء (MW)</th><th>تغير الإنتاج</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>'+
-   '<p class="archive-hint">نسبة التغير تقارن إجمالي إنتاج الشهر بالشهر السابق. وحدة الكهرباء (MW) كما وردت في الملف دون تحويل أو تصحيح.</p>'+
-   (rows.some(r=>r.source_note)?'<p class="archive-hint">'+esc(rows.find(r=>r.source_note)?.source_note||'')+'</p>':'')+
-   '<p class="archive-hint">المصدر: '+fileNames.map(esc).join('، ')+'</p></section>';
+      (rows.some(r=>r.source_note)?'<p class="archive-hint">'+esc(rows.find(r=>r.source_note)?.source_note||'')+'</p>':'')+
+   '</section>';
  }
  return html;
 }
@@ -678,8 +676,8 @@ function archiveSummary(rows,period,scope){
  }
  return '<div class="archive-overview">'+kpis.map(([label,value])=>
   '<div class="archive-kpi"><strong>'+esc(value===null?'—':typeof value==='number'?fmt(value):value)+'</strong><small>'+esc(label)+'</small></div>').join('')+'</div>'+
-  (expected!==null?'<p class="archive-missing-note">أيام دون تقرير: '+esc(fmt(Math.max(0,expected*chosenCount-rows.length)))+
-   ' (ضمن الفترة المنقضية فقط). البيانات الفارغة لا تُحتسب صفرًا.</p>':'');
+  (expected!==null?'<p class="archive-missing-note">تقارير غير مرسلة: '+esc(fmt(Math.max(0,expected*chosenCount-rows.length)))+
+   '</p>':'');
 }
 function archiveTimeLabel(r){
  if(r.source==='migration'){
@@ -750,7 +748,7 @@ function archiveDailySummary(rows){
   '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+
   '<th>تاريخ التقرير</th><th>عدد تقارير المحطات</th><th>الإنتاج (م³)</th><th>الخام (م³)</th><th>التصدير (م³)</th>'+
   '</tr></thead><tbody>'+table+'</tbody></table></div>'+
-  (groups.length>35?'<p class="archive-hint">الرسم يعرض أحدث 35 يومًا لديه تقارير؛ الجدول يشمل جميع الأيام ضمن البحث.</p>':'')+
+  ''+
   '</div>';
 }
 function archiveChart(groups){
@@ -765,7 +763,7 @@ function archiveChart(groups){
  }).join('');
  return '<div class="archive-block"><h3>اتجاه الإنتاج</h3><div class="archive-chart-scroll">'+
   '<div class="archive-barset"'+(width?' style="min-width:'+width+'px"':'')+'>'+bars+'</div></div>'+
-  '<p class="archive-hint">القيم المعروضة مجموع قراءات الإنتاج المسجلة لكل فترة. (—) تعني عدم توفر قراءة.</p></div>';
+  '</div>';
 }
 
 function archiveAnnualChanges(groups){
@@ -810,9 +808,8 @@ function archiveAnnualTrend(groups){
   '<span class="archive-trend-month">'+esc(g.label)+'</span></div>';
  }).join('')+'</div>';
  return '<div class="archive-block"><h3>ارتفاع وانخفاض الإنتاج خلال السنة</h3>'+
-  '<p class="archive-hint">مقارنة متوسط الإنتاج اليومي المُسجل لكل شهر بالشهر السابق مباشرة، وليس مقارنة مجموع أشهر متفاوتة في عدد الأيام.</p>'+
-  cards+'<div class="archive-chart-scroll">'+bars+'</div>'+
-  '<p class="archive-hint">لا تُعتبر الأشهر دون قراءات صفرًا. عند اختلاف عدد أيام التقارير أو المحطات المشاركة، تتأثر دقة المقارنة.</p></div>';
+    cards+'<div class="archive-chart-scroll">'+bars+'</div>'+
+  '</div>';
 }
 
 
@@ -833,7 +830,7 @@ function archiveGroupTable(groups,period){
  return '<div class="archive-block"><h3>'+(annual?'المقارنة الشهرية للإنتاج':'تفاصيل الأيام')+'</h3>'+
   '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+headings+
   '</tr></thead><tbody>'+body+'</tbody></table></div>'+
-  (annual?'<p class="archive-hint">النسبة: التغير في متوسط الإنتاج اليومي المسجل مقارنة بالشهر السابق. (—) تعني عدم توفر مقارنة.</p>':'')+
+  ''+
   '</div>';
 }
 function archiveStationTable(rows){
@@ -861,8 +858,7 @@ function archiveCustomMetrics(rows,scope){
  }).filter(Boolean);
  if(!entries.length)return '';
  return '<div class="archive-block"><h3>متوسط المؤشرات المسجلة — '+esc(st.name)+'</h3>'+
-  '<p class="archive-hint">متوسط القراءات اليومية المتاحة لكل مؤشر، دون اعتبار الخانات الفارغة صفرًا.</p>'+
-  '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+
+    '<div class="archive-table-scroll"><table class="archive-table"><thead><tr>'+
   '<th>المؤشر</th><th>الوحدة</th><th>متوسط القراءات</th><th>أيام القراءة</th></tr></thead>'+
   '<tbody>'+entries.join('')+'</tbody></table></div></div>';
 }
@@ -973,8 +969,8 @@ function archiveExcel(){
   'نوع السجل':'إنتاج شهري تاريخي',
   'الفترة':r.report_year+'-'+String(r.report_month).padStart(2,'0'),
   'الإنتاج (م³)':r.production_m3,
-  'الديزل (م³ بحسب المصدر)':r.diesel_consumption_m3,
-  'الكهرباء (MW بحسب المصدر)':r.electricity_consumption_mw,
+  'الديزل (م³)':r.diesel_consumption_m3,
+  'الكهرباء (MW)':r.electricity_consumption_mw,
   'ملف المصدر':r.source_file,
   'ملاحظات المصدر':r.source_note||''
  });
@@ -1032,8 +1028,7 @@ function archivePdf(){
   '<img alt="شعار شركة حلول المياه" src="'+LOGO+'"></header>'+
   '<div class="archive-print-actions"><button type="button" onclick="window.print()">طباعة / حفظ PDF</button></div>'+
   '<main>'+clone.innerHTML+'</main>'+
-  '<p class="archive-hint">تم إعداد هذا التقرير من القراءات المحفوظة في النظام. الأيام غير المسجلة لا تُحتسب إنتاجًا صفريًا.</p>'+
-  '</body></html>';
+    '</body></html>';
  printWindow.document.open();
  printWindow.document.write(html);
  printWindow.document.close();
