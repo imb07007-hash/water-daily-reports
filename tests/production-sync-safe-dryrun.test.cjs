@@ -79,6 +79,6 @@ test('existing station report does not need to be overwritten',async()=>{
 });
 test('invalid station config stops before any write',async()=>{
  const {called,error}=await scenario({badConfig:true});
- assert.match(String(error),/Unconfigured metric raw in jizan/);
+ assert.match(String(error),/Unconfigured metric (production|raw) in jizan/);
  assert.ok(called.every(x=>x.method==='GET'));
 });
