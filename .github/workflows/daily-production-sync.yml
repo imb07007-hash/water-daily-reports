@@ -1,0 +1,43 @@
+name: Daily production import (Google Drive read-only)
+on:
+  schedule:
+    - cron: '0 4 * * *' # Saudi Arabia 07:00 (UTC+3)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Read and validate only; do not write to Supabase
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-water-production-sync
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Excel reader
+        run: npm install --no-audit --no-fund
+      - name: Read source safely and import if configured
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            node scripts/sync-production.cjs --dry-run
+          elif [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::warning::Missing protected Supabase credential. Source validation only; no data writes."
+            node scripts/sync-production.cjs --check-source
+          else
+            node scripts/sync-production.cjs
+          fi
