@@ -1,0 +1,53 @@
+name: Verify daily production connections (read-only)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/production-connections-check.yml'
+      - '.github/workflows/daily-production-sync.yml'
+      - 'scripts/sync-production.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-read-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Excel reader
+        run: npm install --no-audit --no-fund
+      - name: Verify source can be read (GET only, no writes)
+        run: node scripts/sync-production.cjs --check-source
+      - name: Verify protected Supabase credential with SELECT only
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          node - <<'NODE'
+          const key = process.env.SUPABASE_SECRET_KEY;
+          if (!key || key.length < 25) {
+            console.error('SUPABASE_SECRET_KEY is missing or invalid');
+            process.exit(1);
+          }
+          (async () => {
+            const u = 'https://vksbjasfoysuwxdyeaed.supabase.co/rest/v1/stations?select=id&limit=1';
+            const r = await fetch(u, {
+              method: 'GET',
+              headers: {
+                apikey: key,
+                ...(key.startsWith('sb_secret_') ? {} : { Authorization: 'Bearer ' + key })
+              },
+              signal: AbortSignal.timeout(25000)
+            });
+            if (!r.ok) throw new Error('Supabase read-only check failed HTTP ' + r.status);
+            const data = await r.json();
+            if (!Array.isArray(data) || !data.length) throw new Error('Supabase query returned no stations');
+            console.log('Supabase read-only credentials verified; no rows were modified');
+          })().catch(e => { console.error(e.message); process.exitCode = 1; });
+          NODE
