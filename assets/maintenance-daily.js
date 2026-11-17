@@ -166,6 +166,7 @@
   const same=previous.some(x=>type==='PM'?Number(x.raw_data?.template_row)===templateRow:
    x.asset_id===asset.id&&norm(x.original_equipment)===norm(originalEquipment));
   if(same&&!global.confirm('يوجد سجل للمعدة نفسها في التاريخ ونوع الصيانة المحددين. هل تريد إضافة عمل آخر مستقل؟'))return;
+  if(form.elements.status.value==='DONE WITH COMMENT'&&!form.elements.notes.value.trim())throw Error('اكتب ملاحظة عند اختيار DONE WITH COMMENT.');
   const totalCost=readNum(form.elements.cost.value),partsCost=readNum(form.elements.sparePartsCost.value);
   const dateMonth=date.slice(0,7)+'-01';
   const row={station_id:id,asset_id:asset.id,work_type:type,frequency:'',period_month:dateMonth,work_date:date,
