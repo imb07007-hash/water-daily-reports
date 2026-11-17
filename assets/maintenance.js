@@ -59,7 +59,11 @@ function open(tab){
  if(!accessible()){return}
  build();
  if(root.classList.contains('hidden')){restoreFocus=document.activeElement;restoreOverflow=document.body.style.overflow;}
- M.stationId=getId();M.tab=tab||M.tab||'overview';root.classList.remove('hidden');
+ const requested=tab||M.tab||'overview';
+ if(requested==='daily'&&!isStation()&&getStations().some(x=>x.id==='jizan'))M.stationId='jizan';
+ else M.stationId=getId();
+ M.tab=requested==='daily'&&isStation()&&getId()!=='jizan'?'overview':requested;
+ root.classList.remove('hidden');
  document.body.style.overflow='hidden';
  root.querySelector('[data-mw="close"]')?.focus();
  update();
@@ -99,7 +103,7 @@ async function renderOverview(id){
  const gauge=host()?.gauge?.(rate,'#0362AF','level')||'';
  const panel=(label,value,caption)=>'<article class="mw-instrument"><span class="mw-instrument-label">'+h(label)+'</span>'+
   '<strong class="mw-instrument-number">'+h(value)+'</strong><span class="mw-instrument-sub">'+h(caption)+'</span></article>';
- let html=toolbar()+'<div class="mw-instrument-grid">'+
+ let html=toolbar()+'<div class="mw-actions" style="margin:0 0 12px"><button type="button" class="mw-button main" data-mw="goDaily">＋ إدخال صيانة جديدة</button><button type="button" class="mw-button" data-mw="goMonthly">⬇ التقرير الشهري</button></div><div class="mw-instrument-grid">'+
  '<article class="mw-instrument">'+gauge+'<span class="mw-instrument-label">نسبة DONE</span>'+
  '<strong class="mw-instrument-number">'+(rate===null?'—':rate+'%')+'</strong>'+
  '<span class="mw-instrument-sub">من السجلات ذات الحالة DONE أو NOT DONE فقط</span></article>'+
@@ -759,6 +763,8 @@ function onClick(e){
  if(action==='tab'){setTab(b.dataset.tab);return}
  if(action==='goImport'){setTab('import');return}
  if(action==='goRecords'){setTab('records');return}
+ if(action==='goDaily'){setTab('daily');return}
+ if(action==='goMonthly'){setTab('monthly');return}
  if(action==='asset'){M.assetId=b.dataset.asset;M.assetName=b.dataset.name;M.tab='records';M.page=0;update();return}
  if(action==='clearFilters'){M.assetId='';M.assetName='';M.type='';M.status='';M.period='';M.page=0;update();return}
  if(action==='clearSearch'){M.search='';M.assetPage=0;update();return}
@@ -810,8 +816,6 @@ async function dashboardMaintenance(){
  }finally{updatingDash=false}
 }
 function init(){
- const trigger=el('maintenanceLink');
- if(trigger)trigger.addEventListener('click',()=>open('overview'));
  build();
  const dc=el('dashboardContent');
  if(dc){observer=new MutationObserver(()=>{if(!dc.querySelector('.mw-dash-summary'))dashboardMaintenance()});observer.observe(dc,{childList:true});dashboardMaintenance()}
