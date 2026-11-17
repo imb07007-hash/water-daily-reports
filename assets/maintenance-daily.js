@@ -176,7 +176,7 @@
    source_file:'إدخال يومي من الموقع',source_sheet:global.WSMaintenanceExcel?.excelSheetName(date.slice(0,7))||'',
    source_row:null,source_ref:templateRow?'PM:'+templateRow:'',source_key:'WJ-DAILY:'+crypto.randomUUID(),
    original_status:form.elements.status.value,original_date:date,original_equipment:originalEquipment,original_area:originalArea,
-   import_issues:templateRow&&!ctx.links.get(templateRow)?['معدة القالب غير مرتبطة بمعدة مؤكدة']:[],
+   import_issues:templateRow&&!ctx.links.get(templateRow)?['غير مرتبط بمعدة مؤكدة']:[],
    raw_data:{entry_source:'site_daily',template_row:templateRow,template_version:ctx.template.version},
    created_by:bridge().userId()};
   settings.saving=true;
@@ -185,7 +185,7 @@
   try{
    const inserted=await api('/rest/v1/maintenance_records',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)});
    if(!Array.isArray(inserted)||inserted.length!==1)throw Error('لم يرجع تأكيد الحفظ من قاعدة البيانات.');
-   settings.day=date;settings.type=type;settings.area=originalArea;settings.choice=chosen;
+   settings.day=date;settings.month=date.slice(0,7);settings.type=type;settings.area=originalArea;settings.choice=chosen;
    if(afterSave==='again'){
     form.elements.notes.value='';form.elements.materials.value='';form.elements.sparePartsCost.value='';
     form.elements.cost.value='';form.elements.workers.value='';form.elements.hours.value='';form.elements.description.value='';
@@ -260,6 +260,9 @@
    }
   }
   if(target.name==='equipment')updateLink(form,contexts.get(settings.stationId));
+  if(target.name==='workDate'&&/^20\d{2}-\d{2}-\d{2}$/.test(target.value)){
+   settings.day=target.value;void renderToday(target.value,settings.stationId);
+  }
   return true;
  }
  function action(node){
