@@ -12,7 +12,7 @@
  const ui=id=>document.getElementById(id);
  const bridge=()=>global.WSMaintenanceHost;
  const allowed=station=>bridge()?.signedIn?.()&&bridge()?.stations?.().some(s=>s.id===station)&&(
-  bridge()?.role?.()!=='station'||bridge()?.stationId?.()===station);
+  !['station','maintenance'].includes(bridge()?.role?.())||bridge()?.stationId?.()===station);
  async function api(path,options={}){
   const resp=await bridge().authedFetch(path,options);
   if(!resp.ok){const body=await resp.json().catch(()=>({}));throw Error(body?.message||body?.details||'تعذر حفظ بيانات الصيانة ('+resp.status+').')}
@@ -22,13 +22,12 @@
  async function getRows(table,params){return api(endpoint(table,params))}
  async function loadContext(id){
   if(contexts.has(id))return contexts.get(id);
-  if(id!=='jizan')return null;
   const [templates,assets]=await Promise.all([
    getRows('maintenance_templates',{station_id:'eq.'+id,select:'template_name,template_sha256,template_b64,template_rows,version',limit:'1'}),
    getRows('maintenance_assets',{station_id:'eq.'+id,select:'id,asset_code,asset_name,area,source_aliases',order:'asset_name.asc',limit:'1500'})
   ]);
-  const template=templates[0];if(!template)throw Error('قالب الصيانة الأصلي غير متوفر لهذه المحطة.');
-  const layout=template.template_rows||[],assetList=assets.filter(a=>a.asset_code!=='UNVERIFIED_LINK');
+  const template=templates[0]||null;
+  const layout=template?.template_rows||[],assetList=assets.filter(a=>a.asset_code!=='UNVERIFIED_LINK');
   const placeholder=assets.find(a=>a.asset_code==='UNVERIFIED_LINK');
   const byName=new Map();
   for(const asset of assetList){
@@ -51,11 +50,11 @@
  const tag=v=>'<span class="mw-tag '+(v==='DONE'||v==='DONE WITH COMMENT'?'done':v==='NOT DONE'?'not':'unknown')+'">'+h(v)+'</span>';
  function types(){return '<option value="PM">PM — الصيانة الوقائية</option><option value="CM">CM — الصيانة التصحيحية</option><option value="SS">SS — الأعمال الخدمية</option>'}
  function optionsAreas(ctx,type){
-  const source=type==='PM'?ctx.layout:ctx.assets;
+  const source=type==='PM'&&ctx.template?ctx.layout:ctx.assets;
   return [...new Set(source.map(x=>String(x.area||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'en'));
  }
  function optionsEquipment(ctx,type,area){
-  if(type==='PM')return ctx.layout.filter(x=>x.area===area).map(x=>({id:'row:'+x.row,name:x.unit,meta:x}));
+  if(type==='PM'&&ctx.template)return ctx.layout.filter(x=>x.area===area).map(x=>({id:'row:'+x.row,name:x.unit,meta:x}));
   return ctx.assets.filter(a=>a.area===area).map(a=>({id:'asset:'+a.id,name:a.asset_name,meta:a}));
  }
  function rebuildEquipment(form,ctx){
@@ -101,13 +100,20 @@
    '<div id="mw-daily-feedback" aria-live="polite"></div></form></article>'+ 
    '<aside class="mw-daily-side"><div class="mw-card"><h3>أعمال اليوم</h3><div id="mw-today-summary" class="mw-daily-kpis">جارٍ التحديث…</div>'+ 
    '<div id="mw-today-records" class="mw-daily-list"></div></div><div class="mw-card">'+
-   '<h3>جاهزية التقرير الشهري</h3><p class="mw-muted">كل سجل تحفظه يظهر تلقائيًا في التقرير الشهري بالقالب الأصلي.</p>'+ 
+   '<h3>جاهزية التقرير الشهري</h3><p class="mw-muted">'+
+   (ctx.template?'كل سجل تحفظه يظهر تلقائيًا في التقرير الشهري بالقالب الأصلي.':'تُحفظ سجلات الصيانة الشهرية لكل محطة، والتصدير المطابق لـ Excel يحتاج قالب المحطة الأصلي.')+'</p>'+ 
    '<div class="mw-daily-actions"><button type="button" class="mw-button main" data-mw="openExactMonthly">معاينة التقرير الشهري</button></div></div></aside></section>';
  }
  async function renderDaily(root,id,header){
-  if(id!=='jizan'){root.innerHTML=header+'<div class="mw-card">'+h('الإدخال بالقالب الأصلي متاح حاليًا لمحطة وادي جيزان؛ لم تُحدَّد قوالب المحطات الأخرى.')+'</div>';return}
   if(!allowed(id))throw Error('لا توجد صلاحية لهذه المحطة.');
+  contexts.delete(id);
   const ctx=await loadContext(id);settings.stationId=id;
+  if(!ctx.assets.length&&!ctx.layout.length){
+   root.innerHTML=header+'<div class="mw-card"><h3>ابدأ بتسجيل معدات المحطة</h3>'+
+    '<p class="mw-muted">لا توجد معدات مسجلة لهذه المحطة بعد. أضف المعدات من دليل الأصول، أو استورد جدول المعدات، ثم ابدأ الصيانة اليومية.</p>'+
+    '<button class="mw-button main" data-mw="tab" data-tab="assets" type="button">＋ إضافة معدات</button></div>';
+   return;
+  }
   root.innerHTML=renderDailyMarkup(ctx,id,header);
   const form=ui('mw-daily-form');form.elements.workType.value=settings.type;
   rebuildEquipment(form,ctx);
@@ -150,7 +156,7 @@
   const chosen=form.elements.equipment.value;
   if(!chosen)throw Error('اختر المعدة قبل الحفظ.');
   let asset,originalEquipment,originalArea,templateRow=null;
-  if(type==='PM'){
+  if(type==='PM'&&ctx.template){
    templateRow=Number(chosen.replace('row:',''));
    const row=ctx.layout.find(x=>x.row===templateRow);if(!row)throw Error('المعدة غير موجودة في قالب الصيانة.');
    asset=ctx.links.get(templateRow)||ctx.placeholder;
@@ -175,10 +181,10 @@
    workers:readNum(form.elements.workers.value),hours:readNum(form.elements.hours.value),
    materials:form.elements.materials.value.trim(),spares:'',
    source_file:'إدخال يومي من الموقع',source_sheet:global.WSMaintenanceExcel?.excelSheetName(date.slice(0,7))||'',
-   source_row:null,source_ref:templateRow?'PM:'+templateRow:'',source_key:'WJ-DAILY:'+crypto.randomUUID(),
+   source_row:null,source_ref:templateRow?'PM:'+templateRow:'',source_key:'SITE-DAILY:'+crypto.randomUUID(),
    original_status:form.elements.status.value,original_date:date,original_equipment:originalEquipment,original_area:originalArea,
    import_issues:templateRow&&!ctx.links.get(templateRow)?['غير مرتبط بمعدة مؤكدة']:[],
-   raw_data:{entry_source:'site_daily',template_row:templateRow,template_version:ctx.template.version},
+   raw_data:{entry_source:'site_daily',template_row:templateRow,template_version:ctx.template?.version||null},
    created_by:bridge().userId()};
   settings.saving=true;
   const buttons=form.querySelectorAll('button[type="submit"]'),feedback=ui('mw-daily-feedback');
@@ -207,8 +213,20 @@
   return result;
  }
  async function renderMonthly(root,id,header){
-  if(id!=='jizan'){root.innerHTML=header+'<div class="mw-card">قالب التصدير الأصلي متاح حاليًا لمحطة وادي جيزان فقط.</div>';return}
   if(!allowed(id))throw Error('لا توجد صلاحية لهذه المحطة.');
+  if(id!=='jizan'){
+   settings.stationId=id;
+   const month=settings.month,rows=await monthRows(id,month);
+   root.innerHTML=header+
+    '<div class="mw-card"><div class="mw-top"><h3>التقرير الشهري — سجل الصيانة</h3>'+
+    '<label>الشهر <input id="mw-exact-month" class="mw-input" type="month" value="'+h(month)+'"></label></div>'+
+    '<div class="mw-notice">السجل الشهري متاح للعرض الآن. تصدير Excel بنفس تصميم المقاول يحتاج ملف القالب الأصلي لهذه المحطة.</div>'+
+    '<div class="mw-table-wrap"><table><thead><tr><th>DATE</th><th>AREA</th><th>UNIT</th><th>TYPE</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+
+    (rows.length?rows.slice(0,100).map(x=>'<tr><td>'+h(x.work_date||'')+'</td><td>'+h(x.original_area||'')+'</td><td>'+h(x.original_equipment||'')+'</td><td>'+tag(x.status)+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.notes||'')+'</td><td>'+h(x.cost??'')+'</td></tr>').join(''):
+     '<tr><td colspan="7">لا توجد أعمال مسجلة في الشهر المختار.</td></tr>')+
+    '</tbody></table></div><div class="mw-actions"><button class="mw-button main" data-mw="openExactDaily">＋ إدخال صيانة</button></div></div>';
+   return;
+  }
   const ctx=await loadContext(id),month=settings.month;
   settings.stationId=id;
   const rows=await monthRows(id,month);
