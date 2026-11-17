@@ -20,3 +20,17 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run actual browser login and XLSX roundtrip tests
         run: npm run test:e2e
+
+  production-smoke:
+    name: Verify live Render assets after release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: browser-excel-login
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify public production site and actual deployed XLSX writer
+        run: node tests/production-smoke.cjs
