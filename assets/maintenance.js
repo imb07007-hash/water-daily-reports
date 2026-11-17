@@ -1,7 +1,7 @@
 /* Maintenance module: one signed-in site, shared Supabase session, station-scoped Excel import. */
 (function(){
 'use strict';
-const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetId:'',assetName:'',type:'',status:'',period:'',search:'',preview:null,importing:false,loading:false};
+const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',period:'',search:'',preview:null,importing:false,loading:false};
 const PAGE=40,BATCH=100;
 let root=null,observer=null,bodyObserver=null,updatingDash=false,restoreFocus=null,restoreOverflow='';
 const el=id=>document.getElementById(id);
@@ -46,6 +46,7 @@ function build(){
  document.body.appendChild(root);
  root.addEventListener('click',onClick);
  root.addEventListener('change',onChange);
+ root.addEventListener('input',event=>{window.WSMaintenanceDaily?.input?.(event.target)});
  root.addEventListener('submit',onSubmit);
  root.addEventListener('click',e=>{if(e.target===root&&!M.importing)close()});
 }
@@ -164,9 +165,51 @@ function assetQuery(id){
  if(search)params.or='(asset_name.ilike.*'+search+'*,area.ilike.*'+search+'*,asset_code.ilike.*'+search+'*)';
  return params;
 }
+async function renderTemplateAssets(id,layout){
+ const source=window.WSMaintenanceCatalog;
+ if(!source)throw Error('تعذر تحميل دليل معدات الجدول. يرجى تحديث الصفحة.');
+ const areas=source.areas(layout),listed=source.list(layout,M.areaFilter,M.search);
+ const rows=listed.map((unit,i)=>
+  '<tr><td>'+h(unit.area||'غير محددة')+'</td>'+
+  '<td class="mw-note"><strong>'+h(unit.unit)+'</strong></td>'+
+  '<td><span class="mw-muted">يُحدّد عند إدخال الصيانة</span></td>'+
+  '<td><button class="mw-button main" type="button" data-mw="templateUnit" data-template-row="'+h(unit.row)+'" data-template-area="'+h(unit.area||'')+'">＋ تسجيل صيانة</button></td></tr>'
+ ).join('');
+ const html=toolbar()+
+ '<div class="mw-card"><div class="mw-top"><div><h3>دليل المعدات من جدول الصيانة الأصلي</h3>'+
+ '<p class="mw-muted">AREA / UNIT — القائمة كاملة، مستقلة عن دليل الأصول المسجلة؛ لا يتم دمج المعدات المتشابهة.</p></div>'+
+ '<button type="button" class="mw-button" data-mw="viewRegistered">عرض دليل الأصول المسجلة</button></div>'+
+ '<div class="mw-kpis" style="margin-bottom:12px">'+
+ '<div class="mw-kpi"><small>مجموع معدات الجدول</small><strong>'+fmt(layout.length)+'</strong></div>'+
+ '<div class="mw-kpi"><small>المعدات الظاهرة</small><strong>'+fmt(listed.length)+'</strong></div>'+
+ '<div class="mw-kpi"><small>مناطق AREA</small><strong>'+fmt(areas.length)+'</strong></div></div>'+
+ '<form id="mw-search-form" class="mw-actions mw-equipment-filters">'+
+ '<input class="mw-input" id="mw-search-input" type="search" placeholder="بحث بالمنطقة أو اسم UNIT أو رقم الصف" value="'+h(M.search)+'" maxlength="90" style="flex:2;min-width:210px">'+
+ '<select id="mw-template-area" class="mw-select" aria-label="تصفية قائمة المعدات حسب AREA">'+
+ '<option value="">جميع مناطق AREA</option>'+
+ areas.map(area=>'<option value="'+h(area)+'"'+(M.areaFilter===area?' selected':'')+'>'+h(area)+'</option>').join('')+
+ '</select><button type="submit" class="mw-button main">بحث</button>'+
+ '<button type="button" class="mw-button" data-mw="clearSearch">عرض الكل</button></form>'+
+ '<div class="mw-table-wrap mw-original-catalog" style="margin-top:13px">'+
+ '<table><thead><tr><th>AREA — المنطقة</th><th>UNIT — المعدة</th><th>FREQUENCY — التكرار</th><th>إدخال العمل</th></tr></thead><tbody>'+
+ (listed.length?rows:'<tr><td colspan="4" class="mw-muted">لا توجد معدات مطابقة. امسح البحث أو اختر جميع المناطق.</td></tr>')+
+ '</tbody></table></div>'+
+ '<p class="mw-muted">معدات جدول PM: '+fmt(layout.length)+' صفًا أصليًا. عند اختيار المعدة تفتح شاشة الإدخال ويُحدد تكرار الصيانة لكل عمل بشكل مستقل.</p></div>';
+ el('maintenanceBody').innerHTML=html;
+}
 async function renderAssets(id){
+ if(id==='jizan'&&M.assetView!=='registered'){
+  const registered=await getRows('maintenance_templates',{
+   select:'station_id,template_rows,template_name',station_id:'eq.'+id,limit:'1'
+  });
+  const template=registered[0];
+  if(template&&Array.isArray(template.template_rows)&&template.template_rows.length){
+   await renderTemplateAssets(id,template.template_rows);
+   return;
+  }
+ }
  const items=await getRows('maintenance_assets',assetQuery(id));
- let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>دليل المعدات والأصول</h3><button class="mw-button main" data-mw="goImport">رفع قائمة المعدات من Excel</button></div>'+
+ let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>دليل الأصول المسجلة في قاعدة البيانات</h3><div class="mw-actions">'+(id==='jizan'?'<button class="mw-button" data-mw="viewTemplate">معدات جدول Excel الأصلي</button>':'')+'<button class="mw-button main" data-mw="goImport">رفع قائمة المعدات من Excel</button></div></div>'+
  '<form id="mw-search-form" class="mw-actions"><input class="mw-input" id="mw-search-input" placeholder="اسم المعدة أو المنطقة أو المعرّف الداخلي" value="'+h(M.search)+'" style="flex:1" maxlength="70">'+
  '<button class="mw-button" type="submit">بحث</button><button class="mw-button" type="button" data-mw="clearSearch">مسح</button></form>';
  html+=items.length?'<div class="mw-table-wrap" style="margin-top:13px"><table><thead><tr><th>معرّف المعدة</th><th>اسم المعدة</th><th>المنطقة / المبنى</th><th>السجل</th></tr></thead><tbody>'+
@@ -762,6 +805,7 @@ function onChange(e){
  if(e.target.id==='mw-status'){M.status=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-period'){M.period=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-plan-period'){M.period=e.target.value;M.plannedPage=0;update()}
+ if(e.target.id==='mw-template-area'){M.areaFilter=e.target.value;M.assetPage=0;update()}
 }
 function onClick(e){
  const b=e.target.closest('[data-mw]');if(!b)return;
@@ -777,7 +821,13 @@ function onClick(e){
  if(action==='goMonthly'){setTab('monthly');return}
  if(action==='asset'){M.assetId=b.dataset.asset;M.assetName=b.dataset.name;M.tab='records';M.page=0;update();return}
  if(action==='clearFilters'){M.assetId='';M.assetName='';M.type='';M.status='';M.period='';M.page=0;update();return}
- if(action==='clearSearch'){M.search='';M.assetPage=0;update();return}
+ if(action==='clearSearch'){M.search='';M.areaFilter='';M.assetPage=0;update();return}
+ if(action==='viewRegistered'){M.assetView='registered';M.areaFilter='';M.assetPage=0;M.search='';update();return}
+ if(action==='viewTemplate'){M.assetView='template';M.areaFilter='';M.assetPage=0;M.search='';update();return}
+ if(action==='templateUnit'){
+  const row=Number(b.dataset.templateRow),area=b.dataset.templateArea||'';
+  if(window.WSMaintenanceDaily?.selectTemplateRow?.(row,area)){setTab('daily')}return;
+ }
  if(action==='assetPrev'){M.assetPage=Math.max(0,M.assetPage-1);update();return}
  if(action==='assetNext'){M.assetPage++;update();return}
  if(action==='recordsPrev'){M.page=Math.max(0,M.page-1);update();return}
