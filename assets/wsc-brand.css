@@ -1,0 +1,94 @@
+/* Official Water Solutions Company identity. Vector artwork: Illustrator master.
+   Source colour codes: #0362AF #50B4F2 #87329A #444444.
+   This stylesheet applies only visual styles; no site access or data logic. */
+:root {
+ --primary:#0362AF;
+ --cyan:#50B4F2;
+ --purple:#87329A;
+ --text:#444444;
+ --bg:#FFFFFF;
+ --wsc-blue:#0362AF;
+ --wsc-cyan:#50B4F2;
+ --wsc-purple:#87329A;
+ --wsc-text:#444444;
+ --wsc-white:#FFFFFF;
+ color-scheme:light;
+}
+body {color:var(--wsc-text)}
+body[data-auth="ready"],body[data-auth="maintenance"] {background:#F5F9FD}
+:where(button,a,input,select,textarea):focus-visible {outline:2px solid var(--wsc-cyan);outline-offset:2px}
+.btn.primary,.app-tools .btn.primary,.ws-send-btn {
+ background:var(--wsc-blue);
+ border-color:var(--wsc-blue);
+ color:white;
+}
+.btn.purple,.app-tools .btn.purple {background:var(--wsc-purple);border-color:var(--wsc-purple);color:#fff}
+.app-bar {background:var(--wsc-white)}
+.app-bar::after {background:linear-gradient(90deg,var(--wsc-purple),var(--wsc-blue),var(--wsc-cyan))}
+.app-brand h1,.panel-top h2,.preview-header h2,.edit-section h3,.modal-head h2 {color:var(--wsc-blue)}
+.app-brand .app-brand-logo-shell {background:var(--wsc-white);overflow:visible;line-height:0}
+.brand-logo-header {width:132px;height:79px;max-width:100%;object-fit:contain;object-position:center}
+.modal-brand-logo {width:95px;height:57px;object-fit:contain;object-position:center;flex:none}
+.report-company-logo {
+ width:202px!important;height:120px!important;object-fit:contain!important;
+ object-position:center!important;padding:4px!important;
+ background:#fff!important;border-radius:7px!important;
+}
+.login-screen {background:linear-gradient(145deg,#EFF8FF 0%,#FFFFFF 56%,#F5EDF8 100%)!important}
+.login-layout {border-top:4px solid var(--wsc-blue);box-shadow:0 16px 48px #0362AF1F}
+.login-form-side {background:#fff!important}
+.login-identity {flex-direction:column;align-items:center;gap:6px;max-width:100%;text-align:center}
+.login-logo-shell {
+ width:232px!important;height:138px!important;max-width:100%!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;
+ padding:0!important;overflow:visible!important;flex:none;
+}
+.login-logo-shell img,
+.login-logo-shell img.brand-logo-login {
+ display:block!important;width:100%!important;height:100%!important;
+ max-width:100%!important;object-fit:contain!important;object-position:center!important;
+ transform:none!important;clip-path:none!important;filter:none!important;
+}
+.login-identity-copy {border:0!important;padding:0!important;max-width:100%;text-align:center}
+.login-brand-name {color:var(--wsc-blue)!important}
+.login-brand-sub,.login-lead {color:var(--wsc-text)!important}
+.login-heading {color:var(--wsc-text)!important}
+.login-submit,
+.login-card .btn.login-submit {
+ background:var(--wsc-blue)!important;color:#fff!important;
+ border-color:var(--wsc-blue)!important;
+ box-shadow:0 8px 20px #0362AF30!important;
+}
+.login-submit:hover:not(:disabled) {background:#054D8A!important}
+.login-card .login-input:focus {border-color:var(--wsc-cyan)!important;box-shadow:0 0 0 3px #50B4F237!important}
+.login-footer-mark,.recovery-link {color:var(--wsc-purple)}
+.recovery-brand img {width:205px;height:125px;object-fit:contain}
+#dashboardModal .dashboard-plant,.panel,.modal,.ws-instrument,
+#maintenanceModal .mw-card,#maintenanceModal .mw-dialog {background-color:#fff}
+#dashboardModal .dashboard-plant-name {color:var(--wsc-blue)}
+#dashboardModal .dashboard-week-fill {background:linear-gradient(var(--wsc-cyan),var(--wsc-blue))}
+#maintenanceModal .mw-header h2,#maintenanceModal .mw-card h3,
+#maintenanceModal .mw-dash-summary h3 {color:var(--wsc-blue)}
+#maintenanceModal .mw-tab.active,#maintenanceModal .mw-button.main,
+#maintenanceModal .mw-chart-col .bar {background:var(--wsc-blue);border-color:var(--wsc-blue)}
+#maintenanceModal .mw-kpi:nth-child(3n):before {background:linear-gradient(90deg,var(--wsc-purple),var(--wsc-blue))}
+#maintenanceModal .mw-brand img {
+ width:128px;height:79px;padding:0 0 0 10px;object-fit:contain;object-position:center;
+}
+#chemicalsModal .modal-head,#archiveModal .modal-head,
+#dashboardModal .modal-head {border-top-color:var(--wsc-cyan)}
+@media(max-width:850px){
+ .login-logo-shell {width:208px!important;height:125px!important}
+ .brand-logo-header {width:115px;height:69px}
+}
+@media(max-width:500px){
+ .login-logo-shell {width:190px!important;height:115px!important}
+ .brand-logo-header {width:98px;height:60px}
+ .modal-brand-logo {width:72px;height:45px}
+ .report-company-logo {width:184px!important;height:109px!important}
+ #maintenanceModal .mw-brand img {width:94px;height:56px}
+}
+@media print {
+ .login-screen {display:none!important}
+ .report-company-logo {box-shadow:none!important}
+}
