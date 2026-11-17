@@ -2165,7 +2165,7 @@ async function load(){
  const all=await r.json(),seen=new Set();
  records=all.filter(v=>{const key=v.station_id+'|'+v.material.trim().toLowerCase()+'|'+v.stage;if(seen.has(key))return false;seen.add(key);return true});
  render();
- }catch(e){$('plantGrid').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; $('stats').innerHTML='';$('alerts').textContent=''}
+ }catch(e){$('plantGrid').innerHTML='<div class="empty">'+esc(e.message)+'</div>'; $('stats').innerHTML=''}
 }
 
 /* Same two-frame animation trigger as the user's reference dashboard:
@@ -2191,22 +2191,6 @@ function render(shouldAnimate=true){
  const stale=allRecords.filter(x=>ageDays(x.reading_date)>14);
  const st=[['محطات لها قراءات',new Set(allRecords.map(x=>x.station_id)).size,''],['مواد مراقبة',allRecords.length,''],['أقل من 30 يوم',crit.length,'critical'],['30–60 يومًا',warn.length,'warning'],['أكثر من 60 يومًا',good.length,'good'],['قراءات قديمة',stale.length,'warning']];
  $('stats').innerHTML=st.map(x=>'<div class="stat '+x[2]+'"><strong>'+fixed(x[1])+'</strong><small>'+esc(x[0])+'</small></div>').join('');
- const shortStationName={jizan:'جيزان',damad:'ضمد',marbah:'مربة',matari:'الماطري',muhayil:'محايل',bish:'بيش'};
- const alertItems=crit.slice(0,9),alertGroups=new Map();
- alertItems.forEach(x=>{
-  const plant=shortStationName[x.station_id]||(stations.find(s=>s.id===x.station_id)?.name||x.station_id);
-  if(!alertGroups.has(plant))alertGroups.set(plant,[]);
-  alertGroups.get(plant).push(x);
- });
- const alertDates=[...new Set(alertItems.map(x=>x.reading_date).filter(Boolean))],oneAlertDate=alertDates.length===1;
- $('alerts').innerHTML=crit.length?
-  '<strong>تنبيه المخزون:</strong> '+
-  [...alertGroups].map(([plant,items])=>'<strong>'+esc(plant)+':</strong> '+
-   items.map(x=>esc(x.material)+' '+esc(fixed(x.coverage_days))+' يوم'+
-    (!oneAlertDate&&x.reading_date?' ('+esc(x.reading_date)+')':'')).join('، ')).join(' | ')+
-  (crit.length>alertItems.length?' | +'+esc(crit.length-alertItems.length)+' مواد أخرى':'')+
-  (oneAlertDate?' · بتاريخ '+esc(alertDates[0]):'')
-  :'';
  const groups=new Map();
  selected.forEach(r=>{if(!groups.has(r.station_id))groups.set(r.station_id,[]);groups.get(r.station_id).push(r)});
  let entries=Array.from(groups.entries());
@@ -2275,7 +2259,7 @@ document.querySelectorAll('#chemRoot [data-stage]').forEach(el=>el.onclick=()=>{
 function reset(){
  initialUid='';user=null;role='';ownStation='';stations=[];records=[];filterStage='ALL';
  $('plantGrid').innerHTML='<div class="empty">جارٍ تحميل بيانات المواد الكيميائية…</div>';
- $('alerts').textContent='';$('stats').innerHTML='';
+ $('stats').innerHTML='';
  $('search').value='';$('sort').value='risk';$('feedback').textContent='';
  $('fMaterial').value='';$('fQuantity').value='';$('fDays').value='';$('fNotes').value='';
  $('editor').hidden=true;$('goEditor').hidden=true;
