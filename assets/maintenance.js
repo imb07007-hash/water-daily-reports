@@ -14,6 +14,18 @@ const isMaintenance=()=>host()?.role?.()==='maintenance';
 const isStation=()=>['station','maintenance'].includes(host()?.role?.());
 const getStations=()=>host()?.stations?.().filter(s=>s&&s.id)||[];
 const owns=id=>accessible()&&getStations().some(s=>s.id===id)&&(!isStation()||id===host()?.stationId?.());
+const canEditRecord=r=>!!r&&owns(r.station_id)&&(
+ ['admin','superadmin'].includes(host()?.role?.())||
+ (!!r.created_by&&r.created_by===host()?.userId?.()&&['station','maintenance'].includes(host()?.role?.()))
+);
+const EDIT_FIELDS=['work_type','frequency','work_date','status','description','notes','cost','spare_parts_cost','workers','hours','materials','spares'];
+const NULLABLE_EDIT_FIELDS=new Set(['work_date','cost','spare_parts_cost','workers','hours']);
+function recordValues(r){
+ const values={};
+ for(const key of EDIT_FIELDS)values[key]=r[key]??(NULLABLE_EDIT_FIELDS.has(key)?null:'');
+ for(const key of ['cost','spare_parts_cost','workers','hours'])if(values[key]!==null)values[key]=Number(values[key]);
+ return values;
+}
 const getId=()=>isStation()?host()?.stationId?.():(owns(M.stationId)?M.stationId:getStations()[0]?.id||'');
 const stationName=id=>getStations().find(s=>s.id===id)?.name||id;
 const message=(txt,isError=false)=>'<div class="mw-notice'+(isError?' mw-error':'')+'">'+h(txt)+'</div>';
@@ -56,7 +68,7 @@ function toolbar(){
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
-function setTab(tab){if(M.importing)return;if(tab==='assets'){M.assetView='template';M.areaFilter='';M.search='';}M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
+function setTab(tab){if(M.importing)return;M.focusRecordId='';if(tab==='assets'){M.assetView='template';M.areaFilter='';M.search='';}M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
  build();
@@ -224,8 +236,9 @@ async function renderAssets(id){
  el('maintenanceBody').innerHTML=html;
 }
 function recordsParams(id){
- const p={select:'id,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,source_file,source_sheet,source_row,original_date,original_status,original_equipment,original_area,import_issues,maintenance_assets(asset_name,area,asset_code)',
+ const p={select:'id,station_id,created_by,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,spare_parts_cost,workers,hours,materials,spares,source_file,source_sheet,source_row,original_date,original_status,original_equipment,original_area,import_issues,maintenance_assets(asset_name,area,asset_code)',
  station_id:'eq.'+id,order:'period_month.desc.nullslast,work_date.desc.nullslast,created_at.desc',limit:String(PAGE),offset:String(M.page*PAGE)};
+ if(M.focusRecordId){p.id='eq.'+M.focusRecordId;return p;}
  if(M.assetId)p.asset_id='eq.'+M.assetId;
  if(M.type)p.work_type='eq.'+M.type;
  if(M.status)p.status='eq.'+M.status;
@@ -236,7 +249,7 @@ function recordsParams(id){
 async function renderRecords(id){
  const list=await getRows('maintenance_records',recordsParams(id));
  M.visibleRecords=list;
- const canCorrect=host()?.role?.()==='superadmin';
+ const canReview=['admin','superadmin'].includes(host()?.role?.());
  let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>السجل التاريخي لأعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
  '<button class="mw-button" data-mw="clearFilters">عرض جميع السجلات</button></div>'+
  '<div class="mw-actions"><label>النوع <select class="mw-select" id="mw-type"><option value="">الكل</option>'+
@@ -248,7 +261,7 @@ async function renderRecords(id){
  [['','الكل'],['M','شهري M'],['Q','ربع سنوي Q'],['H','نصف سنوي H'],['Y','سنوي Y']].map(([v,t])=>
  '<option value="'+v+'"'+(M.frequencyFilter===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
  '<label>الشهر <input type="month" class="mw-input" id="mw-period" value="'+h(M.period)+'"></label></div>';
- html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ التنفيذ / المصدر</th><th>التكرار</th><th>الحالة</th><th>الوصف والملاحظات</th><th>التكلفة (ر.س)</th><th>المصدر</th>'+ (canCorrect?'<th>المراجعة</th>':'') +'</tr></thead><tbody>'+
+ html+=list.length?'<div class="mw-table-wrap" style="margin-top:14px"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>الشهر</th><th>تاريخ التنفيذ / المصدر</th><th>التكرار</th><th>الحالة</th><th>الوصف والملاحظات</th><th>التكلفة (ر.س)</th><th>المصدر</th>'+ '<th>الإجراءات</th>' +'</tr></thead><tbody>'+
  list.map(r=>{
   const unlinked=Array.isArray(r.import_issues)&&r.import_issues.includes('غير مرتبط بمعدة مؤكدة');
   const name=r.original_equipment||r.maintenance_assets?.asset_name||'—',area=r.original_area||r.maintenance_assets?.area||'—';
@@ -258,7 +271,9 @@ async function renderRecords(id){
    '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td>'+
    '<td>'+h(r.cost==null?'—':fmt(r.cost))+'</td><td class="mw-note"><small>'+h(r.source_sheet||r.source_file||'إدخال مباشر')+
    (r.source_row?' — صف '+h(r.source_row):'')+'</small></td>'+
- (canCorrect?'<td class="mw-actions"><button type="button" class="mw-button" data-mw="correct" data-record="'+h(r.id)+'">تصحيح</button><button type="button" class="mw-button" data-mw="audit" data-record="'+h(r.id)+'">السجل</button></td>':'')+'</tr>';
+ '<td class="mw-actions"><button type="button" class="mw-button" data-mw="inspect" data-record="'+h(r.id)+'">عرض</button>'+
+ (canEditRecord(r)?'<button type="button" class="mw-button main" data-mw="correct" data-record="'+h(r.id)+'">تعديل</button>'+
+ '<button type="button" class="mw-button" data-mw="audit" data-record="'+h(r.id)+'">سجل التعديلات</button>':'')+'</td></tr>';
  }).join('')+'</tbody></table></div>':
  '<div class="mw-empty">لا توجد أعمال صيانة مسجلة ضمن الفلاتر الحالية.</div>';
  html+='<div id="mw-record-editor"></div><div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
@@ -283,27 +298,65 @@ async function renderPlanned(id){
  '<span class="mw-muted">الصفحة '+(M.plannedPage+1)+'</span><button class="mw-button" data-mw="plannedNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  el('maintenanceBody').innerHTML=html;
 }
-function showCorrection(id){
- if(host()?.role?.()!=='superadmin')return;
+async function openRecordFromDaily(id){
+ if(!/^[0-9a-f-]{36}$/i.test(id)||!accessible())return;
+ M.focusRecordId=id;M.tab='records';M.page=0;M.assetId='';M.assetName='';
+ M.type='';M.status='';M.frequencyFilter='';M.period='';
+ await update();
+ if((M.visibleRecords||[]).some(r=>r.id===id))showCorrection(id);
+}
+function showRecordDetails(id){
  const r=(M.visibleRecords||[]).find(x=>x.id===id),box=el('mw-record-editor');
  if(!r||!box)return;
- const states=['DONE','NOT DONE','NEED CM','OTHERS','NOT IN SERVICE','UNVERIFIED'];
- box.innerHTML='<div class="mw-card mw-correction"><h3>تصحيح سجل الصيانة</h3><p class="mw-muted">'+
-  h(r.original_equipment||r.maintenance_assets?.asset_name||'')+' — '+h(r.source_sheet||'')+
-  ' / صف '+h(r.source_row||'')+'</p>'+
+ const rows=[
+  ['المعدة',r.original_equipment||r.maintenance_assets?.asset_name||'—'],
+  ['نوع الصيانة',r.work_type],['التكرار',r.frequency||'—'],
+  ['تاريخ التنفيذ',prettyDate(r.work_date)],['الحالة',r.status],
+  ['الوصف',r.description||'—'],['الملاحظات',r.notes||'—'],
+  ['التكلفة',r.cost??'—'],['تكلفة قطع الغيار',r.spare_parts_cost??'—'],
+  ['عدد العمال',r.workers??'—'],['الساعات',r.hours??'—'],
+  ['المستهلكات',r.materials||'—'],['قطع الغيار',r.spares||'—']
+ ];
+ box.innerHTML='<div class="mw-card mw-correction"><h3>تفاصيل سجل الصيانة</h3><div class="mw-form-grid">'+
+  rows.map(([label,val])=>'<div class="mw-label"><strong>'+h(label)+'</strong><div class="mw-muted">'+h(val)+'</div></div>').join('')+
+  '</div><div class="mw-actions" style="margin-top:12px">'+
+  (canEditRecord(r)?'<button class="mw-button main" type="button" data-mw="correct" data-record="'+h(r.id)+'">تعديل بيانات الصيانة</button>':
+    '<span class="mw-muted">هذا السجل للعرض فقط؛ التعديل لصاحب الإدخال أو الإدارة.</span>')+
+  '<button class="mw-button" type="button" data-mw="closeCorrection">إغلاق</button></div></div>';
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function showCorrection(id){
+ const r=(M.visibleRecords||[]).find(x=>x.id===id),box=el('mw-record-editor');
+ if(!r||!box)return;
+ if(!canEditRecord(r)){showRecordDetails(id);return;}
+ const states=['DONE','DONE WITH COMMENT','NOT DONE','NEED CM','OTHERS','NOT IN SERVICE','UNVERIFIED'];
+ const num=(n)=>r[n]===null||r[n]===undefined?'':h(r[n]);
+ const list=(name,values,value)=>'<select class="mw-select" name="'+name+'">'+
+  values.map(v=>'<option value="'+h(v)+'"'+(v===value?' selected':'')+'>'+h(v)+'</option>').join('')+'</select>';
+ box.innerHTML='<div class="mw-card mw-correction"><h3>تعديل سجل الصيانة</h3>'+
+  '<p class="mw-muted">'+h(r.original_equipment||r.maintenance_assets?.asset_name||'')+
+  ' — الحفظ متاح لصاحب السجل أو الأدمين أو السوبر أدمين فقط.</p>'+
   '<form id="mw-correct-form" data-record="'+h(r.id)+'"><div class="mw-form-grid">'+
-  '<label class="mw-label">الحالة<select class="mw-select" name="status">'+
-  states.map(v=>'<option value="'+v+'"'+(v===r.status?' selected':'')+'>'+h(v)+'</option>').join('')+'</select></label>'+
-  '<label class="mw-label">تاريخ التنفيذ الصحيح<input type="date" class="mw-input" name="workDate" value="'+h(prettyDate(r.work_date)==='—'?'':prettyDate(r.work_date))+'"></label>'+
-  '<label class="mw-label">التكلفة المدونة (ريال)<input type="number" step="0.01" min="0" class="mw-input" name="cost" value="'+h(r.cost??'')+'"></label>'+
-  '<label class="mw-label" style="grid-column:1/-1">الملاحظات<textarea class="mw-input" name="notes" rows="3" maxlength="4000">'+h(r.notes||'')+'</textarea></label>'+
-  '<label class="mw-label" style="grid-column:1/-1">سبب التصحيح (إلزامي)<textarea class="mw-input" name="reason" rows="2" minlength="5" maxlength="700" required placeholder="اذكر سبب التصحيح والمرجع الذي استندت إليه"></textarea></label>'+
-  '</div><div class="mw-actions" style="margin-top:12px"><button class="mw-button main" type="submit">حفظ التصحيح وتوثيقه</button>'+
+  '<label class="mw-label">نوع الصيانة'+list('workType',['PM','CM','SS'],r.work_type)+'</label>'+
+  '<label class="mw-label">التكرار / FREQUENCY<input class="mw-input" name="frequency" maxlength="100" value="'+h(r.frequency||'')+'"></label>'+
+  '<label class="mw-label">الحالة'+list('status',states,r.status)+'</label>'+
+  '<label class="mw-label">تاريخ تنفيذ الصيانة<input type="date" class="mw-input" name="workDate" value="'+h(r.work_date||'')+'"></label>'+
+  '<label class="mw-label">التكلفة الإجمالية (ريال)<input type="number" step="0.01" min="0" class="mw-input" name="cost" value="'+num('cost')+'"></label>'+
+  '<label class="mw-label">تكلفة قطع الغيار (ريال)<input type="number" step="0.01" min="0" class="mw-input" name="sparePartsCost" value="'+num('spare_parts_cost')+'"></label>'+
+  '<label class="mw-label">عدد العمال<input type="number" step="1" min="0" class="mw-input" name="workers" value="'+num('workers')+'"></label>'+
+  '<label class="mw-label">ساعات العمل<input type="number" step="0.01" min="0" class="mw-input" name="hours" value="'+num('hours')+'"></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">وصف العمل<textarea class="mw-input" name="description" rows="2" maxlength="3000">'+h(r.description||'')+'</textarea></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">المستهلكات / المواد<textarea class="mw-input" name="materials" rows="2" maxlength="4000">'+h(r.materials||'')+'</textarea></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">قطع الغيار المستخدمة<textarea class="mw-input" name="spares" rows="2" maxlength="4000">'+h(r.spares||'')+'</textarea></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">الملاحظات / COMMENT<textarea class="mw-input" name="notes" rows="4" maxlength="4000">'+h(r.notes||'')+'</textarea></label>'+
+  '<label class="mw-label" style="grid-column:1/-1">سبب التعديل (إلزامي للتوثيق)<textarea class="mw-input" name="reason" rows="2" minlength="5" maxlength="700" required placeholder="ما الذي تغيّر ولماذا؟"></textarea></label>'+
+  '</div><div class="mw-actions" style="margin-top:12px"><button class="mw-button main" type="submit">حفظ التعديلات</button>'+
   '<button class="mw-button" type="button" data-mw="closeCorrection">إلغاء</button></div></form><div id="mw-correction-feedback"></div></div>';
  box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 async function showAudit(id){
- if(host()?.role?.()!=='superadmin')return;
+ const rec=(M.visibleRecords||[]).find(r=>r.id===id);
+ if(!canEditRecord(rec))return;
  const target=el('mw-record-editor');if(!target)return;
  target.innerHTML=message('جارٍ تحميل سجل تصحيحات الصيانة...');
  try{
@@ -320,25 +373,40 @@ async function showAudit(id){
  }catch(err){target.innerHTML=message(err.message,true)}
 }
 async function submitCorrection(form){
- if(host()?.role?.()!=='superadmin')throw Error('هذه العملية متاحة للسوبر أدمن فقط.');
  const id=form.dataset.record,r=(M.visibleRecords||[]).find(x=>x.id===id);
- if(!r)throw Error('السجل غير متاح للتصحيح.');
+ if(!canEditRecord(r))throw Error('لا تملك صلاحية تعديل هذا السجل.');
  const reason=String(form.elements.reason.value||'').trim();
- if(reason.length<5)throw Error('يرجى إدخال سبب واضح للتصحيح.');
- const costText=form.elements.cost.value.trim(),cost=costText===''?null:Number(costText);
- if(cost!==null&&(!Number.isFinite(cost)||cost<0))throw Error('التكلفة غير صالحة.');
+ if(reason.length<5||reason.length>700)throw Error('اكتب سببًا واضحًا للتعديل (5 أحرف على الأقل).');
+ const number=(key)=>{
+  const raw=String(form.elements[key].value||'').trim();
+  if(!raw)return null;
+  const n=Number(raw);
+  if(!Number.isFinite(n)||n<0)throw Error('قيمة رقمية غير صالحة: '+key);
+  if(key==='workers'&&!Number.isInteger(n))throw Error('عدد العمال يجب أن يكون عددًا صحيحًا.');
+  return n;
+ };
+ const values={
+  work_type:form.elements.workType.value,frequency:form.elements.frequency.value.trim(),
+  work_date:form.elements.workDate.value||null,status:form.elements.status.value,
+  description:form.elements.description.value.trim(),notes:form.elements.notes.value.trim(),
+  cost:number('cost'),spare_parts_cost:number('sparePartsCost'),
+  workers:number('workers'),hours:number('hours'),
+  materials:form.elements.materials.value.trim(),spares:form.elements.spares.value.trim()
+ };
+ if(values.status==='DONE WITH COMMENT'&&!values.notes)throw Error('أدخل تعليقًا عند اختيار DONE WITH COMMENT.');
+ const expected=recordValues(r);
+ if(JSON.stringify(values)===JSON.stringify(expected))throw Error('لم تُدخل أي تغيير على السجل.');
  const button=form.querySelector('[type=submit]');button.disabled=true;
  try{
-  await request('/rest/v1/rpc/maintenance_correct_record',{
+  const result=await request('/rest/v1/rpc/maintenance_edit_record',{
    method:'POST',body:JSON.stringify({
-    p_id:id,p_status:form.elements.status.value,
-    p_work_date:form.elements.workDate.value||null,p_notes:form.elements.notes.value,
-    p_cost:cost,p_reason:reason
+    p_record_id:id,p_values:values,p_expected:expected,p_reason:reason
    })
   });
+  if(!result||result.updated!==true||result.id!==id)throw Error('لم يصل تأكيد الحفظ من قاعدة البيانات.');
   M.page=0;
   await update();
-  alertInline('تم حفظ التصحيح في السجل وتوثيق القيمة القديمة والجديدة.');
+  alertInline('تم حفظ التعديل وتوثيق الحساب والبيانات السابقة والجديدة وسبب التعديل.');
   refreshDashboardMaintenance();
  }finally{button.disabled=false}
 }
@@ -822,7 +890,7 @@ function onClick(e){
  if(action==='goDaily'){setTab('daily');return}
  if(action==='goMonthly'){setTab('monthly');return}
  if(action==='asset'){M.assetId=b.dataset.asset;M.assetName=b.dataset.name;M.tab='records';M.page=0;update();return}
- if(action==='clearFilters'){M.assetId='';M.assetName='';M.type='';M.status='';M.frequencyFilter='';M.period='';M.page=0;update();return}
+ if(action==='clearFilters'){M.focusRecordId='';M.assetId='';M.assetName='';M.type='';M.status='';M.frequencyFilter='';M.period='';M.page=0;update();return}
  if(action==='clearSearch'){M.search='';M.areaFilter='';M.assetPage=0;update();return}
  if(action==='viewRegistered'){M.assetView='registered';M.areaFilter='';M.assetPage=0;M.search='';update();return}
  if(action==='viewTemplate'){M.assetView='template';M.areaFilter='';M.assetPage=0;M.search='';update();return}
@@ -842,6 +910,8 @@ function onClick(e){
  if(action==='discardPreview'){M.preview=null;renderImport(getId());return}
  if(action==='commitImport'){importCommit();return}
  if(action==='correct'){showCorrection(b.dataset.record);return}
+ if(action==='inspect'){showRecordDetails(b.dataset.record);return}
+ if(action==='dailyEdit'){void openRecordFromDaily(b.dataset.record);return}
  if(action==='audit'){showAudit(b.dataset.record);return}
  if(action==='closeCorrection'){const box=el('mw-record-editor');if(box)box.innerHTML='';return}
  if(action==='rollback'){void rollbackClick(b.dataset.importId);return}
