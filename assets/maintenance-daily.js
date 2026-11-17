@@ -51,11 +51,11 @@
  function types(){return '<option value="PM">PM — الصيانة الوقائية</option><option value="CM">CM — الصيانة التصحيحية</option><option value="SS">SS — الأعمال الخدمية</option>'}
  function optionsAreas(ctx,type){
   const source=type==='PM'&&ctx.template?ctx.layout:ctx.assets;
-  return [...new Set(source.map(x=>String(x.area||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'en'));
+  return [...new Set(source.map(x=>String(x.area||'').trim()||'غير محددة'))].sort((a,b)=>a.localeCompare(b,'en'));
  }
  function optionsEquipment(ctx,type,area){
   if(type==='PM'&&ctx.template)return ctx.layout.filter(x=>x.area===area).map(x=>({id:'row:'+x.row,name:x.unit,meta:x}));
-  return ctx.assets.filter(a=>a.area===area).map(a=>({id:'asset:'+a.id,name:a.asset_name,meta:a}));
+  return ctx.assets.filter(a=>(String(a.area||'').trim()||'غير محددة')===area).map(a=>({id:'asset:'+a.id,name:a.asset_name,meta:a}));
  }
  function rebuildEquipment(form,ctx){
   const type=form.elements.workType.value,areas=optionsAreas(ctx,type),areaSelect=form.elements.area;
@@ -169,7 +169,7 @@
   }
   const previous=await getRows('maintenance_records',{station_id:'eq.'+id,work_date:'eq.'+date,work_type:'eq.'+type,
    select:'id,asset_id,original_equipment,raw_data',limit:'200'});
-  const same=previous.some(x=>type==='PM'?Number(x.raw_data?.template_row)===templateRow:
+  const same=previous.some(x=>type==='PM'&&ctx.template?Number(x.raw_data?.template_row)===templateRow:
    x.asset_id===asset.id&&norm(x.original_equipment)===norm(originalEquipment));
   if(same&&!global.confirm('يوجد سجل للمعدة نفسها في التاريخ ونوع الصيانة المحددين. هل تريد إضافة عمل آخر مستقل؟'))return;
   if(form.elements.status.value==='DONE WITH COMMENT'&&!form.elements.notes.value.trim())throw Error('اكتب ملاحظة عند اختيار DONE WITH COMMENT.');
@@ -222,7 +222,7 @@
     '<label>الشهر <input id="mw-exact-month" class="mw-input" type="month" value="'+h(month)+'"></label></div>'+
     '<div class="mw-notice">السجل الشهري متاح للعرض الآن. تصدير Excel بنفس تصميم المقاول يحتاج ملف القالب الأصلي لهذه المحطة.</div>'+
     '<div class="mw-table-wrap"><table><thead><tr><th>DATE</th><th>AREA</th><th>UNIT</th><th>TYPE</th><th>STATUS</th><th>NOTES</th><th>TOTAL COST</th></tr></thead><tbody>'+
-    (rows.length?rows.slice(0,100).map(x=>'<tr><td>'+h(x.work_date||'')+'</td><td>'+h(x.original_area||'')+'</td><td>'+h(x.original_equipment||'')+'</td><td>'+tag(x.status)+'</td><td>'+h(x.work_type)+'</td><td>'+h(x.notes||'')+'</td><td>'+h(x.cost??'')+'</td></tr>').join(''):
+    (rows.length?rows.slice(0,100).map(x=>'<tr><td>'+h(x.work_date||'')+'</td><td>'+h(x.original_area||'')+'</td><td>'+h(x.original_equipment||'')+'</td><td>'+h(x.work_type)+'</td><td>'+tag(x.status)+'</td><td>'+h(x.notes||'')+'</td><td>'+h(x.cost??'')+'</td></tr>').join(''):
      '<tr><td colspan="7">لا توجد أعمال مسجلة في الشهر المختار.</td></tr>')+
     '</tbody></table></div><div class="mw-actions"><button class="mw-button main" data-mw="openExactDaily">＋ إدخال صيانة</button></div></div>';
    return;
