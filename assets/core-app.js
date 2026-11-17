@@ -2297,7 +2297,7 @@ function chemicalsClose(){
 }
 $('chemicalsLink').addEventListener('click',chemicalsOpen);
 $('maintenanceLink').addEventListener('click',()=>{
- if(window.WSMaintenance?.open)window.WSMaintenance.open('overview');
+ if(window.WSMaintenance?.open)window.WSMaintenance.open('daily');
  else toast('تعذّر تحميل قسم الصيانة. حدّث الصفحة وحاول مجددًا.',true);
 });
 $('chemicalsClose').addEventListener('click',chemicalsClose);
