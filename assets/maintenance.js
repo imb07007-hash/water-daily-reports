@@ -9,8 +9,9 @@ const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','
 const fmt=x=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(x||0));
 const prettyDate=x=>x?String(x).slice(0,10):'—';
 const host=()=>window.WSMaintenanceHost;
-const accessible=()=>document.body.dataset.auth==='ready'&&!!host()?.signedIn?.();
-const isStation=()=>host()?.role?.()==='station';
+const accessible=()=>['ready','maintenance'].includes(document.body.dataset.auth)&&!!host()?.signedIn?.();
+const isMaintenance=()=>host()?.role?.()==='maintenance';
+const isStation=()=>['station','maintenance'].includes(host()?.role?.());
 const getStations=()=>host()?.stations?.().filter(s=>s&&s.id)||[];
 const owns=id=>accessible()&&getStations().some(s=>s.id===id)&&(!isStation()||id===host()?.stationId?.());
 const getId=()=>isStation()?host()?.stationId?.():(owns(M.stationId)?M.stationId:getStations()[0]?.id||'');
@@ -39,7 +40,7 @@ function build(){
  if(root)return;
  root=document.createElement('section');
  root.id='maintenanceModal';root.className='hidden';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','إدارة صيانة المحطات');
- root.innerHTML='<div class="mw-dialog"><div class="mw-header"><div class="mw-brand"><img alt="شعار شركة حلول المياه" src="'+h(host()?.logo?.()||'')+'"><div><h2>إدارة الصيانة</h2><small>شركة حلول المياه | متابعة المعدات وأعمال الصيانة</small></div></div><button class="mw-button" data-mw="close" type="button">✕ إغلاق والعودة للتقارير</button></div><nav class="mw-tabs" aria-label="أقسام الصيانة">'+
+ root.innerHTML='<div class="mw-dialog"><div class="mw-header"><div class="mw-brand"><img alt="شعار شركة حلول المياه" src="'+h(host()?.logo?.()||'')+'"><div><h2>إدارة الصيانة</h2><small>شركة حلول المياه | متابعة المعدات وأعمال الصيانة</small></div></div><button class="mw-button mw-regular-close" data-mw="close" type="button">✕ إغلاق والعودة للتقارير</button><button class="mw-button mw-engineer-logout" data-mw="engineerLogout" type="button">⎋ تسجيل الخروج</button></div><nav class="mw-tabs" aria-label="أقسام الصيانة">'+
   [['overview','لوحة الصيانة'],['daily','＋ إدخال صيانة'],['assets','المعدات والأصول'],['records','سجلات الصيانة'],['planned','الجدول والدوريات'],['monthly','التقرير الشهري'],['import','استيراد Excel']].map(([key,title])=>'<button type="button" class="mw-tab" data-mw="tab" data-tab="'+key+'">'+title+'</button>').join('')+
   '</nav><div class="mw-body" id="maintenanceBody"></div><div class="mw-foot">يُعرض لكل حساب نطاق المحطات المسموح له فقط • التواريخ غير المؤكدة تبقى مميزة عن التنفيذ الفعلي</div></div>';
  document.body.appendChild(root);
@@ -69,9 +70,15 @@ function open(tab){
  update();
 }
 function close(){
- if(M.importing)return;
+ if(M.importing||isMaintenance())return;
  root?.classList.add('hidden');document.body.style.overflow=restoreOverflow;M.preview=null;
  if(restoreFocus?.isConnected&&typeof restoreFocus.focus==='function')restoreFocus.focus();
+}
+function lock(){
+ root?.classList.add('hidden');
+ document.body.style.overflow='';
+ M.preview=null;
+ M.stationId='';M.loading=false;M.pendingUpdate=false;
 }
 function setTabs(){root?.querySelectorAll('.mw-tab').forEach(b=>{const active=b.dataset.tab===M.tab;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')})}
 async function update(){
@@ -758,6 +765,7 @@ function onClick(e){
  const b=e.target.closest('[data-mw]');if(!b)return;
  const action=b.dataset.mw;
  if(action==='close'){close();return}
+ if(action==='engineerLogout'){if(isMaintenance())void host()?.logout?.();return}
  if(M.importing)return;
  if(window.WSMaintenanceDaily?.action?.(b))return;
  if(action==='tab'){setTab(b.dataset.tab);return}
@@ -835,6 +843,6 @@ function init(){
  }
 },true);
 }
-window.WSMaintenance={open,close,refreshDashboard:dashboardMaintenance,refreshActive:update};
+window.WSMaintenance={open,close,lock,refreshDashboard:dashboardMaintenance,refreshActive:update};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
