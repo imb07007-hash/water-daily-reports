@@ -144,9 +144,17 @@
    is.appendChild(t);cell.appendChild(is);
   }
  }
+ function frequencyColumn(value){
+  const key=String(value??'').normalize('NFKC').trim().toUpperCase().replace(/\s+/g,' ');
+  const columns={M:'D',MONTHLY:'D',Q:'E',QUARTERLY:'E',
+   H:'F','H YEARLY':'F','HALF YEARLY':'F',SEMIANNUAL:'F',
+   Y:'G',YEARLY:'G',ANNUAL:'G'};
+  return columns[key]||null;
+ }
  function recordCells(doc,row,r,type){
   const date=extractDate(r),description=String(r.description||'').trim();
   let notes=String(r.notes||'').trim();
+  if(type!=='PM'&&r.frequency){notes+=(notes?' — ':'')+'FREQUENCY: '+String(r.frequency).toUpperCase()}
   if(type==='PM'&&description)notes=(description+(notes?' — '+notes:''));
   const spares=String(r.spares||'').trim();
   if(spares&&!num(spares)&&num(r.spare_parts_cost)===null){notes+=(notes?' — ':'')+'قطع غيار: '+spares}
@@ -154,6 +162,12 @@
    put(doc,row,'B',r.original_area||r.maintenance_assets?.area||'');
    put(doc,row,'C',r.original_equipment||r.maintenance_assets?.asset_name||'');
    put(doc,row,'D',description);
+  }else{
+   const marked=frequencyColumn(r.frequency);
+   if(marked){
+    // PM frequency uses the existing M/Q/H/Y columns D/E/F/G in the original template.
+    for(const col of ['D','E','F','G'])put(doc,row,col,col===marked?'✓':'');
+   }
   }
   put(doc,row,'H',dateSerial(date));
   put(doc,row,'I',num(r.workers));
@@ -233,5 +247,5 @@
   downloadBlob(blob,output);
   return {filename:output,included:work.included,insertedRows:work.totalInserted,size:blob.size};
  }
- global.WSMaintenanceExcel=Object.freeze({plan,exportMonth,excelSheetName,dateSerial});
+ global.WSMaintenanceExcel=Object.freeze({plan,exportMonth,excelSheetName,dateSerial,frequencyColumn});
 })(window);
