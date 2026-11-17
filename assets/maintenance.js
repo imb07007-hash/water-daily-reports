@@ -214,7 +214,7 @@ async function renderAssets(id){
  '<button class="mw-button" type="submit">بحث</button><button class="mw-button" type="button" data-mw="clearSearch">مسح</button></form>';
  html+=items.length?'<div class="mw-table-wrap" style="margin-top:13px"><table><thead><tr><th>معرّف المعدة</th><th>اسم المعدة</th><th>المنطقة / المبنى</th><th>السجل</th></tr></thead><tbody>'+
  items.map(a=>'<tr><td>'+h(a.asset_code||'—')+'</td><td class="mw-note">'+h(a.asset_name)+'</td><td class="mw-note">'+h(a.area||'—')+'</td><td><button type="button" class="mw-button" data-mw="asset" data-asset="'+h(a.id)+'" data-name="'+h(a.asset_name)+'">عرض الصيانة</button></td></tr>').join('')+'</tbody></table></div>':
- '<div class="mw-empty">لا توجد معدات مطابقة. يمكنك إضافة معدات جديدة أو استيراد قائمتها من Excel.</div>';
+ '<div class="mw-empty">لا توجد معدات مطابقة.</div>';
  html+='<div class="mw-pager"><button type="button" class="mw-button" data-mw="assetPrev" '+(M.assetPage?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.assetPage+1)+'</span><button type="button" class="mw-button" data-mw="assetNext" '+(items.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  html+='<div class="mw-card"><h3>إضافة معدة واحدة</h3><form id="mw-add-asset"><div class="mw-form-grid">'+
  '<label class="mw-label">اسم المعدة<input class="mw-input" name="assetName" required minlength="2" maxlength="180" placeholder="مثال: INTAKE WATER PUMP 1"></label>'+
@@ -863,16 +863,13 @@ async function dashboardMaintenance(){
   const sums=k=>list.reduce((a,x)=>a+Number(x[k]||0),0);
   const assets=sums('asset_count'),works=sums('work_count'),done=sums('done_count'),undone=sums('not_done_count');
   const hasData=list.filter(x=>Number(x.work_count||0)>0);
-  const ratio=done+undone?Math.round(100*done/(done+undone)):null;
   const stationsWithData=hasData.map(x=>stationName(x.station_id)).join('، ');
   node.innerHTML='<div class="mw-top" style="border:0;padding:0;margin:0 0 10px"><div><h3>🔧 متابعة الصيانة</h3>'+
    '<p class="mw-muted" style="margin:3px 0">المحطات التي لديها بيانات صيانة: '+h(stationsWithData||'لا توجد سجلات مستوردة')+'</p></div>'+
    '<button type="button" id="mw-dashboard-open">فتح إدارة الصيانة</button></div>'+
    '<div class="mw-dash-row"><div class="mw-dash-values">'+
    [['المعدات المؤكدة',assets],['سجلات الصيانة',works],['DONE',done],['NOT DONE',undone]].
-   map(([label,num])=>'<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>'+
-   '<p class="mw-small-note">'+(ratio!==null?'نسبة DONE من الحالات الصريحة: '+ratio+'%. ':'')+
-   'يظهر ملخص المحطات التي تم إدخال بياناتها فقط؛ بقية المحطات لا تُعرض لها بيانات افتراضية.</p>';
+   map(([label,num])=>'<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>';
   el('mw-dashboard-open')?.addEventListener('click',()=>open('overview'));
  }catch(err){
   if(node.isConnected)node.innerHTML='<h3>🔧 متابعة الصيانة</h3>'+message('تعذر تحميل ملخص الصيانة.',true);
