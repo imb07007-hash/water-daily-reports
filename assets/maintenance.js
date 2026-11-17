@@ -765,8 +765,8 @@ function onClick(e){
  const b=e.target.closest('[data-mw]');if(!b)return;
  const action=b.dataset.mw;
  if(action==='close'){close();return}
- if(action==='engineerLogout'){if(isMaintenance())void host()?.logout?.();return}
  if(M.importing)return;
+ if(action==='engineerLogout'){if(isMaintenance())void host()?.logout?.();return}
  if(window.WSMaintenanceDaily?.action?.(b))return;
  if(action==='tab'){setTab(b.dataset.tab);return}
  if(action==='goImport'){setTab('import');return}
