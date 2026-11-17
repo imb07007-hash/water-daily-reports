@@ -1148,6 +1148,7 @@ async function openEngineerWorkspace(){
  const rows=await response.json();
  const row=rows.find(x=>x.id===currentStationId&&x.config?.id===currentStationId);
  if(!row)throw Error('المحطة غير مفعلة أو غير مصرح بها.');
+ if(!window.WSMaintenance?.open)throw Error('واجهة الصيانة غير جاهزة. يرجى تحديث الصفحة.');
  stations=[row.config];
  stationId=currentStationId;
  document.body.dataset.auth='maintenance';
@@ -1156,8 +1157,12 @@ async function openEngineerWorkspace(){
  $('accountRole').textContent='مهندس صيانة — '+(row.config?.name||currentStationId);
  $('accountRole').classList.remove('hidden');
  if(location.hash)history.replaceState(null,document.title,location.pathname+location.search);
- if(!window.WSMaintenance?.open)throw Error('واجهة الصيانة غير جاهزة. يرجى تحديث الصفحة.');
- window.WSMaintenance.open('daily');
+ try{window.WSMaintenance.open('daily')}
+ catch(error){
+  document.body.dataset.auth='locked';
+  $('loginScreen').classList.remove('hidden');
+  throw error;
+ }
 }
 async function enterApplication(){
  if(!authSession?.access_token)throw Error('أدخل بيانات الدخول');
