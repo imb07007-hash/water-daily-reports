@@ -50,9 +50,6 @@ async function main(){
  const parsed=core.parse(sheet);
  // Report date comes only from the scheduler's local date (yesterday in Riyadh).
  // The Excel header date is ignored completely.
- const semanticHash=core.fingerprint(Buffer.from(JSON.stringify(parsed.rows
-   .map(r=>({stationId:r.stationId,data:r.data}))
-   .sort((a,b)=>a.stationId.localeCompare(b.stationId))))).slice(0,16);
  console.log(`Excel read-only check: date=${parsed.productionDate}, stations=${parsed.rows.length}, sha256=${hash.slice(0,12)}`);
  if(process.argv.includes('--dry-run')||process.argv.includes('--check-source')){
   console.log('Validation mode: no database writes');
@@ -79,14 +76,17 @@ async function main(){
  }
  const from=core.plusDays(parsed.productionDate,-10);
  const history=await db(`reports?select=station_id,report_date,imported_from&station_id=in.(${IDS.join(',')})&report_date=gte.${from}&order=report_date.desc&limit=150`,key);
- // Even if only workbook formatting changed, never relabel identical data as a new day.
- const seen=await db('reports?select=station_id&imported_from=like.*'+semanticHash+'*&limit=1',key);
- if(seen.length){console.log('No import: station data matches an earlier imported snapshot');return;}
- const marker='sha256='+hash.slice(0,16)+':data_sha256='+semanticHash;
- if(history.some(x=>(x.imported_from||'').includes('sha256='+hash.slice(0,16)))){
-  console.log('Same Excel source revision was already imported; no writes');
+ // Identical measurements (e.g. tank level, TDS or zero production) are valid
+ // on different dates. Check only whether this exact Excel FILE revision
+ // has already been imported, independent of the measurement values.
+ const previousRevisions=await db(
+  'reports?select=imported_from&imported_from=like.*'+hash.slice(0,16)+'*&limit=10',key
+ );
+ if(core.sourceRevisionAlreadyImported(hash,previousRevisions)){
+  console.log('No import: this exact Excel file revision was imported previously');
   return;
  }
+ const marker='sha256='+hash.slice(0,16);
  const exists=new Set(history.map(x=>`${x.station_id}:${x.report_date}`));
  const inserts=parsed.rows.filter(r=>!exists.has(`${r.stationId}:${parsed.productionDate}`)).map(r=>({
   station_id:r.stationId,

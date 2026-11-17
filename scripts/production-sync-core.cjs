@@ -51,4 +51,10 @@ function parse(sheet,now=new Date()){
  return {productionDate,rows:[...found.values()]};
 }
 function fingerprint(b){return createHash('sha256').update(b).digest('hex');}
-module.exports={SOURCE_ID,REPORT_SHEET,norm,num,pct,plusDays,localDate,headerDate,parse,fingerprint};
+// Duplicate protection compares the source FILE revision, never the numeric measurements.
+// A tank percentage, production or TDS may legitimately be identical on consecutive days.
+function sourceRevisionAlreadyImported(fileSha256,records=[]){
+ const tag='sha256='+fileSha256.slice(0,16);
+ return records.some(r=>typeof r.imported_from==='string'&&r.imported_from.includes(tag));
+}
+module.exports={SOURCE_ID,REPORT_SHEET,norm,num,pct,plusDays,localDate,headerDate,parse,fingerprint,sourceRevisionAlreadyImported};

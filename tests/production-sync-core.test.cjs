@@ -56,3 +56,16 @@ test('Arabic separators and percentage fractions',()=>{
  assert.equal(sync.pct('85.6%'),'85.6');
  assert.equal(sync.pct('٩٧٪'),'97');
 });
+
+test('unchanged tank, production or TDS values never make a new daily report a duplicate',()=>{
+ const yesterday=sync.parse(mock(),new Date('2026-11-17T04:00:00Z'));
+ const today=sync.parse(mock(),new Date('2026-11-18T04:00:00Z'));
+ assert.notEqual(yesterday.productionDate,today.productionDate);
+ assert.deepEqual(today.rows.map(r=>r.data),yesterday.rows.map(r=>r.data));
+ const prior=[{imported_from:'google_drive_xlsx:source:2026-11-16:sha256=aaaaaaaaaaaaaaaa:row=94'}];
+ assert.equal(sync.sourceRevisionAlreadyImported('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',prior),false,
+  'new file may legitimately repeat every numeric reading');
+ assert.equal(sync.sourceRevisionAlreadyImported('aaaaaaaaaaaaaaaa0123456789abcdef',prior),true,
+  'same downloaded workbook must not be reused under a different report date');
+ assert.equal(sync.sourceRevisionAlreadyImported('cccccccccccccccc',[]),false);
+});
