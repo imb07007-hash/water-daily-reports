@@ -18,7 +18,7 @@
   yearMonth(month);
   const byName=new Map(),byNamedArea=new Map(),byRow=new Map();
   for(const t of layout){
-   const name=norm(t.unit),area=norm(t.area),id=Number(t.row);
+   const name=global.WSMaintenanceCatalog?.unitKey?.(t.unit)||norm(t.unit),area=global.WSMaintenanceCatalog?.areaKey?.(t.area)||norm(t.area),id=Number(t.row);
    if(id<8||id>284||!name)continue;
    byRow.set(id,t);
    if(!byName.has(name))byName.set(name,[]);
@@ -30,20 +30,23 @@
   const pm=new Map(),cm=[],ss=[],unmapped=[],invalidStatus=[],invalidDate=[];
   for(const r of rows){
    if(String(r.period_month||'').slice(0,7)!==month)continue;
-   const date=extractDate(r);
-   if(!date){invalidDate.push(r);continue}
-   if(!statuses.has(String(r.status||''))){invalidStatus.push(r);continue}
+   const date=extractDate(r),status=String(r.status||'');
+   if(!statuses.has(status)){invalidStatus.push(r);continue}
+   // NOT DONE means no execution, so an execution date is not mandatory.
+   if(!date&&status!=='NOT DONE'){invalidDate.push(r);continue}
    if(r.work_type==='CM'){cm.push(r);continue}
    if(r.work_type==='SS'){ss.push(r);continue}
    if(r.work_type!=='PM'){unmapped.push(r);continue}
    const explicit=Number(r.raw_data?.template_row);
    let target=Number.isInteger(explicit)?byRow.get(explicit):null;
    if(!target){
-    const name=norm(r.original_equipment||r.maintenance_assets?.asset_name);
-    const area=norm(r.original_area||r.maintenance_assets?.area);
+    const rawName=r.original_equipment||r.maintenance_assets?.asset_name;
+    const rawArea=r.original_area||r.maintenance_assets?.area;
+    const name=global.WSMaintenanceCatalog?.unitKey?.(rawName)||norm(rawName);
+    const area=global.WSMaintenanceCatalog?.areaKey?.(rawArea)||norm(rawArea);
     const hits=byNamedArea.get(area+'|'+name)||[];
     if(hits.length===1)target=hits[0];
-    else if((byName.get(name)||[]).length===1)target=byName.get(name)[0];
+    else if(!area&&(byName.get(name)||[]).length===1)target=byName.get(name)[0];
    }
    if(!target){unmapped.push(r);continue}
    if(!pm.has(target.row))pm.set(target.row,[]);
@@ -169,7 +172,7 @@
     for(const col of ['D','E','F','G'])put(doc,row,col,col===marked?'✓':'');
    }
   }
-  put(doc,row,'H',dateSerial(date));
+  put(doc,row,'H',date?dateSerial(date):null);
   put(doc,row,'I',num(r.workers));
   put(doc,row,'J',num(r.hours));
   put(doc,row,'K',r.materials||'');
