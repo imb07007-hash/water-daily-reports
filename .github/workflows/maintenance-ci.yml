@@ -1,0 +1,22 @@
+name: Maintenance Excel and login browser tests
+on:
+  pull_request:
+    paths: ['assets/maintenance*.js', 'assets/core-app.js', 'index.html', 'tests/**', 'playwright.config.cjs', 'package.json', '.github/workflows/maintenance-ci.yml']
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  browser-excel-login:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run actual browser login and XLSX roundtrip tests
+        run: npm run test:e2e
