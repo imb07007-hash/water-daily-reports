@@ -40,7 +40,7 @@ function build(){
  root=document.createElement('section');
  root.id='maintenanceModal';root.className='hidden';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','إدارة صيانة المحطات');
  root.innerHTML='<div class="mw-dialog"><div class="mw-header"><div class="mw-brand"><img alt="شعار شركة حلول المياه" src="'+h(host()?.logo?.()||'')+'"><div><h2>إدارة الصيانة</h2><small>شركة حلول المياه | متابعة المعدات وأعمال الصيانة</small></div></div><button class="mw-button" data-mw="close" type="button">✕ إغلاق والعودة للتقارير</button></div><nav class="mw-tabs" aria-label="أقسام الصيانة">'+
-  [['overview','لوحة الصيانة'],['assets','المعدات والأصول'],['records','سجلات الصيانة'],['planned','الجدول والدوريات'],['import','استيراد Excel']].map(([key,title])=>'<button type="button" class="mw-tab" data-mw="tab" data-tab="'+key+'">'+title+'</button>').join('')+
+  [['overview','لوحة الصيانة'],['daily','＋ إدخال صيانة'],['assets','المعدات والأصول'],['records','سجلات الصيانة'],['planned','الجدول والدوريات'],['monthly','التقرير الشهري'],['import','استيراد Excel']].map(([key,title])=>'<button type="button" class="mw-tab" data-mw="tab" data-tab="'+key+'">'+title+'</button>').join('')+
   '</nav><div class="mw-body" id="maintenanceBody"></div><div class="mw-foot">يُعرض لكل حساب نطاق المحطات المسموح له فقط • التواريخ غير المؤكدة تبقى مميزة عن التنفيذ الفعلي</div></div>';
  document.body.appendChild(root);
  root.addEventListener('click',onClick);
@@ -54,7 +54,7 @@ function toolbar(){
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong><br><span class="mw-muted">سجل الصيانة والمعدات الخاصة بالمحطة</span></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
-function setTab(tab){if(M.importing)return;M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
+function setTab(tab){if(M.importing)return;if((tab==='daily'||tab==='monthly')&&!isStation()&&getStations().some(s=>s.id==='jizan'))M.stationId='jizan';M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
  build();
@@ -81,6 +81,8 @@ async function update(){
   else if(M.tab==='assets')await renderAssets(id);
   else if(M.tab==='records')await renderRecords(id);
   else if(M.tab==='planned')await renderPlanned(id);
+  else if(M.tab==='daily')await window.WSMaintenanceDaily.renderDaily(area,id,toolbar());
+  else if(M.tab==='monthly')await window.WSMaintenanceDaily.renderMonthly(area,id,toolbar());
   else renderImport(id);
  }catch(err){area.innerHTML=toolbar()+message(err.message||'تعذر تحميل البيانات.',true)}
  finally{M.loading=false;if(M.pendingUpdate){M.pendingUpdate=false;void update()}}
@@ -730,6 +732,9 @@ async function rollbackClick(id){
  }
 }
 async function onSubmit(e){
+ if(e.target.id==='mw-daily-form'){
+  e.preventDefault();void window.WSMaintenanceDaily.submit(e.target,e.submitter);return;
+ }
  if(e.target.id==='mw-correct-form'){
   e.preventDefault();try{await submitCorrection(e.target)}catch(err){const box=el('mw-correction-feedback');if(box)box.innerHTML=message(err.message,true);return}
   return;
@@ -738,6 +743,7 @@ async function onSubmit(e){
  else if(e.target.id==='mw-search-form'){e.preventDefault();M.search=el('mw-search-input').value;M.assetPage=0;update()}
 }
 function onChange(e){
+ if(window.WSMaintenanceDaily?.change?.(e.target))return;
  if(e.target.id==='mw-station'){if(isStation())return;M.stationId=e.target.value;M.page=0;M.assetPage=0;M.assetId='';M.preview=null;update()}
  if(e.target.id==='mw-type'){M.type=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-status'){M.status=e.target.value;M.page=0;update()}
@@ -749,6 +755,7 @@ function onClick(e){
  const action=b.dataset.mw;
  if(action==='close'){close();return}
  if(M.importing)return;
+ if(window.WSMaintenanceDaily?.action?.(b))return;
  if(action==='tab'){setTab(b.dataset.tab);return}
  if(action==='goImport'){setTab('import');return}
  if(action==='goRecords'){setTab('records');return}
@@ -824,6 +831,6 @@ function init(){
  }
 },true);
 }
-window.WSMaintenance={open,close,refreshDashboard:dashboardMaintenance};
+window.WSMaintenance={open,close,refreshDashboard:dashboardMaintenance,refreshActive:update};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
