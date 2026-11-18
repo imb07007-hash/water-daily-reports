@@ -22,7 +22,7 @@
   --wsc-muted:#647789;
   --wsc-border:#dde3ea;
   --wsc-bg:#f3f5f8;
-  --wsc-white:#ffffff;
+  --wsc-white:#FFFFFF;
   color-scheme:light;
 }
 body {background:var(--wsc-bg);color:var(--wsc-text);font-family:Tahoma,"Segoe UI",Arial,sans-serif}
