@@ -32,7 +32,7 @@ test('every existing company logo points to same vector including printable repo
  assert.doesNotMatch(core,/const LOGO='data:image\/png;base64/);
  assert.ok(core.includes("el.src=LOGO"));
  assert.ok(core.includes("logo.src=LOGO"));
- assert.ok(core.includes("logo:()=>LOGO"));
+ assert.ok(core.includes("logo:()=>MARK"));
  assert.equal((index.match(/<img data-brand-logo src="\/assets\/wsc-logo\.svg/g)||[]).length,2);
  assert.equal((index.match(/<img data-brand-logo src="\/assets\/wsc-mark\.svg/g)||[]).length,1);
  assert.ok(core.includes("icon.type='image/svg+xml'"));
