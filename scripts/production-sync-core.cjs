@@ -33,19 +33,39 @@ function parse(sheet,now=new Date()){
   if(found.has(id))throw Error('Duplicate station '+id);
   const get=col=>sheet.getCell(col+r),production=num(get('G'));
   if(production===null||production<0)throw Error('Invalid production for '+id);
-  const metrics={production:String(production)},groups={},notes={};
+  const metrics={production:String(production)},groups={},notes={},excel={};
   const raw=num(get('F')),tds=num(get('N')),pumping=num(get('M'));
   if(raw!==null&&raw>=0&&['jizan','bish','marbah','matari'].includes(id))metrics.raw=String(raw);
-  if(tds!==null&&tds>=0){if(['jizan','damad','bish','marbah'].includes(id))metrics.tds=String(tds);if(id==='matari')metrics.tds_product=String(tds);}
+  if(tds!==null&&tds>=0){
+   if(['jizan','damad','bish','marbah'].includes(id))metrics.tds=String(tds);
+   if(id==='matari')metrics.tds_product=String(tds);
+  }
   if(pumping!==null&&pumping>=0&&['marbah','matari'].includes(id))metrics.pumping=String(pumping);
-  const tank=pct(get('O'));if(tank!==null&&['jizan','damad'].includes(id))groups.tanks={tank:{pct:tank}};
-  const lines=[],note=txt(get('R'));if(note)lines.push(note);
-  const extras=[['H','الإنتاج الاحتياطي','م³'],['I','Bypass','م³'],['J','الرجيع','م³'],['K','كفاءة RO','%'],['L','الكميات المستلمة من شركة نقل المياه','م³'],['M','مجموع كميات الضخ','م³']];
-  for(const [col,label,unit]of extras){if(col==='M'&&['marbah','matari'].includes(id))continue;const x=col==='K'?pct(get(col)):num(get(col));if(x!==null&&x>=0)lines.push(`${label}: ${x} ${unit}`);}
-  if(tank!==null&&!['jizan','damad'].includes(id))lines.push(`نسبة الخزن الداخلي الإجمالية: ${tank}%`);
-  const ext=pct(get('P'));if(ext!==null)lines.push(`نسبة الخزن الخارجي: ${ext}%`);
-  if(lines.length)notes.notes=lines.join('؛ ');
-  found.set(id,{stationId:id,excelRow:r,data:{metrics,groups,notes}});
+  const received=num(get('L'));
+  if(id==='matari'&&received!==null&&received>=0)metrics.nwc=String(received);
+  const structured=[
+   ['D','design_capacity'],['E','operating_capacity'],
+   ['H','reserve_production'],['I','bypass'],['J','reject'],
+   ['L','received'],['M','total_pumping']
+  ];
+  for(const [col,key] of structured){
+   const n=num(get(col));
+   if(n!==null&&n>=0)excel[key]=String(n);
+  }
+  for(const [col,key]of [['K','ro_efficiency'],['O','internal_tank_pct'],['P','external_tank_pct']]){
+   const n=pct(get(col));
+   if(n!==null)excel[key]=n;
+  }
+  const ro=txt(get('Q'));if(ro)excel.ro_applicable=ro;
+  // For ONE physical tank we can safely assign the source reading to that tank.
+  // A station with multiple tanks has only an overall percentage in column O;
+  // preserve that separately above, never fabricate per-tank values.
+  if(excel.internal_tank_pct!==undefined&&['jizan','damad'].includes(id)){
+   groups.tanks={tank:{pct:excel.internal_tank_pct}};
+  }
+  // Column R is prose. Numeric source readings are NOT operational notes.
+  const note=txt(get('R'));if(note)notes.notes=note;
+  found.set(id,{stationId:id,excelRow:r,data:{metrics,groups,notes,excel}});
  }
  if(found.size!==6)throw Error('Expected six stations; found '+found.size);
  return {productionDate,rows:[...found.values()]};

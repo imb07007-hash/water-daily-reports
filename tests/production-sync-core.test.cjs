@@ -41,7 +41,18 @@ test('correct metric mapping with no fabricated mixed tank percentages',()=>{
  assert.equal(row('matari').data.metrics.tds_raw,undefined);
  assert.equal(row('muhayil').data.metrics.export,undefined);
  assert.equal(row('marbah').data.metrics.pumping,'52900');
- assert.match(row('matari').data.notes.notes,/الرجيع: 5040/);
+ assert.equal(row('matari').data.excel.reject,'5040');
+ assert.equal(row('matari').data.excel.ro_efficiency,'70');
+ assert.equal(row('matari').data.excel.received,'5402');
+ assert.equal(row('matari').data.metrics.nwc,'5402');
+ assert.equal(row('matari').data.excel.internal_tank_pct,'74');
+ assert.equal(row('matari').data.notes.notes,'قلة الطلب');
+ assert.equal(row('bish').data.excel.internal_tank_pct,'85.6');
+ assert.equal(row('bish').data.groups.tanks,undefined);
+ assert.equal(row('jizan').data.excel.internal_tank_pct,'96');
+ assert.equal(row('marbah').data.excel.reserve_production,'21200');
+ assert.equal(row('marbah').data.excel.total_pumping,'52900');
+ assert.equal(row('muhayil').data.excel.internal_tank_pct,'97');
 });
 test('fail closed on modified spreadsheet headers and invalid production values',()=>{
  const a=mock();const original=a.getCell;a.getCell=x=>x==='G3'?{value:'المنتج فقط'}:original(x);
