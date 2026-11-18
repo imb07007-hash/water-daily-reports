@@ -1,21 +1,25 @@
 'use strict';
 (()=>{
 const $=id=>document.getElementById(id);
-const LOGO='/assets/wsc-logo.svg?v=20261117-official';
+const LOGO='/assets/wsc-logo.svg?v=20261118-identity2';
+const MARK='/assets/wsc-mark.svg?v=20261118-identity2';
 /* The same company logo used in exported reports is reused in all system screens. */
 function applyCorporateIdentity(){
- for(const el of document.querySelectorAll('img[data-brand-logo]'))el.src=LOGO;
+ for(const el of document.querySelectorAll('img[data-brand-logo]')){
+  // The header needs a legible symbol, while forms and print use the full logotype.
+  el.src=el.classList.contains('brand-logo-header')?MARK:LOGO;
+ }
  for(const head of document.querySelectorAll('.modal-head')){
   if(head.querySelector('.modal-brand-logo'))continue;
   const logo=document.createElement('img');
   logo.className='modal-brand-logo';
-  logo.src=LOGO;
+  logo.src=MARK;
   logo.alt='شركة حلول المياه';
   logo.width=77;logo.height=42;
   head.insertBefore(logo,head.firstChild);
  }
  const icon=document.createElement('link');
- icon.rel='icon';icon.type='image/svg+xml';icon.href='/assets/wsc-mark.svg?v=20261117-official';
+ icon.rel='icon';icon.type='image/svg+xml';icon.href=MARK;
  document.head.appendChild(icon);
 }
 applyCorporateIdentity();
