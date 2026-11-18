@@ -2367,7 +2367,7 @@ window.WSMaintenanceHost=Object.freeze({
  stations:()=>stations.map(s=>({id:s.id,name:s.name})),
  userId:()=>currentUserId,
  authedFetch:(path,options)=>authedFetch(path,options),
- logo:()=>LOGO,
+ logo:()=>MARK,
  gauge:(value,color,mode='level')=>wsDial(value,color,mode),
  animateGauges:node=>wsAnimateInstruments(node),
  logout:()=>logout()
