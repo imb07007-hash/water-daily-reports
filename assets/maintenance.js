@@ -1003,33 +1003,49 @@ function onClick(e){
 }
 async function dashboardMaintenance(){
  if(isMaintenance())return;
- const container=el('dashboardContent');
- const summaryNode=container?.querySelector('.dashboard-summary');
+ const container=el('dashboardContent'),summaryNode=container?.querySelector('.dashboard-summary');
  if(!accessible()||!container||!summaryNode||updatingDash)return;
  if(container.querySelector('.mw-dash-summary'))return;
- const node=document.createElement('section');
- node.className='mw-dash-summary';
- node.innerHTML='<h3>🔧 متابعة الصيانة</h3><div class="mw-muted">جارٍ تحميل سجلات الصيانة...</div>';
+ const node=document.createElement('section');node.className='mw-dash-summary';
+ node.innerHTML='<h3>🔧 الصيانة لهذا الشهر</h3><p class="mw-muted">جارٍ تحميل بيانات الصيانة...</p>';
  summaryNode.insertAdjacentElement('afterend',node);
  updatingDash=true;
  try{
-  const list=await summary('');
+  const month=maintenanceSaudiDate().slice(0,7),yesterday=maintenanceYesterday();
+  const allowed=new Set(getStations().map(x=>x.id));
+  const [monthlyRows,allRows,yesterdayWorks,yesterdayCompleted]=await Promise.all([
+   getRows('maintenance_monthly_summary',{select:'station_id,period_month,work_count,done_count,not_done_count',
+    period_month:'eq.'+month+'-01',limit:'100'}),
+   summary(''),
+   countMaintenanceRecords('',yesterday),
+   countMaintenanceRecords('',yesterday,['DONE','DONE WITH COMMENT'])
+  ]);
   if(!node.isConnected)return;
-  const sums=k=>list.reduce((a,x)=>a+Number(x[k]||0),0);
-  const assets=sums('asset_count'),works=sums('work_count'),done=sums('done_count'),undone=sums('not_done_count');
-  const hasData=list.filter(x=>Number(x.work_count||0)>0);
-  const stationsWithData=hasData.map(x=>stationName(x.station_id)).join('، ');
-  node.innerHTML='<div class="mw-top" style="border:0;padding:0;margin:0 0 10px"><div><h3>🔧 متابعة الصيانة</h3>'+
-   '<p class="mw-muted" style="margin:3px 0">المحطات التي لديها بيانات صيانة: '+h(stationsWithData||'لا توجد سجلات مستوردة')+'</p></div>'+
-   '<button type="button" id="mw-dashboard-open">فتح إدارة الصيانة</button></div>'+
-   '<div class="mw-dash-row"><div class="mw-dash-values">'+
-   [['المعدات المؤكدة',assets],['سجلات الصيانة',works],['DONE',done],['NOT DONE',undone]].
-   map(([label,num])=>'<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>';
+  const monthData=monthlyRows.filter(x=>allowed.has(x.station_id)),history=allRows.filter(x=>allowed.has(x.station_id));
+  const sum=(rows,key)=>rows.reduce((total,x)=>total+Number(x[key]||0),0);
+  const monthAll=sum(monthData,'work_count'),monthDone=sum(monthData,'done_count');
+  const historyAll=sum(history,'work_count'),historyDone=sum(history,'done_count');
+  const monthlyKpis=[
+   ['سجلات الشهر',monthAll],['تم التنفيذ (DONE)',monthDone],
+   ['غير مكتمل من السجلات',Math.max(0,monthAll-monthDone)],
+   ['صيانة أمس ('+yesterday+')',yesterdayWorks],
+   ['DONE أمس',yesterdayCompleted]
+  ];
+  node.innerHTML='<div class="mw-top mw-dash-month-head"><div><h3>🔧 الصيانة — '+h(month)+'</h3>'+
+   '<p class="mw-muted" style="margin:3px 0">ملخص الشهر الحالي، وصيانة أمس حسب تاريخ التنفيذ.</p></div>'+
+   '<button type="button" id="mw-dashboard-open">فتح جدول صيانة الشهر</button></div>'+
+   '<div class="mw-dash-row"><div class="mw-dash-values">'+monthlyKpis.map(([label,num])=>
+    '<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>'+
+   '<div class="mw-dash-history-foot"><span>الإجمالي التاريخي</span>'+
+   '<small>كل السجلات <b>'+fmt(historyAll)+'</b></small>'+
+   '<small>DONE <b>'+fmt(historyDone)+'</b></small>'+
+   '<small>غير مكتمل <b>'+fmt(Math.max(0,historyAll-historyDone))+'</b></small></div>';
   el('mw-dashboard-open')?.addEventListener('click',()=>open('overview'));
  }catch(err){
-  if(node.isConnected)node.innerHTML='<h3>🔧 متابعة الصيانة</h3>'+message('تعذر تحميل ملخص الصيانة.',true);
+  if(node.isConnected)node.innerHTML='<h3>🔧 الصيانة لهذا الشهر</h3>'+message('تعذر تحميل ملخص الصيانة: '+err.message,true);
  }finally{updatingDash=false}
 }
+
 function init(){
  build();
  const dc=el('dashboardContent');
