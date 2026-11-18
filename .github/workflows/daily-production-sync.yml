@@ -1,7 +1,19 @@
 name: Daily production import (Google Drive read-only)
 on:
+  # GitHub may delay/drop jobs scheduled at the start of an hour.
+  # Retries are safe: importer never overwrites a station/date and refuses
+  # a previously imported Excel file revision.
   schedule:
-    - cron: '0 4 * * *' # Saudi Arabia 07:00 (UTC+3)
+    - cron: '0 4 * * *'   # Saudi Arabia 07:00 (UTC+3)
+    - cron: '23 4 * * *'  # 07:23 fallback; after today's 07:16 source update
+    - cron: '43 4 * * *'  # 07:43 fallback
+    - cron: '13 5 * * *'  # 08:13 final fallback
+  # A change to the scheduler itself performs one immediate live verification.
+  # Other code pushes do not trigger an import.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily-production-sync.yml'
   workflow_dispatch:
     inputs:
       dry_run:
