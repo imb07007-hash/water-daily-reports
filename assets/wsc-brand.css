@@ -324,3 +324,84 @@ body[data-auth="ready"] .ws-menu-content .btn:hover {background:#eef5fb}
 @media(prefers-reduced-motion:reduce) {
  :is(.btn,.mw-button,.login-submit){transition:none!important}
 }
+
+
+/* Structured Excel source readings — operational numbers are not notes. */
+.report-sheet .excel-source-panel{
+ margin:12px 18px 17px;border:1px solid #d8e5ef;border-radius:12px;
+ background:#fff;overflow:hidden;break-inside:avoid;
+}
+.report-sheet .excel-source-heading{
+ display:flex;justify-content:space-between;align-items:center;gap:12px;
+ background:linear-gradient(105deg,#f8fbff,#edf5fb);
+ border-bottom:1px solid #d8e5ef;padding:13px 18px;
+}
+.report-sheet .excel-source-heading h3{font-size:16px;color:#0362AF;font-weight:900;margin:0}
+.report-sheet .excel-source-heading small{color:#607a8d;font-size:11px}
+.report-sheet .excel-source-grid{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:12px;
+}
+.report-sheet .excel-source-card{
+ display:flex;flex-direction:column;gap:7px;min-width:0;
+ border:1px solid #e1eaf1;background:#f8fbfe;border-radius:9px;
+ padding:11px 12px;border-top:3px solid #50B4F2;
+}
+.report-sheet .excel-source-card.is-tank{border-top-color:#87329A}
+.report-sheet .excel-source-card>small{color:#526c80;font-size:11px;font-weight:800}
+.report-sheet .excel-source-card>strong{
+ color:#17324d;font-size:21px;font-weight:900;direction:ltr;text-align:right;
+ font-variant-numeric:tabular-nums;
+}
+.report-sheet .excel-source-card em,.dashboard-excel-value em{
+ font-size:10px;font-style:normal;color:#5f7890;white-space:nowrap;font-weight:700;
+}
+.excel-tank-track{height:7px;border:1px solid #d5e3ed;background:#e4eaf0;border-radius:999px;overflow:hidden}
+.excel-tank-fill{height:100%;background:linear-gradient(90deg,#87329A,#50B4F2);border-radius:999px}
+.report-sheet .excel-capacities{
+ display:flex;flex-wrap:wrap;gap:16px;padding:10px 16px;
+ font-size:11px;font-weight:700;color:#567086;border-top:1px solid #e6edf3;background:#fbfcfe;
+}
+.dashboard-plant .dashboard-excel-readings{
+ margin-top:11px;border-top:1px solid #e0e8ef;padding-top:10px;
+}
+.dashboard-plant .dashboard-excel-readings h5{
+ color:#0362AF;font-size:12px;font-weight:900;margin:0 0 10px;
+}
+.dashboard-plant .dashboard-excel-grid{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
+}
+.dashboard-plant .dashboard-excel-value{
+ border:1px solid #e2e9ef;background:#f7fafd;border-radius:8px;
+ padding:8px 9px;min-width:0;display:flex;flex-direction:column;gap:5px;
+}
+.dashboard-plant .dashboard-excel-value small{
+ color:#536e83;font-weight:800;font-size:10px;line-height:1.7;
+}
+.dashboard-plant .dashboard-excel-value strong{
+ font-size:15px;color:#153f60;direction:ltr;text-align:right;
+ font-variant-numeric:tabular-nums;
+}
+.dashboard-plant .dashboard-excel-capacity{
+ display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;
+ color:#667f90;font-size:10px;
+}
+.dashboard-plant .dashboard-station-values{
+ grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:7px;
+}
+.dashboard-plant .dashboard-station-value{
+ border-right:0!important;border-inline-start:0!important;padding-right:0!important;
+ padding:5px;
+}
+@media(max-width:1100px){
+ .report-sheet .excel-source-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .dashboard-plant .dashboard-excel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+ .report-sheet .excel-source-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .report-sheet .excel-source-heading{flex-direction:column;align-items:flex-start}
+ .dashboard-plant .dashboard-excel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media print{
+ .report-sheet .excel-source-panel{break-inside:avoid;box-shadow:none}
+ .dashboard-excel-readings{break-inside:avoid}
+}
