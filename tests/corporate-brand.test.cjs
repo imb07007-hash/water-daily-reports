@@ -13,7 +13,7 @@ test('official company artwork is a standalone vector, not a blurry embedded PNG
  assert.ok((svg.match(/<path\s/g)||[]).length>=40);
  assert.doesNotMatch(svg,/<image|<foreignObject|<script|<text|font-family|data:image/i);
  assert.equal((svg.match(/<svg/g)||[]).length,(svg.match(/<\/svg>/g)||[]).length);
- assert.ok(mark.includes('viewBox="0 0 256 84"'));
+ assert.ok(mark.includes('viewBox="0 0 250 88"'));
  assert.equal((mark.match(/<path\s/g)||[]).length,6);
  for(const hex of ['#0362AF','#50B4F2','#87329A'])assert.ok(svg.includes(hex),hex);
 });
@@ -22,21 +22,35 @@ test('design system uses all four official colors in the app, not image raster s
   assert.ok(css.includes(hex),hex);
  }
  assert.ok(index.includes('/assets/wsc-brand.css'));
- assert.ok(css.includes('.login-logo-shell img.brand-logo-login'));
+ assert.ok(css.includes('.login-logo-shell .brand-logo-login'));
  assert.ok(css.includes('clip-path:none!important'));
  assert.ok(css.includes('object-fit:contain'));
 });
 test('every existing company logo points to same vector including printable report',()=>{
- assert.ok(core.includes("const LOGO='/assets/wsc-logo.svg?v=20261117-official';"));
+ assert.ok(core.includes("const LOGO='/assets/wsc-logo.svg?v=20261118-identity2';"));
+ assert.ok(core.includes("const MARK='/assets/wsc-mark.svg?v=20261118-identity2';"));
  assert.doesNotMatch(core,/const LOGO='data:image\/png;base64/);
  assert.ok(core.includes("el.src=LOGO"));
  assert.ok(core.includes("logo.src=LOGO"));
  assert.ok(core.includes("logo:()=>LOGO"));
- assert.equal((index.match(/<img data-brand-logo src="\/assets\/wsc-logo\.svg/g)||[]).length,3);
+ assert.equal((index.match(/<img data-brand-logo src="\/assets\/wsc-logo\.svg/g)||[]).length,2);
+ assert.equal((index.match(/<img data-brand-logo src="\/assets\/wsc-mark\.svg/g)||[]).length,1);
  assert.ok(core.includes("icon.type='image/svg+xml'"));
 });
 test('vector artwork and CSS do not include font files or user secrets',()=>{
  for(const s of [svg,mark,css]){
   assert.doesNotMatch(s,/@font-face|\.otf\b|\.ttf\b|sb_secret_|SUPABASE_SECRET_KEY|Authorization:\s*Bearer/i);
  }
+});
+
+test('Southern Sector chemicals visual reference is retained for the rest of the app',()=>{
+ const chem=read('assets/chemicals-embedded.css');
+ assert.ok(chem.includes('#chemRoot .plant'));
+ assert.ok(chem.includes('background:#f3f5f8'));
+ assert.ok(css.includes('derived from the existing'));
+ assert.ok(css.includes('--wsc-bg:#f3f5f8'));
+ assert.ok(css.includes('--wsc-border:#dde3ea'));
+ assert.ok(css.includes('linear-gradient(90deg,var(--wsc-purple),var(--wsc-blue))'));
+ assert.ok(css.includes('clip-path:none!important'));
+ assert.ok(css.includes('.dashboard-plant'));
 });
