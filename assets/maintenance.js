@@ -21,7 +21,10 @@ const maintenanceYesterday=()=>maintenanceShiftDay(maintenanceSaudiDate(),-1);
 // Exact counts using PostgREST's Content-Range rather than truncating at a page size.
 async function countMaintenanceRecords(stationId,workDate,statuses){
  const query={select:'id',work_date:'eq.'+workDate,limit:'1'};
- if(stationId)query.station_id='eq.'+stationId;
+ if(Array.isArray(stationId)){
+  if(!stationId.length)return 0;
+  query.station_id='in.('+stationId.map(x=>String(x).replace(/[^a-z0-9_-]/gi,'')).filter(Boolean).join(',')+')';
+ }else if(stationId)query.station_id='eq.'+stationId;
  if(statuses&&statuses.length)query.status='in.('+statuses.map(x=>'"'+x.replaceAll('"','')+'"').join(',')+')';
  const r=await host().authedFetch(url('maintenance_records',query),{headers:{Prefer:'count=exact'}});
  if(!r.ok)throw Error('تعذر عد أعمال الصيانة اليومية ('+r.status+')');
@@ -1017,8 +1020,8 @@ async function dashboardMaintenance(){
    getRows('maintenance_monthly_summary',{select:'station_id,period_month,work_count,done_count,not_done_count',
     period_month:'eq.'+month+'-01',limit:'100'}),
    summary(''),
-   countMaintenanceRecords('',yesterday),
-   countMaintenanceRecords('',yesterday,['DONE','DONE WITH COMMENT'])
+   countMaintenanceRecords([...allowed],yesterday),
+   countMaintenanceRecords([...allowed],yesterday,['DONE','DONE WITH COMMENT'])
   ]);
   if(!node.isConnected)return;
   const monthData=monthlyRows.filter(x=>allowed.has(x.station_id)),history=allRows.filter(x=>allowed.has(x.station_id));
