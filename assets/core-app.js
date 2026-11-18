@@ -102,7 +102,7 @@ if(typeof reports!=='object'||!reports)reports={};
 let stationId=stations[0].id,date=currentDate,record={},drafts=load(DRAFTS_KEY,{}),editorStationId=stationId,toastTimer=null;receipts=load(RECEIPTS_KEY,{});requestIds=load(REQUESTS_KEY,{});
 const selected=()=>archiveViewing&&archiveConfig?archiveConfig:(stations.find(s=>s.id===stationId)||stations[0]);
 const reportKey=(s=stationId,d=date)=>s+'@'+d;
-function emptyRecord(){return{metrics:{},groups:{},notes:{},lastModified:null}}
+function emptyRecord(){return{metrics:{},groups:{},notes:{},excel:{},lastModified:null}}
 function fetchRecord(){let k=reportKey();return clone(drafts[k]||emptyRecord())}
 function preserveDraft(){if(!signedIn()||archiveViewing)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
 function toast(message,error=false){let t=$('toast');t.textContent=message;t.className='toast '+(error?'error':'success');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3600)}
@@ -149,7 +149,7 @@ async function loadSelectedDailyReport(){
    archiveViewing=true;
    dailySelectedReport=r;
    archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;
-   record={...emptyRecord(),metrics:r.data?.metrics||{},groups:r.data?.groups||{},notes:r.data?.notes||{}};
+   record={...emptyRecord(),metrics:r.data?.metrics||{},groups:r.data?.groups||{},notes:r.data?.notes||{},excel:r.data?.excel||{}};
   }else{
    archiveViewing=false;archiveConfig=null;dailySelectedReport=null;
    record=fetchRecord();
@@ -219,14 +219,46 @@ for(let it of g.items){let val=(gRec[it.id]||{}).value;body+=`<div class="report
 }
 return `<section class="report-group"><h3 class="report-group-title">${esc(g.title)}</h3>${body||'<div class="no-data">—</div>'}</section>`
 }
+function sourceData(){return {metrics:record.metrics||{},groups:record.groups||{},notes:record.notes||{},excel:record.excel||{}}}
+function excelSourceRows(data,source){return window.WSExcelReadings?.entries?.(data,source)||[]}
+function excelSourceCard(item){
+ const n=num(item.value);
+ return '<div class="excel-source-card'+(item.category==='tanks'?' is-tank':'')+'"><small>'+esc(item.label)+'</small>'+
+  '<strong>'+esc(fmt(item.value))+' <em>'+esc(item.unit)+'</em></strong>'+
+  (item.unit==='%'&&n!==null?'<div class="excel-tank-track"><div class="excel-tank-fill" style="width:'+Math.max(0,Math.min(100,n))+'%"></div></div>':'')+'</div>';
+}
+function excelExtraPanel(){
+ const entries=excelSourceRows(sourceData(),dailySelectedReport?.imported_from);
+ if(!entries.length)return '';
+ const main=entries.filter(x=>x.category!=='capacity'),capacity=entries.filter(x=>x.category==='capacity');
+ return '<section class="excel-source-panel"><div class="excel-source-heading"><h3>بيانات الإنتاج والخزانات من Excel</h3>'+
+  '<small>نسبة الخزن الداخلي الإجمالي لا تُنسب إلى خزان بعينه</small></div>'+
+  '<div class="excel-source-grid">'+main.map(excelSourceCard).join('')+'</div>'+
+  (capacity.length?'<div class="excel-capacities">'+capacity.map(x=>
+   '<span>'+esc(x.label)+': '+esc(fmt(x.value))+' '+esc(x.unit)+'</span>').join('')+'</div>':'')+'</section>';
+}
+function excelDashboardFields(r){
+ const entries=excelSourceRows(r?.data,r?.imported_from);
+ if(!entries.length)return '';
+ const main=entries.filter(x=>x.category!=='capacity'),capacity=entries.filter(x=>x.category==='capacity');
+ return '<div class="dashboard-excel-readings"><h5>قراءات الإنتاج والخزانات</h5>'+
+  '<div class="dashboard-excel-grid">'+main.map(x=>{
+   const n=num(x.value);
+   return '<div class="dashboard-excel-value"><small>'+esc(x.label)+'</small><strong>'+esc(fmt(x.value))+
+    ' <em>'+esc(x.unit)+'</em></strong>'+
+    (x.unit==='%'&&n!==null?'<div class="excel-tank-track"><div class="excel-tank-fill" style="width:'+Math.max(0,Math.min(100,n))+'%"></div></div>':'')+
+    '</div>';
+  }).join('')+'</div>'+
+  (capacity.length?'<div class="dashboard-excel-capacity">'+capacity.map(x=>'<span>'+esc(x.label)+': '+esc(fmt(x.value))+' '+esc(x.unit)+'</span>').join('')+'</div>':'')+'</div>';
+}
 function renderReport(){let s=selected();let metrics=s.metrics.filter(m=>m.visible!==false);let groups=s.groups.filter(g=>g.visible!==false&&g.items.length);let title=`${formatDate(date)}`;
 let cls=metrics.length>=8?'metrics-many':metrics.length===6?'metrics-medium':metrics.length<=4?'metrics-few':'';
 let cards=metrics.map((m,i)=>{let v=metricValue(m);let shade=m.shade==='purple'?'purple':m.shade==='gray'?'gray':'blue';return `<div class="metric-card ${shade}"><div class="metric-label">${esc(m.label)}</div><div class="metric-value">${showVal(v)}</div><div class="metric-unit">${esc(m.unit||'')}</div></div>`}).join('');
-let noteParts=(s.noteFields||[]).map(f=>({label:f.label,v:record.notes[f.id]})).filter(x=>String(x.v??'').trim());
+let noteParts=(s.noteFields||[]).map(f=>({label:f.label,v:f.id==='notes'&&dailySelectedReport?.imported_from?(window.WSExcelReadings?.qualitativeNote?.(sourceData(),dailySelectedReport.imported_from)??record.notes[f.id]):record.notes[f.id]})).filter(x=>String(x.v??'').trim());
 let footer=noteParts.map(x=>`${esc(x.label)}: ${esc(x.v)}`).join('　 |　 ');
 let sections=groups.map(g=>renderGroup(g)).join('');
 let emptyGroups=groups.length===1?' one-section':'';
-let html=`<header class="report-header"><svg class="header-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 135" preserveAspectRatio="none"><path d="M0 0H1280V41C1050 -10 880 31 673 58C455 89 242 110 0 105Z" fill="#50B4F2"/></svg><div class="report-brand-line"><img class="report-company-logo" alt="شعار شركة حلول المياه" src="${LOGO}"><div class="report-title-area"><div class="report-small-title">تقرير التشغيل اليومي</div><div class="report-plant-title">${esc(s.name)}</div><div class="report-date">${esc(title)}</div></div></div></header><div class="report-overlap"><div class="report-metrics">${cards}</div></div><div class="report-content"><div class="report-sections${emptyGroups}">${sections||''}</div></div>${footer?`<footer class="report-footer"><div class="footer-notes">${footer}</div></footer>`:''}<div class="report-index"></div>`;
+let html=`<header class="report-header"><svg class="header-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 135" preserveAspectRatio="none"><path d="M0 0H1280V41C1050 -10 880 31 673 58C455 89 242 110 0 105Z" fill="#50B4F2"/></svg><div class="report-brand-line"><img class="report-company-logo" alt="شعار شركة حلول المياه" src="${LOGO}"><div class="report-title-area"><div class="report-small-title">تقرير التشغيل اليومي</div><div class="report-plant-title">${esc(s.name)}</div><div class="report-date">${esc(title)}</div></div></div></header><div class="report-overlap"><div class="report-metrics">${cards}</div></div><div class="report-content">${excelExtraPanel()}<div class="report-sections${emptyGroups}">${sections||''}</div></div>${footer?`<footer class="report-footer"><div class="footer-notes">${footer}</div></footer>`:''}<div class="report-index"></div>`;
 let sheet=$('reportSheet');sheet.className='report-sheet '+cls+(groups.length===0?' compact':'')+' station-'+s.id;sheet.innerHTML=html;
 let n=groups.length;if(n===1)sheet.querySelector('.report-group').classList.add('full');
 scalePreview();
@@ -261,6 +293,7 @@ async function saveReport(){
   if(!requestId)throw Error('هذا المتصفح لا يدعم معرفات الطلب الآمنة');
   requestIds[k]=requestId;store(perUserKey(REQUESTS_KEY),requestIds);
   const data={metrics:record.metrics,groups:record.groups,notes:record.notes};
+   if(record.excel&&Object.keys(record.excel).length)data.excel=record.excel;
   const response=editingReportId?
    await authedFetch('/rest/v1/reports?id=eq.'+encodeURIComponent(editingReportId),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data})}):
    await authedFetch('/rest/v1/reports',{method:'POST',headers:{Prefer:'return=representation'},
@@ -966,6 +999,7 @@ function archiveExportDataRow(r){
    archiveAddField(row,'قسم / '+groupName+' / '+(item?.label||iid),entry);
   }
  }
+ for(const item of excelSourceRows(r.data,r.imported_from))archiveAddField(row,'قراءات Excel / '+item.label,item.value+(item.unit?' '+item.unit:''));
  for(const [nid,value] of Object.entries(r.data?.notes||{})){
   const label=config?.noteFields?.find(n=>n.id===nid)?.label||nid;
   archiveAddField(row,'ملاحظات / '+label,value);
@@ -1078,7 +1112,7 @@ async function archiveShow(id,editable=false){
   preserveDraft();stationId=r.station_id;date=r.report_date;
   dailyLookupBusy=false;dailyLookupError=false;dailySelectedReport=r;
   archiveViewing=!editable;editingReportId=editable?r.id:null;archiveConfig=r.config_snapshot&&Array.isArray(r.config_snapshot.metrics)?r.config_snapshot:null;
-  record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{}};
+  record={...emptyRecord(),metrics:r.data.metrics||{},groups:r.data.groups||{},notes:r.data.notes||{},excel:r.data.excel||{}};
   refreshSelects();$('reportDate').value=date;renderInputs();renderReport();updateSaveStatus();
   $('reportDate').disabled=editable;$('stationSelect').disabled=editable||!isAdmin();
   archiveClose();logActivity('VIEW_REPORT',r.id);toast(editable?'وضع تعديل التقرير — احفظ التغييرات عبر زر الحفظ المركزي.':isExcelImportedReport(r)?'تقرير إنتاج مستورد آليًا من ملف Excel — للقراءة فقط.':r.source==='migration'?'تقرير تاريخي مستورد من واتساب — للقراءة فقط.':'عرض التقرير المحفوظ — للقراءة فقط.');
@@ -1441,7 +1475,7 @@ async function dashboardRefresh(){
    const r=byDayStation.get(s.id+'@'+date);
    const submit=r?dashboardSubmitTime(importedReportTimestamp(r)):null;
    const metrics=r?.data?.metrics||{};
-   const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)]];
+   const present=[['الإنتاج',dashboardNumeric(metrics.production)],['الخام',dashboardNumeric(metrics.raw)],['التصدير',dashboardNumeric(metrics.export)],['الضخ',dashboardNumeric(metrics.pumping)],['TDS',dashboardNumeric(metrics.tds??metrics.tds_product)],['المستلم من شركة نقل المياه',dashboardNumeric(metrics.nwc)]].filter(([label,value])=>value!==null||['الإنتاج','الخام','التصدير'].includes(label));
    const status=r?'تقرير محفوظ':'لم يُرسل';
    const past=byDayStation.get(s.id+'@'+dashboardShiftDate(date,-1));
    const nowProduction=dashboardNumeric(r?.data?.metrics?.production),pastProduction=dashboardNumeric(past?.data?.metrics?.production);
@@ -1456,7 +1490,7 @@ async function dashboardRefresh(){
     '</div>'+
     '<div class="dashboard-station-values">'+present.map(([label,value])=>
      '<div class="dashboard-station-value"><small>'+esc(label)+'</small><strong>'+esc(dashboardMetricLabel(value))+'</strong></div>').join('')+'</div>'+
-    '<div class="ws-station-trend '+trend.cls+'">'+esc(trend.txt)+'</div>'+ 
+    '<div class="ws-station-trend '+trend.cls+'">'+esc(trend.txt)+'</div>'+excelDashboardFields(r)+ 
     (r?'<div class="dashboard-plant-actions"><button type="button" class="btn" data-dashboard-report="'+esc(r.id)+'">عرض التقرير</button></div>':'')+
     '</div>';
   }).join('');
