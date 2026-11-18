@@ -1165,7 +1165,7 @@ async function openEngineerWorkspace(){
  $('accountRole').textContent='مهندس صيانة — '+(row.config?.name||currentStationId);
  $('accountRole').classList.remove('hidden');
  if(location.hash)history.replaceState(null,document.title,location.pathname+location.search);
- try{window.WSMaintenance.open('daily')}
+ try{window.WSMaintenance.open('overview')}
  catch(error){
   document.body.dataset.auth='locked';
   $('loginScreen').classList.remove('hidden');
