@@ -1165,7 +1165,7 @@ async function openEngineerWorkspace(){
  $('accountRole').textContent='مهندس صيانة — '+(row.config?.name||currentStationId);
  $('accountRole').classList.remove('hidden');
  if(location.hash)history.replaceState(null,document.title,location.pathname+location.search);
- try{window.WSMaintenance.open('daily')}
+ try{window.WSMaintenance.open('overview')}
  catch(error){
   document.body.dataset.auth='locked';
   $('loginScreen').classList.remove('hidden');
@@ -1386,7 +1386,8 @@ function dashboardOpen(){
  if(!isAdmin())return;
  $('dashboardModal').classList.remove('hidden');
  logActivity('DASHBOARD_VIEW');
- $('dashboardDate').value=dashboardSaudiDate();
+ // The reporting day has completed at midnight: open yesterday in Riyadh.
+ $('dashboardDate').value=dashboardShiftDate(dashboardSaudiDate(),-1);
  dashboardRefresh();
 }
 async function dashboardRefresh(){
@@ -1394,7 +1395,7 @@ async function dashboardRefresh(){
  dashboardUpdating=true;
  const view=$('dashboardContent');
  const button=$('dashboardRefresh');
- const date=$('dashboardDate').value||dashboardSaudiDate();
+ const date=$('dashboardDate').value||dashboardShiftDate(dashboardSaudiDate(),-1);
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){dashboardUpdating=false;return}
  button.disabled=true;
  view.setAttribute('aria-busy','true');

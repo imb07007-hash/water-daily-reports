@@ -1,13 +1,37 @@
 /* Maintenance module: one signed-in site, shared Supabase session, station-scoped Excel import. */
 (function(){
 'use strict';
-const M={tab:'overview',stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',frequencyFilter:'',period:'',search:'',preview:null,importing:false,loading:false};
+const M={tab:'overview',overviewMonth:'',overviewHistory:false,overviewShowPlanned:false,stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',frequencyFilter:'',period:'',search:'',preview:null,importing:false,loading:false};
 const PAGE=40,BATCH=100;
 let root=null,observer=null,bodyObserver=null,updatingDash=false,restoreFocus=null,restoreOverflow='';
 const el=id=>document.getElementById(id);
 const h=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=x=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(x||0));
 const prettyDate=x=>x?String(x).slice(0,10):'—';
+function maintenanceSaudiDate(value=new Date()){
+ return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).format(value);
+}
+function maintenanceShiftDay(value,days){
+ const d=new Date(value+'T12:00:00Z');
+ if(!Number.isFinite(d.getTime()))return value;
+ d.setUTCDate(d.getUTCDate()+days);
+ return d.toISOString().slice(0,10);
+}
+const maintenanceYesterday=()=>maintenanceShiftDay(maintenanceSaudiDate(),-1);
+// Exact counts using PostgREST's Content-Range rather than truncating at a page size.
+async function countMaintenanceRecords(stationId,workDate,statuses){
+ const query={select:'id',work_date:'eq.'+workDate,limit:'1'};
+ if(Array.isArray(stationId)){
+  if(!stationId.length)return 0;
+  query.station_id='in.('+stationId.map(x=>String(x).replace(/[^a-z0-9_-]/gi,'')).filter(Boolean).join(',')+')';
+ }else if(stationId)query.station_id='eq.'+stationId;
+ if(statuses&&statuses.length)query.status='in.('+statuses.map(x=>'"'+x.replaceAll('"','')+'"').join(',')+')';
+ const r=await host().authedFetch(url('maintenance_records',query),{headers:{Prefer:'count=exact'}});
+ if(!r.ok)throw Error('تعذر عد أعمال الصيانة اليومية ('+r.status+')');
+ const match=String(r.headers.get('Content-Range')||'').match(/\/(\d+)$/);
+ if(!match)throw Error('لم تُرجع قاعدة البيانات العدد الدقيق لأعمال الصيانة');
+ return Number(match[1]);
+}
 const host=()=>window.WSMaintenanceHost;
 const accessible=()=>['ready','maintenance'].includes(document.body.dataset.auth)&&!!host()?.signedIn?.();
 const isMaintenance=()=>host()?.role?.()==='maintenance';
@@ -68,12 +92,18 @@ function toolbar(){
  return '<div class="mw-top"><div><strong>'+h(stationName(getId()))+'</strong></div>'+
  (!isStation()?'<label>المحطة <select class="mw-select mw-station" id="mw-station">'+options.map(s=>'<option value="'+h(s.id)+'"'+(getId()===s.id?' selected':'')+'>'+h(s.name)+'</option>').join('')+'</select></label>':'')+'</div>';
 }
-function setTab(tab){if(M.importing)return;M.focusRecordId='';if(tab==='assets'){M.assetView='template';M.areaFilter='';M.search='';}M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
+function setTab(tab){if(M.importing)return;if(tab==='overview'&&!M.overviewMonth)M.overviewMonth=maintenanceSaudiDate().slice(0,7);M.focusRecordId='';if(tab==='assets'){M.assetView='template';M.areaFilter='';M.search='';}M.tab=tab;M.page=0;M.assetPage=0;M.plannedPage=0;M.assetId='';M.assetName='';M.preview=null;update()}
 function open(tab){
  if(!accessible()){return}
  build();
  if(root.classList.contains('hidden')){restoreFocus=document.activeElement;restoreOverflow=document.body.style.overflow;}
- const requested=tab||M.tab||'overview';
+ // A fresh entry to Maintenance should show this month's overview, not lifetime totals.
+ const requested=tab||'overview';
+ if(requested==='overview'){
+  M.overviewMonth=maintenanceSaudiDate().slice(0,7);
+  M.overviewHistory=false;
+  M.overviewShowPlanned=false;
+ }
  if(requested==='assets'){M.assetView='template';M.areaFilter='';M.search='';}
  // Keep the administrator's selected station across maintenance sections.
  M.stationId=getId();
@@ -115,62 +145,112 @@ async function update(){
  finally{M.loading=false;if(M.pendingUpdate){M.pendingUpdate=false;void update()}}
 }
 async function renderOverview(id){
- const [list,imports,months,history]=await Promise.all([
+ const month=M.overviewMonth||maintenanceSaudiDate().slice(0,7);
+ M.overviewMonth=month;
+ const day=maintenanceYesterday();
+ const [monthRows,records,definitions,historical,yesterdayCount,yesterdayDone]=await Promise.all([
+  getRows('maintenance_monthly_summary',{select:'station_id,period_month,work_count,pm_count,cm_count,ss_count,done_count,not_done_count,needs_cm_count,unverified_count,registered_cost',
+   station_id:'eq.'+id,period_month:'eq.'+month+'-01',limit:'1'}),
+  getRows('maintenance_records',{select:'id,work_type,frequency,work_date,period_month,status,original_equipment,original_area,description,notes,cost,maintenance_assets(asset_name,area)',
+   station_id:'eq.'+id,period_month:'eq.'+month+'-01',
+   order:'work_date.asc.nullslast,created_at.asc',limit:'80'}),
+  getRows('maintenance_definitions',{select:'id,work_type,frequency,period_month,source_sheet,original_equipment,original_area,maintenance_assets(asset_name,area)',
+   station_id:'eq.'+id,period_month:'eq.'+month+'-01',order:'source_row.asc',limit:'80'}),
   summary(id),
-  getRows('maintenance_imports',{select:'id,file_name,inserted_records,inserted_assets,inserted_definitions,created_at,created_by,status',station_id:'eq.'+id,order:'created_at.desc',limit:8}),
-  getRows('maintenance_monthly_summary',{select:'period_month,work_count,done_count,not_done_count,needs_cm_count',station_id:'eq.'+id,order:'period_month.asc',limit:'100'}),
-  getRows('maintenance_historical_imports',{select:'source_name,expected_assets,expected_records,expected_definitions,imported_at',station_id:'eq.'+id,limit:'5'})
+  countMaintenanceRecords(id,day),
+  countMaintenanceRecords(id,day,['DONE','DONE WITH COMMENT'])
  ]);
- const x=list[0]||{},n=k=>Number(x[k]||0),known=n('done_count')+n('not_done_count');
- const rate=known?Math.round(100*n('done_count')/known):null;
- const gauge=host()?.gauge?.(rate,'#0362AF','level')||'';
- const panel=(label,value,caption)=>'<article class="mw-instrument"><span class="mw-instrument-label">'+h(label)+'</span>'+
-  '<strong class="mw-instrument-number">'+h(value)+'</strong>'+(caption?'<span class="mw-instrument-sub">'+h(caption)+'</span>':'')+'</article>';
- let html=toolbar()+'<div class="mw-actions" style="margin:0 0 12px"><button type="button" class="mw-button main" data-mw="goDaily">＋ إدخال صيانة جديدة</button><button type="button" class="mw-button" data-mw="goMonthly">⬇ التقرير الشهري</button></div><div class="mw-instrument-grid">'+
- '<article class="mw-instrument">'+gauge+'<span class="mw-instrument-label">نسبة DONE</span>'+
- '<strong class="mw-instrument-number">'+(rate===null?'—':rate+'%')+'</strong>'+
- '<span class="mw-instrument-sub">DONE / NOT DONE</span></article>'+
- panel('المعدات',fmt(n('asset_count')),'')+
- panel('سجلات الصيانة',fmt(n('work_count')),'PM + CM + SS')+
- panel('الأعمال المجدولة',fmt(n('planned_count')),'')+
- '</div>';
- const kpis=[
-  ['PM',n('pm_count')],['CM',n('cm_count')],['SS',n('ss_count')],
-  ['DONE',n('done_count')],['NOT DONE',n('not_done_count')],['NEED CM',n('needs_cm_count')],
-  ['NOT IN SERVICE',n('out_of_service_count')],['غير محدد',n('unverified_count')]
- ];
- html+='<div class="mw-kpis">'+kpis.map(([label,value])=>'<div class="mw-kpi"><small>'+h(label)+'</small><strong>'+fmt(value)+'</strong></div>').join('')+'</div>';
- html+='<div class="mw-card" style="margin-top:14px"><div class="mw-top"><h3>أعمال الصيانة — آخر 12 شهرًا</h3></div>';
- const visible=months.slice(-12),maximum=Math.max(1,...visible.map(m=>Number(m.work_count||0)));
- html+='<div class="mw-month-chart">'+visible.map(m=>{
-   const count=Number(m.work_count||0),done=Number(m.done_count||0);
-   const height=Math.max(4,Math.round(count/maximum*115));
-   const doneH=count?Math.round(done/count*100):0;
-   const label=String(m.period_month||'').slice(0,7);
-   return '<button type="button" class="mw-month-item" data-mw="month" data-period="'+h(label)+'" title="'+h(label+' — '+count+' سجل')+'">'+
-    '<span class="mw-month-total">'+fmt(count)+'</span>'+
-    '<span class="mw-month-bar" style="height:'+height+'px"><span class="mw-month-done" style="height:'+doneH+'%"></span>'+
-    '<span class="mw-month-other" style="height:'+(100-doneH)+'%"></span></span><small dir="ltr">'+h(label.slice(2))+'</small></button>';
-  }).join('')+'</div></div>';
- html+='<div class="mw-card"><h3>التكاليف وحالة السجلات</h3><div class="mw-status-grid">'+
- [['التكاليف المسجلة',fmt(x.registered_cost||0)+' ر.س',''],['سجلات تحتاج ربطًا بمعدة',fmt(n('unlinked_count')),'warning'],['حالة OTHERS',fmt(n('other_count')),'purple']].map(([label,val,cls])=>
-  '<div class="mw-status-item '+cls+'"><span>'+h(label)+'</span><strong>'+h(val)+'</strong></div>').join('')+
- '</div></div>';
- if(history.length){
-  html+='<div class="mw-card"><h3>الأرشيف التاريخي لمحطة وادي جيزان</h3>'+
-  '<div class="mw-status-grid">'+history.map(a=>
-   '<div class="mw-status-item"><span>'+h(a.source_name)+'</span><strong>'+fmt(a.expected_records)+' سجل</strong></div>').join('')+
-  '</div></div>';
+ const m=monthRows[0]||{},all=historical[0]||{},n=(x,key)=>Number(x[key]||0);
+ const monthTotal=n(m,'work_count'),done=n(m,'done_count'),remaining=Math.max(0,monthTotal-done);
+ const historicTotal=n(all,'work_count'),historicDone=n(all,'done_count');
+ const card=(label,value,subtitle,extra='')=>'<div class="mw-month-kpi '+extra+'"><small>'+h(label)+'</small>'+
+  '<strong>'+fmt(value)+'</strong>'+(subtitle?'<span>'+h(subtitle)+'</span>':'')+'</div>';
+ let html=toolbar()+
+  '<section class="mw-month-overview" aria-label="لوحة الصيانة الشهرية">'+
+  '<div class="mw-month-titlebar"><div><span class="mw-overline">MONTHLY MAINTENANCE</span>'+
+  '<h3>صيانة الشهر الحالي</h3><p class="mw-muted">الملخص افتراضيًا للشهر المحدد فقط، ولا يشمل الأشهر السابقة.</p></div>'+
+  '<label class="mw-month-picker">شهر الصيانة<input type="month" class="mw-input" id="mw-overview-month" value="'+h(month)+'"></label></div>'+
+  '<div class="mw-month-kpis">'+
+  card('سجلات الصيانة للشهر',monthTotal,'PM + CM + SS','month-total')+
+  card('تم التنفيذ — DONE',done,'يشمل DONE WITH COMMENT','done')+
+  card('غير مكتمل من السجلات',remaining,'جميع الحالات غير DONE','remaining')+
+  card('NOT DONE',n(m,'not_done_count'),'الحالة المحددة صراحة')+
+  '</div>'+
+  '<div class="mw-yesterday-strip"><div><strong>صيانة أمس · '+h(day)+'</strong>'+
+  '<span>أعمال بتاريخ التنفيذ أمس، بغض النظر عن شهر الجدول</span></div>'+
+  '<div><b>'+fmt(yesterdayCount)+'</b><small>أعمال مسجلة</small></div>'+
+  '<div><b>'+fmt(yesterdayDone)+'</b><small>تم تنفيذها</small></div>'+
+  '<div><b>'+fmt(Math.max(0,yesterdayCount-yesterdayDone))+'</b><small>غير مكتملة</small></div></div>'+
+  '<div class="mw-actions mw-month-actions">'+
+  '<button type="button" class="mw-button main" data-mw="goDaily">＋ إدخال صيانة</button>'+
+  '<button type="button" class="mw-button" data-mw="goMonthly">التقرير الشهري</button>'+
+  '<button type="button" class="mw-button" data-mw="goRecordsCurrent">سجلات هذا الشهر</button></div>'+
+  '<div class="mw-card mw-overview-schedule"><div class="mw-top"><div><h3>جدول أعمال الصيانة · '+h(month)+'</h3>'+
+  '<small class="mw-muted">يمكن استعراض السجلات أو الأعمال المخططة للشهر نفسه.</small></div>'+
+  '<div class="mw-actions"><button type="button" class="mw-button'+(!M.overviewShowPlanned?' main':'')+'" data-mw="overviewRecords">السجلات ('+fmt(monthTotal)+')</button>'+
+  '<button type="button" class="mw-button'+(M.overviewShowPlanned?' main':'')+'" data-mw="overviewPlanned">المخطط ('+fmt(definitions.length)+(definitions.length===80?'+':'')+')</button></div></div>';
+ if(M.overviewShowPlanned){
+  html+=definitions.length?'<div class="mw-table-wrap"><table><thead><tr><th>المعدة</th><th>المنطقة</th><th>النوع</th><th>التكرار</th><th>شهر الجدول</th><th>الحالة</th></tr></thead><tbody>'+
+   definitions.map(r=>'<tr><td class="mw-note">'+h(r.original_equipment||r.maintenance_assets?.asset_name||'—')+'</td>'+
+    '<td class="mw-note">'+h(r.original_area||r.maintenance_assets?.area||'—')+'</td><td>'+h(r.work_type||'—')+'</td>'+
+    '<td>'+h(r.frequency||'—')+'</td><td dir="ltr">'+h(month)+'</td><td><span class="mw-tag">مجدول</span></td></tr>').join('')+
+   '</tbody></table></div>':'<div class="mw-empty">لا توجد أعمال مخططة ومُدخلة لهذا الشهر. لا يُفترض وجود أعمال ناقصة خارج السجلات.</div>';
+  if(definitions.length===80)html+='<p class="mw-muted">يُعرض أول 80 تعريفًا. راجع تبويب الجدول والدوريات لعرض البقية.</p>';
+ }else{
+  html+=records.length?'<div class="mw-table-wrap"><table><thead><tr><th>المعدة / العمل</th><th>المنطقة</th><th>النوع</th><th>التكرار</th><th>تاريخ التنفيذ</th><th>الحالة</th><th>الملاحظات</th><th>تفاصيل</th></tr></thead><tbody>'+
+   records.map(r=>'<tr><td class="mw-note">'+h(r.original_equipment||r.maintenance_assets?.asset_name||'—')+'</td>'+
+    '<td class="mw-note">'+h(r.original_area||r.maintenance_assets?.area||'—')+'</td><td>'+h(r.work_type||'—')+'</td>'+
+    '<td>'+h(r.frequency||'—')+'</td><td dir="ltr">'+h(prettyDate(r.work_date))+'</td><td>'+badge(r.status)+'</td>'+
+    '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td>'+
+    '<td><button type="button" class="mw-button" data-mw="overviewRecord" data-record="'+h(r.id)+'">عرض</button></td></tr>').join('')+
+   '</tbody></table></div>':'<div class="mw-empty">لا توجد سجلات صيانة مدخلة لهذا الشهر حتى الآن.</div>';
+  if(monthTotal>records.length)html+='<p class="mw-muted">يُعرض أول '+fmt(records.length)+' سجلًا من أصل '+fmt(monthTotal)+'. افتح سجلات هذا الشهر لاستعراض البقية.</p>';
  }
- html+='<div class="mw-card"><div class="mw-top"><h3>سجل الاستيراد</h3><button class="mw-button main" data-mw="goImport">استيراد Excel</button></div>';
- html+=imports.length?'<div class="mw-table-wrap"><table><thead><tr><th>اسم الملف</th><th>سجلات جديدة</th><th>معدات جديدة</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody>'+
- imports.map(i=>'<tr><td class="mw-note">'+h(i.file_name)+'</td><td>'+fmt(i.inserted_records)+'</td><td>'+fmt(i.inserted_assets)+'</td><td>'+h(i.status==='completed'?'مكتمل':i.status==='rolled_back'?'تم التراجع':i.status==='pending'?'غير مكتمل':'متوقف')+'</td><td>'+h(new Date(i.created_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}))+'</td><td>'+
- (i.created_by===host()?.userId?.()&&['completed','pending','failed'].includes(i.status)&&Date.now()-new Date(i.created_at).getTime()<24*3600000?'<button type="button" class="mw-button" data-mw="rollback" data-import-id="'+h(i.id)+'">التراجع</button>':'—')+
- '</td></tr>').join('')+
- '</tbody></table></div>':'<div class="mw-empty">لا توجد عمليات استيراد.</div>';
- el('maintenanceBody').innerHTML=html+'</div>';
- host()?.animateGauges?.(el('maintenanceBody'));
+ html+='</div>'+
+  '<p class="mw-month-clarification">المتبقي = السجلات المدخلة لهذا الشهر بحالة غير DONE. لا يمثل أعمالًا لم تُسجّل في النظام.</p>'+
+  '</section>';
+ // Historical totals are available separately, never mixed into the monthly KPIs.
+ html+='<section class="mw-history-corner" aria-label="إجمالي الصيانة التاريخية">'+
+  '<div class="mw-history-corner-title"><div><small>ARCHIVE · جميع السنوات</small><strong>الإجمالي التاريخي</strong></div>'+
+  '<button type="button" class="mw-button" data-mw="toggleHistory" aria-expanded="'+(M.overviewHistory?'true':'false')+'">'+
+  (M.overviewHistory?'إخفاء التفاصيل التاريخية':'عرض التفاصيل التاريخية')+'</button></div>'+
+  '<div class="mw-history-mini">'+
+  card('إجمالي السجلات',historicTotal,'جميع الأشهر')+
+  card('DONE',historicDone,'تم تنفيذها')+
+  card('غير مكتمل',Math.max(0,historicTotal-historicDone),'من السجلات التاريخية')+
+  '</div></section>';
+ if(M.overviewHistory){
+  const [months,imports,legacy]=await Promise.all([
+   getRows('maintenance_monthly_summary',{select:'period_month,work_count,done_count,not_done_count,needs_cm_count',
+    station_id:'eq.'+id,order:'period_month.asc',limit:'120'}),
+   getRows('maintenance_imports',{select:'id,file_name,inserted_records,created_at,status',station_id:'eq.'+id,order:'created_at.desc',limit:'8'}),
+   getRows('maintenance_historical_imports',{select:'source_name,expected_records',station_id:'eq.'+id,limit:'5'})
+  ]);
+  html+='<section class="mw-card mw-history-details"><h3>المؤشرات التاريخية — جميع الأشهر</h3><div class="mw-kpis">'+
+   [['PM',n(all,'pm_count')],['CM',n(all,'cm_count')],['SS',n(all,'ss_count')],
+   ['NOT DONE',n(all,'not_done_count')],['NEED CM',n(all,'needs_cm_count')],
+   ['المعدات',n(all,'asset_count')],['الأعمال المجدولة',n(all,'planned_count')],['التكاليف (ر.س)',Number(all.registered_cost||0)]].
+    map(([label,value])=>'<div class="mw-kpi"><small>'+h(label)+'</small><strong>'+fmt(value)+'</strong></div>').join('')+
+   '</div><h3 style="margin-top:18px">حركة الصيانة — آخر 12 شهرًا</h3>';
+  const visible=months.slice(-12),maximum=Math.max(1,...visible.map(x=>Number(x.work_count||0)));
+  html+='<div class="mw-month-chart">'+visible.map(x=>{
+   const count=Number(x.work_count||0),percent=count?Math.round(Number(x.done_count||0)/count*100):0;
+   const height=Math.max(4,Math.round(count/maximum*115)),label=String(x.period_month||'').slice(0,7);
+   return '<button type="button" class="mw-month-item" data-mw="month" data-period="'+h(label)+'" title="'+h(label+' — '+count+' سجل')+'">'+
+    '<span class="mw-month-total">'+fmt(count)+'</span><span class="mw-month-bar" style="height:'+height+'px">'+
+    '<span class="mw-month-done" style="height:'+percent+'%"></span><span class="mw-month-other" style="height:'+(100-percent)+'%"></span>'+
+    '</span><small dir="ltr">'+h(label.slice(2))+'</small></button>';
+  }).join('')+'</div>';
+  if(legacy.length)html+='<p class="mw-muted" style="margin-top:12px">مصادر الأرشيف: '+
+   legacy.map(x=>h(x.source_name)+' ('+fmt(x.expected_records)+')').join('، ')+'</p>';
+  if(imports.length)html+='<h3>آخر عمليات الاستيراد</h3><div class="mw-table-wrap"><table><thead><tr><th>الملف</th><th>السجلات</th><th>الحالة</th></tr></thead><tbody>'+
+   imports.map(x=>'<tr><td class="mw-note">'+h(x.file_name)+'</td><td>'+fmt(x.inserted_records)+'</td><td>'+
+    h(x.status)+'</td></tr>').join('')+'</tbody></table></div>';
+  html+='</section>';
+ }
+ el('maintenanceBody').innerHTML=html;
 }
+
 function assetQuery(id){
  const params={select:'id,asset_code,asset_name,area,normalized_key,created_at',station_id:'eq.'+id,asset_code:'neq.UNVERIFIED_LINK',order:'asset_name.asc',limit:String(PAGE),offset:String(M.assetPage*PAGE)};
  const search=(M.search||'').trim().replace(/[(),.*]/g,' ').slice(0,70);
@@ -873,6 +953,9 @@ function onChange(e){
  if(e.target.id==='mw-type'){M.type=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-status'){M.status=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-frequency'){M.frequencyFilter=e.target.value;M.page=0;update()}
+ if(e.target.id==='mw-overview-month'){
+  if(/^\d{4}-\d{2}$/.test(e.target.value)){M.overviewMonth=e.target.value;M.overviewShowPlanned=false;void update()}
+ }
  if(e.target.id==='mw-period'){M.period=e.target.value;M.page=0;update()}
  if(e.target.id==='mw-plan-period'){M.period=e.target.value;M.plannedPage=0;update()}
  if(e.target.id==='mw-template-area'){M.areaFilter=e.target.value;M.assetPage=0;update()}
@@ -889,6 +972,11 @@ function onClick(e){
  if(action==='goRecords'){setTab('records');return}
  if(action==='goDaily'){setTab('daily');return}
  if(action==='goMonthly'){setTab('monthly');return}
+ if(action==='goRecordsCurrent'){M.period=M.overviewMonth;setTab('records');return}
+ if(action==='overviewRecords'){M.overviewShowPlanned=false;void update();return}
+ if(action==='overviewPlanned'){M.overviewShowPlanned=true;void update();return}
+ if(action==='overviewRecord'){void openRecordFromDaily(b.dataset.record);return}
+ if(action==='toggleHistory'){M.overviewHistory=!M.overviewHistory;void update();return}
  if(action==='asset'){M.assetId=b.dataset.asset;M.assetName=b.dataset.name;M.tab='records';M.page=0;update();return}
  if(action==='clearFilters'){M.focusRecordId='';M.assetId='';M.assetName='';M.type='';M.status='';M.frequencyFilter='';M.period='';M.page=0;update();return}
  if(action==='clearSearch'){M.search='';M.areaFilter='';M.assetPage=0;update();return}
@@ -918,33 +1006,49 @@ function onClick(e){
 }
 async function dashboardMaintenance(){
  if(isMaintenance())return;
- const container=el('dashboardContent');
- const summaryNode=container?.querySelector('.dashboard-summary');
+ const container=el('dashboardContent'),summaryNode=container?.querySelector('.dashboard-summary');
  if(!accessible()||!container||!summaryNode||updatingDash)return;
  if(container.querySelector('.mw-dash-summary'))return;
- const node=document.createElement('section');
- node.className='mw-dash-summary';
- node.innerHTML='<h3>🔧 متابعة الصيانة</h3><div class="mw-muted">جارٍ تحميل سجلات الصيانة...</div>';
+ const node=document.createElement('section');node.className='mw-dash-summary';
+ node.innerHTML='<h3>🔧 الصيانة لهذا الشهر</h3><p class="mw-muted">جارٍ تحميل بيانات الصيانة...</p>';
  summaryNode.insertAdjacentElement('afterend',node);
  updatingDash=true;
  try{
-  const list=await summary('');
+  const month=maintenanceSaudiDate().slice(0,7),yesterday=maintenanceYesterday();
+  const allowed=new Set(getStations().map(x=>x.id));
+  const [monthlyRows,allRows,yesterdayWorks,yesterdayCompleted]=await Promise.all([
+   getRows('maintenance_monthly_summary',{select:'station_id,period_month,work_count,done_count,not_done_count',
+    period_month:'eq.'+month+'-01',limit:'100'}),
+   summary(''),
+   countMaintenanceRecords([...allowed],yesterday),
+   countMaintenanceRecords([...allowed],yesterday,['DONE','DONE WITH COMMENT'])
+  ]);
   if(!node.isConnected)return;
-  const sums=k=>list.reduce((a,x)=>a+Number(x[k]||0),0);
-  const assets=sums('asset_count'),works=sums('work_count'),done=sums('done_count'),undone=sums('not_done_count');
-  const hasData=list.filter(x=>Number(x.work_count||0)>0);
-  const stationsWithData=hasData.map(x=>stationName(x.station_id)).join('، ');
-  node.innerHTML='<div class="mw-top" style="border:0;padding:0;margin:0 0 10px"><div><h3>🔧 متابعة الصيانة</h3>'+
-   '<p class="mw-muted" style="margin:3px 0">المحطات التي لديها بيانات صيانة: '+h(stationsWithData||'لا توجد سجلات مستوردة')+'</p></div>'+
-   '<button type="button" id="mw-dashboard-open">فتح إدارة الصيانة</button></div>'+
-   '<div class="mw-dash-row"><div class="mw-dash-values">'+
-   [['المعدات المؤكدة',assets],['سجلات الصيانة',works],['DONE',done],['NOT DONE',undone]].
-   map(([label,num])=>'<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>';
+  const monthData=monthlyRows.filter(x=>allowed.has(x.station_id)),history=allRows.filter(x=>allowed.has(x.station_id));
+  const sum=(rows,key)=>rows.reduce((total,x)=>total+Number(x[key]||0),0);
+  const monthAll=sum(monthData,'work_count'),monthDone=sum(monthData,'done_count');
+  const historyAll=sum(history,'work_count'),historyDone=sum(history,'done_count');
+  const monthlyKpis=[
+   ['سجلات الشهر',monthAll],['تم التنفيذ (DONE)',monthDone],
+   ['غير مكتمل من السجلات',Math.max(0,monthAll-monthDone)],
+   ['صيانة أمس ('+yesterday+')',yesterdayWorks],
+   ['DONE أمس',yesterdayCompleted]
+  ];
+  node.innerHTML='<div class="mw-top mw-dash-month-head"><div><h3>🔧 الصيانة — '+h(month)+'</h3>'+
+   '<p class="mw-muted" style="margin:3px 0">ملخص الشهر الحالي، وصيانة أمس حسب تاريخ التنفيذ.</p></div>'+
+   '<button type="button" id="mw-dashboard-open">فتح جدول صيانة الشهر</button></div>'+
+   '<div class="mw-dash-row"><div class="mw-dash-values">'+monthlyKpis.map(([label,num])=>
+    '<span>'+h(label)+'<strong>'+fmt(num)+'</strong></span>').join('')+'</div></div>'+
+   '<div class="mw-dash-history-foot"><span>الإجمالي التاريخي</span>'+
+   '<small>كل السجلات <b>'+fmt(historyAll)+'</b></small>'+
+   '<small>DONE <b>'+fmt(historyDone)+'</b></small>'+
+   '<small>غير مكتمل <b>'+fmt(Math.max(0,historyAll-historyDone))+'</b></small></div>';
   el('mw-dashboard-open')?.addEventListener('click',()=>open('overview'));
  }catch(err){
-  if(node.isConnected)node.innerHTML='<h3>🔧 متابعة الصيانة</h3>'+message('تعذر تحميل ملخص الصيانة.',true);
+  if(node.isConnected)node.innerHTML='<h3>🔧 الصيانة لهذا الشهر</h3>'+message('تعذر تحميل ملخص الصيانة: '+err.message,true);
  }finally{updatingDash=false}
 }
+
 function init(){
  build();
  const dc=el('dashboardContent');
