@@ -96,7 +96,7 @@ function open(tab){
  if(root.classList.contains('hidden')){restoreFocus=document.activeElement;restoreOverflow=document.body.style.overflow;}
  // A fresh entry to Maintenance should show this month's overview, not lifetime totals.
  const requested=tab||'overview';
- if(requested==='overview'&&!tab){
+ if(requested==='overview'){
   M.overviewMonth=maintenanceSaudiDate().slice(0,7);
   M.overviewHistory=false;
   M.overviewShowPlanned=false;
