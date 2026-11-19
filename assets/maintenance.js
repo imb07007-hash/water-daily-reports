@@ -1,7 +1,7 @@
 /* Maintenance module: one signed-in site, shared Supabase session, station-scoped Excel import. */
 (function(){
 'use strict';
-const M={tab:'overview',overviewMonth:'',overviewHistory:false,overviewShowPlanned:false,stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',frequencyFilter:'',period:'',search:'',preview:null,importing:false,loading:false};
+const M={tab:'overview',overviewMonth:'',overviewHistory:false,overviewShowPlanned:false,stationId:'',page:0,assetPage:0,plannedPage:0,assetView:'template',areaFilter:'',assetId:'',assetName:'',type:'',status:'',frequencyFilter:'',period:'',search:'',preview:null,importing:false,loading:false,lastRenderedTab:'',lastRenderedStation:''};
 const PAGE=40,BATCH=100;
 let root=null,observer=null,bodyObserver=null,updatingDash=false,restoreFocus=null,restoreOverflow='';
 const el=id=>document.getElementById(id);
@@ -61,12 +61,30 @@ async function request(path,options){
  if(!r.ok){const detail=await r.json().catch(()=>null);throw Error((detail&&typeof detail.message==='string'?detail.message:'تعذر الاتصال بقاعدة البيانات')+' ('+r.status+')')}
  const raw=await r.text();return raw?JSON.parse(raw):[];
 }
-async function getRows(table,params){return request(url(table,params))}
+const wsV43ReadCache=new Map();
+async function getRows(table,params){
+ const resource=url(table,params);
+ // Only cache catalog metadata briefly. Never cache editable work records or account data.
+ const catalog=['maintenance_assets','maintenance_templates'].includes(table);
+ if(!catalog)return request(resource);
+ const cacheKey=(host()?.userId?.()||'')+'|'+resource;
+ const cached=wsV43ReadCache.get(cacheKey);
+ if(cached&&Date.now()-cached.time<12000)return cached.data;
+ const data=await request(resource);
+ wsV43ReadCache.set(cacheKey,{time:Date.now(),data});
+ if(wsV43ReadCache.size>32)wsV43ReadCache.delete(wsV43ReadCache.keys().next().value);
+ return data;
+}
 async function postRows(table,rows,ignore=false){
  if(!rows.length)return [];
  let path='/rest/v1/'+table;
  if(ignore)path+='?on_conflict='+(table==='maintenance_assets'?'station_id,normalized_key':'station_id,source_key');
- return request(path,{method:'POST',headers:{Prefer:'return=representation'+(ignore?',resolution=ignore-duplicates':'')},body:JSON.stringify(rows)});
+ const result=await request(path,{method:'POST',headers:{Prefer:'return=representation'+(ignore?',resolution=ignore-duplicates':'')},body:JSON.stringify(rows)});
+ if(table==='maintenance_assets'){
+  wsV43ReadCache.clear();
+  window.WSV43Maintenance?.invalidate?.();
+ }
+ return result;
 }
 async function summary(stationId){
  const params={select:'*'};
@@ -133,7 +151,13 @@ async function update(){
  if(M.loading){M.pendingUpdate=true;return}
  const id=getId();if(!owns(id)){el('maintenanceBody').innerHTML=message('لا تتوفر صلاحية لهذه المحطة.',true);return}
  M.loading=true;setTabs();
- const area=el('maintenanceBody');area.innerHTML=toolbar()+message('جارٍ تحميل البيانات...');
+ const area=el('maintenanceBody');
+ const softRefresh=M.lastRenderedTab===M.tab&&M.lastRenderedStation===id&&area.querySelector('.mw-card,.mw-month-overview');
+ if(softRefresh){
+  area.classList.add('ws-v43-refreshing');area.setAttribute('aria-busy','true');
+ }else{
+  area.innerHTML=toolbar()+message('جارٍ تحميل البيانات...');
+ }
  try{
   if(M.tab==='overview')await renderOverview(id);
   else if(M.tab==='assets')await renderAssets(id);
@@ -142,8 +166,12 @@ async function update(){
   else if(M.tab==='daily')await window.WSMaintenanceDaily.renderDaily(area,id,toolbar());
   else if(M.tab==='monthly')await window.WSMaintenanceDaily.renderMonthly(area,id,toolbar());
   else renderImport(id);
+  M.lastRenderedTab=M.tab;M.lastRenderedStation=id;
  }catch(err){area.innerHTML=toolbar()+message(err.message||'تعذر تحميل البيانات.',true)}
- finally{M.loading=false;if(M.pendingUpdate){M.pendingUpdate=false;void update()}}
+ finally{
+  area.classList.remove('ws-v43-refreshing');area.setAttribute('aria-busy','false');
+  M.loading=false;if(M.pendingUpdate){M.pendingUpdate=false;void update()}
+ }
 }
 async function renderOverview(id){
  const month=M.overviewMonth||maintenanceSaudiDate().slice(0,7);
@@ -309,12 +337,14 @@ async function renderAssets(id){
  items.map(a=>'<tr><td>'+h(a.asset_code||'—')+'</td><td class="mw-note">'+h(a.asset_name)+'</td><td class="mw-note">'+h(a.area||'—')+'</td><td><button type="button" class="mw-button" data-mw="asset" data-asset="'+h(a.id)+'" data-name="'+h(a.asset_name)+'">عرض الصيانة</button></td></tr>').join('')+'</tbody></table></div>':
  '<div class="mw-empty">لا توجد معدات مطابقة.</div>';
  html+='<div class="mw-pager"><button type="button" class="mw-button" data-mw="assetPrev" '+(M.assetPage?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.assetPage+1)+'</span><button type="button" class="mw-button" data-mw="assetNext" '+(items.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
+ html+='<section class="ws-v43-asset-suggestions" id="wsV43AssetSuggestions" data-station="'+h(id)+'" aria-label="فحص تسميات المعدات المتشابهة"></section>';
  html+='<div class="mw-card"><h3>إضافة معدة واحدة</h3><form id="mw-add-asset"><div class="mw-form-grid">'+
  '<label class="mw-label">اسم المعدة<input class="mw-input" name="assetName" required minlength="2" maxlength="180" placeholder="مثال: INTAKE WATER PUMP 1"></label>'+
  '<label class="mw-label">المنطقة / المبنى<input class="mw-input" name="area" maxlength="180" placeholder="مثال: INTAKE"></label>'+
  '<label class="mw-label">معرّف المعدة الداخلي / Tag إن كان معتمدًا (اختياري)<input class="mw-input" name="assetCode" maxlength="100"></label>'+
  '</div><div class="mw-actions" style="margin-top:12px"><button class="mw-button main" type="submit">حفظ المعدة</button></div></form></div>';
  el('maintenanceBody').innerHTML=html;
+ window.WSV43Maintenance?.renderSuggestions?.(id,el('wsV43AssetSuggestions'));
 }
 function recordsParams(id){
  const p={select:'id,station_id,created_by,is_locked,locked_at,locked_by,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,spare_parts_cost,workers,hours,materials,spares,source_file,source_sheet,source_row,original_date,original_status,original_equipment,original_area,import_issues,maintenance_assets(asset_name,area,asset_code)',
@@ -331,7 +361,9 @@ async function renderRecords(id){
  const list=await getRows('maintenance_records',recordsParams(id));
  M.visibleRecords=list;
  const canReview=isMaintenanceAdmin();
- let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>السجل التاريخي لأعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
+ let html=toolbar()+
+ (M.assetId?'<section id="wsV43AssetCard" class="ws-v43-asset-card" data-asset="'+h(M.assetId)+'" aria-label="بطاقة المعدة"></section>':'')+
+ '<div class="mw-card"><div class="mw-top"><h3>السجل التاريخي لأعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
  '<button class="mw-button" data-mw="clearFilters">عرض جميع السجلات</button></div>'+
  '<div class="mw-actions"><label>النوع <select class="mw-select" id="mw-type"><option value="">الكل</option>'+
  [['PM','PM'],['CM','CM'],['SS','SS']].map(([v,t])=>'<option value="'+v+'"'+(M.type===v?' selected':'')+'>'+t+'</option>').join('')+'</select></label>'+
@@ -360,6 +392,7 @@ async function renderRecords(id){
  '<div class="mw-empty">لا توجد أعمال صيانة مسجلة ضمن الفلاتر الحالية.</div>';
  html+='<div id="mw-record-editor"></div><div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  el('maintenanceBody').innerHTML=html;
+ if(M.assetId)void window.WSV43Maintenance?.renderAssetCard?.(id,M.assetId,M.assetName,el('wsV43AssetCard'));
  window.WSMaintenanceBulk?.enhance?.({
   root:el('maintenanceBody'),records:list,stationId:id,
   params:recordsParams(id),onRefresh:update,onNotice:alertInline
