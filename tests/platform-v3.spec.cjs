@@ -68,6 +68,7 @@ test('station role receives report workspace with send button and cannot see sup
 });
 test('superadmin can navigate to users, audit and data administration separately',async({page})=>{
  await login(page,'superadmin');
+ await page.locator('#wsV3Nav [data-ws-toggle="admin"]').click();
  await page.locator('#wsV3Nav [data-ws-to="admin/accounts"]').click();
  await expect(page.locator('#accountsModal')).toBeVisible();
  await page.locator('#wsV3Nav [data-ws-to="admin/audit"]').click();
