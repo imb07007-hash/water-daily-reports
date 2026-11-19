@@ -61,8 +61,8 @@ test('yesterday maintenance is counted by actual work_date and DONE WITH COMMENT
 });
 test('monthly dashboard changes remain view-only and render on mobile',()=>{
  assert.ok(html.includes('/assets/maintenance.css?v=20261118-monthly-first1'));
- assert.ok(html.includes('/assets/core-app.js?v=20261118-excel-readings1'));
- assert.ok(html.includes('/assets/maintenance.js?v=20261119-bulk1'));
+ assert.ok(html.includes('/assets/core-app.js?v=20261119-platform-v3'));
+ assert.ok(html.includes('/assets/maintenance.js?v=20261119-v3-focus1'));
  assert.ok(css.includes('.mw-month-kpis'));
  assert.ok(css.includes('.mw-yesterday-strip'));
  assert.ok(css.includes('.mw-history-corner'));
