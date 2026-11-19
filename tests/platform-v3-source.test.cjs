@@ -62,7 +62,7 @@ test('original logo and original mark remain byte-for-byte identical to the appr
  assert.equal(gitBlobHash(read('assets/wsc-mark.svg')),'92ead9adb56d6295abf8ac363418e54a7ec43243');
 });
 test('Water Solutions V4 creates a distinctive brand system without modifying report print layout',()=>{
- assert.ok(page.includes('/assets/wsc-corporate-v4.css?v=20261119-brand4'));
+ assert.ok(page.includes('/assets/wsc-corporate-v4.css?v=20261119-brand4b'));
  for(const item of [
   '.ws-v4-logo-panel','.ws-v4-top-signature','.ws-v4-coverage',
   '.ws-v4-hero-stripe','wsc-mark.svg','--ws4-blue:#0362AF','--ws4-purple:#87329A'
