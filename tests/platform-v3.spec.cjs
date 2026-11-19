@@ -142,8 +142,7 @@ test('V4.1 remembers compact sidebar preference and still permits navigation aft
  const expanded=await sidebar.evaluate(el=>el.getBoundingClientRect().width);
  await page.locator('#wsV41Collapse').click();
  await expect(page.locator('body')).toHaveClass(/ws-v41-collapsed/);
- const compact=await sidebar.evaluate(el=>el.getBoundingClientRect().width);
- expect(compact).toBeLessThan(expanded-100);
+ await expect.poll(()=>sidebar.evaluate(el=>el.getBoundingClientRect().width)).toBeLessThan(expanded-100);
  await expect(page.locator('.ws-v41-compact-logo')).toBeVisible();
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('ws-company-ux-v41')));
  expect(saved.collapsed).toBe(true);
