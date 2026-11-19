@@ -39,6 +39,11 @@ function counts(){
  const node=B.toolbar;
  if(!node)return;
  const count=B.selected.size,visible=B.visible.filter(r=>B.selected.has(r.id)).length;
+ node.dataset.wsBulkActive=String(count>0);
+ const guide=node.querySelector('[data-ws-bulk-guide]');
+ if(guide)guide.textContent=count>0?
+   'اختر الإجراء المطلوب للسجلات المحددة، ثم راجع التغييرات قبل الحفظ.':
+   'حدد السجلات المطلوبة أولًا، وستظهر أدوات التحرير والقفل الجماعي.';
  const text=node.querySelector('[data-bulk-count]');
  if(text)text.textContent='المحدد: '+count+' سجل'+(count>visible?' (يشمل صفحات أخرى)':'')+' · الحد الأقصى '+LIMIT;
  node.querySelectorAll('[data-bulk-action="editNotes"],[data-bulk-action="editAll"],[data-bulk-action="lock"],[data-bulk-action="unlock"],[data-bulk-action="clear"]').forEach(btn=>btn.disabled=count===0);
@@ -65,6 +70,7 @@ function enhance({root,records,stationId,params,onRefresh,onNotice}){
  '<button type="button" class="mw-button" data-bulk-action="editAll">تعديل البيانات</button>'+
  '<button type="button" class="mw-button" data-bulk-action="lock">🔒 قفل جماعي</button>'+
  '<button type="button" class="mw-button" data-bulk-action="unlock">🔓 فتح جماعي</button></div>'+
+ '<small class="mw-bulk-hint" data-ws-bulk-guide>حدد السجلات المطلوبة أولًا، وستظهر أدوات التحرير والقفل الجماعي.</small>'+
  '<small class="mw-bulk-hint">التحديد يستمر بين صفحات نفس البحث. يمكن تحرير 50 سجلًا أو قفل 200 سجل في العملية الواحدة. لا يُحفظ شيء قبل المعاينة والتأكيد.</small>';
  const before=card.querySelector('.mw-table-wrap')||card.querySelector('.mw-empty')||card.querySelector('.mw-pager');
  card.insertBefore(toolbar,before);
