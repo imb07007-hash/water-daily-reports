@@ -1090,6 +1090,8 @@ function init(){
   e.preventDefault();e.stopImmediatePropagation();close();return;
  }
  if(e.key==='Tab'){
+  // Docked V3 workspace navigation must remain keyboard accessible outside maintenance.
+  if(root.classList.contains('ws-v3-docked'))return;
   const choices=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')].filter(x=>x.getClientRects().length>0);
   if(!choices.length)return;
   const first=choices[0],last=choices[choices.length-1];
