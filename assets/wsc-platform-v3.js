@@ -191,7 +191,7 @@ function pageTitle(route){
 }
 function navButton(route,sub){
  const p=paths[route];
- return '<button type="button" class="ws-v3-link'+(sub?' ws-v3-sub-link':'')+'" data-ws-to="'+esc(route)+'"'+
+ return '<button type="button" class="ws-v3-link'+(sub?' ws-v3-sub-link':'')+'" data-ws-to="'+esc(route)+'" aria-label="'+esc(pageTitle(route))+'" title="'+esc(pageTitle(route))+'"'+
   (state.page===route?' aria-current="page"':'')+'>'+
   (sub?'':icon(p.icon))+'<span class="ws-v3-link-label">'+esc(pageTitle(route))+'</span></button>';
 }
@@ -204,7 +204,7 @@ function buildNav(){
   if(!children.length)return '<div class="ws-v3-nav-group">'+navButton(g.route,false)+'</div>';
   const groupName=section(g.route),open=state.expandedGroups.has(groupName);
   return '<div class="ws-v3-nav-group'+(open?' open':'')+'" data-ws-section="'+esc(groupName)+'">'+
-   '<div class="ws-v3-parent-row"><button type="button" class="ws-v3-link" data-ws-to="'+esc(g.route)+'"'+(currentSection===groupName?' aria-current="page"':'')+'>'+
+   '<div class="ws-v3-parent-row"><button type="button" class="ws-v3-link" data-ws-to="'+esc(g.route)+'" aria-label="'+esc(g.name)+'" title="'+esc(g.name)+'"'+(currentSection===groupName?' aria-current="page"':'')+'>'+
    icon(g.icon)+'<span class="ws-v3-link-label">'+esc(g.name)+'</span></button>'+
    '<button type="button" class="ws-v3-group-toggle" data-ws-toggle="'+esc(groupName)+'" aria-expanded="'+open+'" aria-label="عرض صفحات '+esc(g.name)+'">'+
    icon('chevron').replace('ws3-icon','ws3-icon ws-v3-chevron')+'</button></div>'+
