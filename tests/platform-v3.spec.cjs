@@ -134,3 +134,48 @@ test('authentic company mark and tricolor corporate language appear across pages
  const bar=await page.locator('#archiveModal .modal-head').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
  expect(bar).toContain('linear-gradient');
 });
+
+test('V4.1 remembers compact sidebar preference and still permits navigation after sign-in',async({page})=>{
+ await login(page,'admin');
+ const sidebar=page.locator('#wsV3Sidebar');
+ await expect(page.locator('#wsV41Collapse')).toBeVisible();
+ const expanded=await sidebar.evaluate(el=>el.getBoundingClientRect().width);
+ await page.locator('#wsV41Collapse').click();
+ await expect(page.locator('body')).toHaveClass(/ws-v41-collapsed/);
+ const compact=await sidebar.evaluate(el=>el.getBoundingClientRect().width);
+ expect(compact).toBeLessThan(expanded-100);
+ await expect(page.locator('.ws-v41-compact-logo')).toBeVisible();
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('ws-company-ux-v41')));
+ expect(saved.collapsed).toBe(true);
+ await page.reload();
+ await page.locator('#loginUsername').fill('test-user');
+ await page.locator('#loginPassword').fill('correct-password');
+ await page.locator('#loginForm button[type="submit"]').first().click();
+ await expect(page.locator('body')).toHaveAttribute('data-auth','ready');
+ await expect(page.locator('body')).toHaveClass(/ws-v41-collapsed/);
+ await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
+ await expect(page.locator('#archiveModal')).toBeVisible();
+ await page.locator('#wsV41Collapse').click();
+ await expect(page.locator('body')).not.toHaveClass(/ws-v41-collapsed/);
+ await expect(page.locator('.ws-v3-logo')).toBeVisible();
+});
+test('V4.1 restores archive filters and dashboard date when switching workspaces',async({page})=>{
+ await login(page,'admin');
+ await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
+ await expect(page.locator('#archiveModal')).toBeVisible();
+ await page.locator('#archiveStation').selectOption('jizan');
+ await page.locator('#archiveFrom').fill('2026-10-01');
+ await page.locator('#archiveTo').fill('2026-10-31');
+ await page.locator('#archiveSearch').click();
+ await page.locator('#wsV3Nav [data-ws-to="dashboard"]').click();
+ await expect(page.locator('#dashboardModal')).toBeVisible();
+ await page.locator('#dashboardDate').fill('2026-10-12');
+ await page.locator('#dashboardRefresh').click();
+ await page.locator('#wsV3Nav [data-ws-to="home"]').click();
+ await page.locator('#wsV3Nav [data-ws-to="dashboard"]').click();
+ await expect(page.locator('#dashboardDate')).toHaveValue('2026-10-12');
+ await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
+ await expect(page.locator('#archiveStation')).toHaveValue('jizan');
+ await expect(page.locator('#archiveFrom')).toHaveValue('2026-10-01');
+ await expect(page.locator('#archiveTo')).toHaveValue('2026-10-31');
+});
