@@ -68,7 +68,7 @@ async function loginOpenRecords(page){
  await page.locator('#loginForm button[type=submit]').first().click();
  await expect(page.locator('body')).toHaveAttribute('data-auth','ready');
  if(await page.locator('#dashboardModal').isVisible())await page.locator('#dashboardClose').click();
- await page.locator('#wsV3Nav [data-ws-to="maintenance/overview"]').click();
+ await page.locator('#wsV3Nav [data-ws-to="maintenance/overview"]').first().click();
  await page.locator('[data-mw="tab"][data-tab="records"]').click();
  await expect(page.locator('.mw-bulk-toolbar')).toBeVisible();
 }
