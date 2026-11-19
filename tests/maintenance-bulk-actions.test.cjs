@@ -67,7 +67,7 @@ test('client supports all batch modes, preview, and uses audited atomic RPCs',()
   assert.ok(js.includes(marker),marker);
  }
  assert.match(js,/const LIMIT=200,EDIT_LIMIT=50/);
- assert.match(js,/p_expected_locked/); // single-record lock is still supported in the main app
+ assert.match(core,/p_expected_locked/); // single-record lock remains supported in the main app
  assert.match(js,/p_items:items\.map\(x=>\(\{id:x\.id,expected:x\.expected,values:x\.values\}\)\)/);
  assert.match(js,/\/rest\/v1\/rpc\/maintenance_bulk_edit_records/);
  assert.match(js,/\/rest\/v1\/rpc\/maintenance_bulk_set_lock/);
