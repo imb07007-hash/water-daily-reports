@@ -540,6 +540,15 @@ function makeShell(){
  '<section class="ws-v3-home" id="wsV3Home" aria-label="الصفحة الرئيسية"></section>'+
  '<section class="ws-v3-data" id="wsV3Data" aria-label="إدارة البيانات"></section>';
  document.body.appendChild(root);
+ // Bind reporting actions at the control itself. This prevents lost submit clicks
+ // when a section-specific handler consumes bubbling before document delegation.
+ root.querySelectorAll('#wsV3ReportBar [data-ws-original]').forEach(control=>{
+  control.addEventListener('click',event=>{
+   event.preventDefault();event.stopPropagation();
+   const target=$(control.dataset.wsOriginal);
+   if(target&&!target.disabled)target.click();
+  });
+ });
  const command=document.createElement('div');
  command.id='wsV3Command';command.className='ws-v3-command';command.setAttribute('aria-hidden','true');
  command.innerHTML='<div class="ws-v3-command-dialog" role="dialog" aria-modal="true" aria-label="البحث في أقسام الموقع">'+
