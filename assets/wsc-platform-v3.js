@@ -418,7 +418,7 @@ async function loadHome(){
  try{
   const [dayRows,recentRows]=await Promise.all([
    reportRows({select:'id,station_id,report_date,created_at,source',report_date:'eq.'+today,order:'created_at.desc',limit:'200'}),
-   reportRows({select:'id,station_id,report_date,created_at,source',order:'report_date.desc,created_at.desc',limit:'16'})
+   reportRows({select:'id,station_id,report_date,created_at,source,source_sent_at,imported_from',order:'report_date.desc,created_at.desc',limit:'16'})
   ]);
   if(version!==state.loadVersion||state.page!=='home')return;
   const ids=new Set(visible.map(s=>s.id));
@@ -455,7 +455,7 @@ async function loadHome(){
   $('wsV3RecentList').innerHTML=recentValid.length?recentValid.slice(0,8).map(r=>{
    const station=visible.find(s=>s.id===r.station_id)?.name||r.station_id;
    return '<div class="ws-v3-item"><span class="ws-v3-item-details"><strong>'+esc(station)+'</strong>'+
-   '<small>'+esc(dateLabel(r.report_date))+(r.source==='migration'?' · سجل مستورد':' · تقرير محفوظ')+'</small></span>'+
+   '<small>'+esc(dateLabel(r.report_date))+' · '+esc(window.WSV42?.sourceLabel?.(r)|| (r.source==='migration'?'تقرير مستورد':'تقرير أُدخل بالموقع'))+'</small></span>'+
    '<button type="button" data-ws-archive-date="'+esc(r.report_date)+'" data-ws-archive-station="'+esc(r.station_id)+'">عرض</button></div>';
   }).join(''):'<div class="ws-v3-loading">لا توجد تقارير حديثة متاحة لهذا الحساب.</div>';
  }catch(err){
