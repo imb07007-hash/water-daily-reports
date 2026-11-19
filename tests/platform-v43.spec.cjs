@@ -61,6 +61,16 @@ test('V4.3 shows honest required-field completion, reviews before send, and prev
  await expect(page.locator('#wsV43Completion')).toContainText('1 من 1');
  await expect(page.locator('#saveBtn')).toBeEnabled();
  await page.locator('#wsV3ReportBar [data-ws-original="saveBtn"]').click();
+ const observed=await page.evaluate(()=>({
+  saveDisabled:document.getElementById('saveBtn')?.disabled,
+  saveStatus:document.getElementById('saveStatus')?.textContent,
+  toast:document.getElementById('toast')?.textContent,
+  toastClass:document.getElementById('toast')?.className,
+  report:window.WSPlatformHost?.reportReadOnly?.(),
+  role:window.WSPlatformHost?.role?.(),
+  hasReview:!!document.querySelector('.ws-v43-dialog')
+ }));
+ console.log('V43 report review diagnostic',JSON.stringify(observed));
  await expect(page.locator('.ws-v43-dialog')).toContainText('مراجعة نهائية قبل الاعتماد');
  await expect(page.locator('.ws-v43-dialog')).toContainText('محطة وادي جيزان');
  expect(state.posts).toBe(0);
