@@ -64,7 +64,96 @@ const icons={
  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
 };
 const icon=(name)=>'<svg class="ws3-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">'+(icons[name]||icons.file)+'</svg>';
-const state={page:'',group:'',busy:false,booted:false,loadVersion:0,routeFromLink:false,role:'',navOpen:false};
+const state={page:'',group:'',busy:false,booted:false,loadVersion:0,routeFromLink:false,role:'',navOpen:false,
+ expandedGroups:new Set(),collapsed:false,viewState:new Map()};
+const WS_UI_PREFS='ws-company-ux-v41';
+function readPreferences(){
+ try{
+  const v=JSON.parse(localStorage.getItem(WS_UI_PREFS)||'{}');
+  return v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+ }catch{return {}}
+}
+function persistPreferences(){
+ try{
+  localStorage.setItem(WS_UI_PREFS,JSON.stringify({
+   collapsed:state.collapsed,
+   density:body().dataset.wsDensity==='compact'?'compact':'comfortable',
+   expanded:[...state.expandedGroups].filter(x=>['archive','chemicals','maintenance','admin'].includes(x)).slice(0,4)
+  }));
+ }catch{}
+}
+function setCollapsed(collapsed){
+ state.collapsed=!!collapsed;
+ body().classList.toggle('ws-v41-collapsed',state.collapsed);
+ const toggle=$('wsV41Collapse');
+ if(toggle){toggle.setAttribute('aria-expanded',String(!state.collapsed));
+  toggle.setAttribute('aria-label',state.collapsed?'توسيع القائمة الجانبية':'تصغير القائمة الجانبية');
+  toggle.title=state.collapsed?'توسيع القائمة':'تصغير القائمة';
+  const label=toggle.querySelector('[data-ws-collapse-label]');
+  if(label)label.textContent=state.collapsed?'توسيع القائمة':'تصغير القائمة';
+ }
+ const sidebar=$('wsV3Sidebar');
+ if(sidebar)sidebar.setAttribute('data-collapsed',String(state.collapsed));
+}
+function initPreferences(){
+ const v=readPreferences();
+ state.expandedGroups=new Set(Array.isArray(v.expanded)?v.expanded.filter(x=>['archive','chemicals','maintenance','admin'].includes(x)):[]);
+ body().dataset.wsDensity=v.density==='compact'?'compact':'comfortable';
+ setCollapsed(v.collapsed===true);
+}
+const VIEW_FIELDS={
+ dashboard:['dashboardDate'],
+ archive:['archiveStation','archiveFrom','archiveTo','archiveMonth','archiveYear']
+};
+const scrollableBySection={
+ dashboard:'#dashboardModal .modal-body',
+ archive:'#archiveModal .modal-body',
+ chemicals:'#chemicalsModal .modal-body',
+ maintenance:'#maintenanceModal .mw-body',
+ admin:'#modalBackdrop .modal-body'
+};
+function currentViewport(route){
+ if(!route)return null;
+ const sec=section(route),node=scrollableBySection[sec]?document.querySelector(scrollableBySection[sec]):null;
+ return node||document.scrollingElement;
+}
+function captureView(route){
+ if(!route)return;
+ const sec=section(route),fields={};
+ for(const id of VIEW_FIELDS[sec]||[]){
+  const input=$(id);if(input)fields[id]=input.value;
+ }
+ const old=state.viewState.get(sec)||{};
+ const viewport=currentViewport(route);
+ state.viewState.set(sec,{...old,fields,scrollTop:viewport?.scrollTop||0,route});
+}
+function restoreView(route){
+ const sec=section(route),stored=state.viewState.get(sec);
+ if(!stored)return;
+ const sameRoute=stored.route===route;
+ if(sameRoute&&['dashboard','archive'].includes(sec)){
+  let dirty=false;
+  for(const [id,value] of Object.entries(stored.fields||{})){
+   const input=$(id);
+   if(input&&!input.disabled&&typeof value==='string'&&input.value!==value){
+    if(input.tagName==='SELECT'&&![...input.options].some(o=>o.value===value))continue;
+    input.value=value;dirty=true;
+   }
+  }
+  if(sec==='archive'&&dirty)$('archiveSearch')?.click();
+  if(sec==='dashboard'&&dirty)$('dashboardRefresh')?.click();
+ }
+ if(sameRoute){
+  const position=stored.scrollTop||0,apply=()=>{
+   const node=currentViewport(route);
+   if(node&&state.page===route&&node.scrollHeight>node.clientHeight)node.scrollTop=Math.min(position,node.scrollHeight-node.clientHeight);
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(apply));
+  // Maintenance and archive content can be populated asynchronously after navigation.
+  setTimeout(apply,260);
+ }
+}
+
 const isManager=()=>['admin','superadmin'].includes(host()?.role?.());
 const isSuper=()=>host()?.role?.()==='superadmin';
 const allowed=route=>{
@@ -113,7 +202,7 @@ function buildNav(){
  visibleGroups().map(g=>{
   const children=g.children||[];
   if(!children.length)return '<div class="ws-v3-nav-group">'+navButton(g.route,false)+'</div>';
-  const groupName=section(g.route),open=currentSection===groupName||state.group===groupName;
+  const groupName=section(g.route),open=state.expandedGroups.has(groupName);
   return '<div class="ws-v3-nav-group'+(open?' open':'')+'" data-ws-section="'+esc(groupName)+'">'+
    '<div class="ws-v3-parent-row"><button type="button" class="ws-v3-link" data-ws-to="'+esc(g.route)+'"'+(currentSection===groupName?' aria-current="page"':'')+'>'+
    icon(g.icon)+'<span class="ws-v3-link-label">'+esc(g.name)+'</span></button>'+
@@ -127,6 +216,9 @@ function buildNav(){
 }
 function setPage(route){
  state.page=route;state.group=section(route);
+ if(['archive','chemicals','maintenance','admin'].includes(section(route))){
+  if(!state.expandedGroups.has(section(route))){state.expandedGroups.add(section(route));persistPreferences()}
+ }
  body().dataset.wsPage=route==='home'?'home':route==='reports'?'reports':route==='admin/data'?'data':'workspace';
  const title=pageTitle(route),groupTitle=({
  home:'الرئيسية',reports:'التشغيل اليومي',dashboard:'التحليلات',archive:'الأرشيف',
@@ -233,6 +325,7 @@ function navigate(route,options={}){
  state.busy=true;
  try{
   if(previous!==route){
+   captureView(previous);
    if(previous==='reports')window.WSPlatformHost?.saveDraft?.();
    closePrevious(route);
   }
@@ -243,6 +336,7 @@ function navigate(route,options={}){
   }
   setPage(route);
   openCurrent(route,previous!==''&&sameSection);
+  if(previous!==route)restoreView(route);
   if(options.history!=='none')navigateHash(route,options.history==='replace');
   if(route==='home')loadHome();
   if(route==='admin/data')renderData();
@@ -407,12 +501,15 @@ function makeShell(){
  if($('wsV3Shell'))return;
  const root=document.createElement('div');root.className='ws-v3-shell';root.id='wsV3Shell';
  root.innerHTML='<div class="ws-v3-backdrop" data-ws-close-menu></div>'+
- '<aside class="ws-v3-sidebar" aria-label="قائمة أقسام الموقع">'+
+ '<aside class="ws-v3-sidebar" id="wsV3Sidebar" aria-label="قائمة أقسام الموقع">'+
  '<div class="ws-v3-side-head"><div class="ws-v4-logo-panel"><img class="ws-v3-logo" src="/assets/wsc-logo.svg?v=20261118-identity2" alt="الشعار الأصلي لشركة حلول المياه" width="208" height="122"></div>'+
  '<div class="ws-v3-brand-tag">منصة التشغيل والمتابعة</div><div class="ws-v3-brand-sub">Water Solutions Company</div>'+
- '<div class="ws-v4-brand-divider" aria-hidden="true"><span></span><span></span><span></span></div></div>'+
+ '<div class="ws-v4-brand-divider" aria-hidden="true"><span></span><span></span><span></span></div>'+
+ '<img class="ws-v41-compact-logo" src="/assets/wsc-mark.svg?v=20261118-identity2" alt="رمز شركة حلول المياه" width="58" height="38"></div>'+
  '<nav class="ws-v3-scroll" id="wsV3Nav" aria-label="التنقل الرئيسي"></nav>'+
- '<div class="ws-v3-foot"><div class="ws-v3-foot-card">'+icon('shield')+
+ '<div class="ws-v3-foot"><button class="ws-v41-collapse-control" id="wsV41Collapse" type="button" data-ws-toggle-collapse aria-controls="wsV3Sidebar" aria-expanded="true">'+
+ icon('menu')+'<span data-ws-collapse-label>تصغير القائمة</span></button>'+
+ '<div class="ws-v3-foot-card">'+icon('shield')+
  '<div><strong id="wsV3Role">الحساب</strong><small id="wsV3RoleSubtitle">مساحة العمل</small></div></div></div></aside>'+
  '<header class="ws-v3-topbar"><button type="button" class="ws-v3-icon-button ws-v3-menu-toggle" data-ws-open-menu aria-label="فتح قائمة الأقسام">'+icon('menu')+'</button>'+
  '<div class="ws-v4-top-signature"><img src="/assets/wsc-mark.svg?v=20261118-identity2" alt="" aria-hidden="true" width="57" height="40"></div>'+
@@ -452,8 +549,12 @@ function makeShell(){
   const groupButton=event.target.closest('[data-ws-toggle]');
   if(groupButton){
    const groupName=groupButton.dataset.wsToggle;
-   state.group=state.group===groupName?'':groupName;
-   buildNav();return;
+   if(state.expandedGroups.has(groupName))state.expandedGroups.delete(groupName);
+   else state.expandedGroups.add(groupName);
+   persistPreferences();buildNav();return;
+  }
+  if(event.target.closest('[data-ws-toggle-collapse]')){
+   setCollapsed(!state.collapsed);persistPreferences();return;
   }
   const to=event.target.closest('[data-ws-to]');
   if(to){event.preventDefault();if(navigate(to.dataset.wsTo))closeCommand();return}
@@ -462,7 +563,7 @@ function makeShell(){
   if(event.target.closest('[data-ws-command]')){openCommand();return}
   if(event.target.closest('[data-ws-density]')){
    body().dataset.wsDensity=body().dataset.wsDensity==='compact'?'comfortable':'compact';
-   return;
+   persistPreferences();return;
   }
   if(event.target.closest('[data-ws-refresh]')){loadHome();return}
   const external=event.target.closest('[data-ws-original]');
@@ -528,7 +629,7 @@ function applyRole(){
  if(mode!=='ready'){
   body().classList.remove('ws-v3-ready','ws-v3-nav-open');
   if(mode==='locked'){
-   state.page='';state.loadVersion++;
+   state.page='';state.loadVersion++;state.viewState.clear();
    if(location.hash.startsWith('#ws/'))history.replaceState(null,'',location.pathname+location.search);
   }
   return;
@@ -545,6 +646,7 @@ function init(){
  if(state.booted)return;
  state.booted=true;
  makeShell();
+ initPreferences();
  const saveNode=$('saveStatus');
  if(saveNode)new MutationObserver(()=>{if($('wsV3SaveStatus'))$('wsV3SaveStatus').textContent=saveNode.textContent||'حالة التقرير'}).observe(saveNode,{childList:true,characterData:true,subtree:true});
  const observer=new MutationObserver(records=>{
