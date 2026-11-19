@@ -79,6 +79,7 @@ const modalFor=route=>({
  maintenance:'maintenanceModal',admin:'modalBackdrop'
 }[section(route)]||'');
 const selectModalId=route=>{
+ if(route==='admin/data')return '';
  if(route==='admin/accounts')return 'accountsModal';
  if(route==='admin/audit')return 'auditModal';
  return modalFor(route);
@@ -131,6 +132,9 @@ function setPage(route){
  $('wsV3PageTitle').textContent=title;
  $('wsV3Breadcrumb').textContent=groupTitle===title?groupTitle:(groupTitle+' / '+title);
  document.title=title+' | شركة حلول المياه';
+ const send=$('wsV3ReportBar')?.querySelector('[data-ws-original="saveBtn"]');
+ if(send)send.hidden=host()?.role?.()==='admin';
+ const message=$('wsV3SaveStatus');if(message)message.textContent=$('saveStatus')?.textContent||'حالة التقرير';
  buildNav();
  closeNav();
 }
@@ -393,6 +397,16 @@ function makeShell(){
  '<div class="ws-v3-popover"><strong id="wsV3AccountLabel">حسابي</strong>'+
  '<button type="button" data-ws-profile="password">تغيير كلمة المرور</button>'+
  '<button type="button" data-ws-profile="logout">تسجيل الخروج</button></div></details></div></header>'+
+ '<div class="ws-v3-report-bar" id="wsV3ReportBar" aria-label="أدوات التقرير اليومي">'+
+ '<div class="ws-v3-report-bar-main">'+
+ '<button type="button" class="ws-v3-report-submit" data-ws-original="saveBtn">'+icon('shield')+' إرسال التقرير</button>'+
+ '<button type="button" class="ws-v3-report-tool" data-ws-original="newBtn">'+icon('plus')+' تقرير جديد</button>'+
+ '<button type="button" class="ws-v3-report-tool" data-ws-original="exportBtn">'+icon('file')+' حفظ صورة</button>'+
+ '<button type="button" class="ws-v3-report-tool" data-ws-original="shareBtn">مشاركة واتساب</button>'+
+ '<button type="button" class="ws-v3-report-tool" data-ws-original="printBtn">طباعة</button>'+
+ '<button type="button" class="ws-v3-report-tool" data-ws-original="fullBtn">معاينة كاملة</button>'+
+ '<button type="button" class="ws-v3-report-tool ws-v3-report-clear" data-ws-original="clearBtn">مسح الحقول</button></div>'+
+ '<span class="ws-v3-report-status" id="wsV3SaveStatus">حالة التقرير</span></div>'+
  '<section class="ws-v3-home" id="wsV3Home" aria-label="الصفحة الرئيسية"></section>'+
  '<section class="ws-v3-data" id="wsV3Data" aria-label="إدارة البيانات"></section>';
  document.body.appendChild(root);
@@ -417,8 +431,9 @@ function makeShell(){
   if(event.target.closest('[data-ws-refresh]')){loadHome();return}
   const external=event.target.closest('[data-ws-original]');
   if(external){
-   if(!isManager())return;
-   originalClick(external.dataset.wsOriginal);return;
+   const operation=external.dataset.wsOriginal;
+   if(['backupBtn','importBtn'].includes(operation)&&!isManager())return;
+   originalClick(operation);return;
   }
   const entry=event.target.closest('[data-ws-archive-station]');
   if(entry){
@@ -494,6 +509,8 @@ function init(){
  if(state.booted)return;
  state.booted=true;
  makeShell();
+ const saveNode=$('saveStatus');
+ if(saveNode)new MutationObserver(()=>{if($('wsV3SaveStatus'))$('wsV3SaveStatus').textContent=saveNode.textContent||'حالة التقرير'}).observe(saveNode,{childList:true,characterData:true,subtree:true});
  const observer=new MutationObserver(records=>{
   if(records.some(x=>x.attributeName==='data-auth'))applyRole();
  });
