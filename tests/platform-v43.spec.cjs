@@ -59,6 +59,7 @@ test('V4.3 shows honest required-field completion, reviews before send, and prev
  await metric.fill('0');
  await expect(page.locator('#wsV43Completion')).toContainText('100%');
  await expect(page.locator('#wsV43Completion')).toContainText('1 من 1');
+ await expect(page.locator('#saveBtn')).toBeEnabled();
  await page.locator('#wsV3ReportBar [data-ws-original="saveBtn"]').click();
  await expect(page.locator('.ws-v43-dialog')).toContainText('مراجعة نهائية قبل الاعتماد');
  await expect(page.locator('.ws-v43-dialog')).toContainText('محطة وادي جيزان');
