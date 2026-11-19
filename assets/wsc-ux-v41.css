@@ -89,6 +89,17 @@
 @media(max-width:920px){
  .ws-v41-collapse-control{display:none}
 }
+/* The full-screen bulk editor is appended as a direct child of #maintenanceModal,
+   outside .mw-dialog. The V3 workspace disables backdrop pointer-events, so
+   explicitly restore hit testing for the foreground editor. */
+body.ws-v3-ready #maintenanceModal.ws-v3-docked:not(.hidden) > .mw-bulk-overlay{
+ pointer-events:auto!important;
+ z-index:2000!important;
+}
+body.ws-v3-ready #maintenanceModal.ws-v3-docked:not(.hidden) > .mw-bulk-overlay .mw-bulk-dialog{
+ pointer-events:auto!important;
+}
+
 /* Contextual actions: selection helpers stay visible; editing appears only when needed. */
 #maintenanceModal .mw-bulk-toolbar{
  transition:background-color .18s,border-color .18s,box-shadow .18s;
