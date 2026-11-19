@@ -72,7 +72,7 @@ test('client supports all batch modes, preview, and uses audited atomic RPCs',()
  assert.match(js,/\/rest\/v1\/rpc\/maintenance_bulk_edit_records/);
  assert.match(js,/\/rest\/v1\/rpc\/maintenance_bulk_set_lock/);
  assert.match(core,/WSMaintenanceBulk\?\.enhance\?\./);
- assert.match(html,/maintenance-bulk\.js\?v=20261119-bulk2/);
+ assert.match(html,/maintenance-bulk\.js\?v=20261119-ux41-1/);
  assert.match(html,/maintenance-bulk\.css\?v=20261119-bulk1/);
  assert.match(css,/mw-bulk-overlay/);
  assert.match(css,/@media\(max-width:720px\)/);
