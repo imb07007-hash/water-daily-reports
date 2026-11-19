@@ -107,7 +107,7 @@ function fetchRecord(){let k=reportKey();return clone(drafts[k]||emptyRecord())}
 function preserveDraft(){if(!signedIn()||archiveViewing)return;drafts[reportKey()]=clone(record);store(perUserKey(DRAFTS_KEY),drafts)}
 function toast(message,error=false){let t=$('toast');t.textContent=message;t.className='toast '+(error?'error':'success');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),3600)}
 function isExcelImportedReport(r){return !!r&&r.source==='migration'&&String(r.imported_from||'').startsWith('google_drive_xlsx:')}
-function importedReportTimestamp(r){return r?(isExcelImportedReport(r)?r.created_at:r.source==='migration'?(r.source_sent_at||r.created_at):r.created_at):null}
+function importedReportTimestamp(r){return r?(isExcelImportedReport(r)?r.created_at:r.source==='migration'?(r.source_sent_at||null):r.created_at):null}
 function reportImportLabel(r){return isExcelImportedReport(r)?'Excel — مزامنة آلية':r?.source==='migration'?'واتساب — أرشيف تاريخي':'الموقع'}
 function updateSaveStatus(){
  const x=$('saveStatus'),key=reportKey();
