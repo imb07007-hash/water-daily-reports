@@ -196,14 +196,14 @@ body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:calc(var(--ws3-top
   width:auto!important;height:auto!important;max-height:none!important;
   margin:0!important;padding:18px 24px 24px!important;
   background:var(--ws3-page)!important;border:0!important;border-radius:0!important;
-  box-shadow:none!important;z-index:320!important;display:flex!important;align-items:stretch!important;justify-content:stretch!important
+  box-shadow:none!important;z-index:320!important;display:flex!important;align-items:stretch!important;justify-content:stretch!important;pointer-events:none!important
  }
  body.ws-v3-ready .ws-v3-docked:not(.hidden)>.modal,
  body.ws-v3-ready #maintenanceModal.ws-v3-docked:not(.hidden)>.mw-dialog{
   width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
   max-width:none!important;margin:0!important;
   border:1px solid var(--ws3-line)!important;border-radius:14px!important;
-  box-shadow:var(--ws3-shadow)!important;background:#fff!important
+  box-shadow:var(--ws3-shadow)!important;background:#fff!important;pointer-events:auto!important
  }
  body.ws-v3-ready .ws-v3-docked .modal-head,
  body.ws-v3-ready #maintenanceModal.ws-v3-docked .mw-header{
