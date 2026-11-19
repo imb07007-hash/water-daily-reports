@@ -437,6 +437,19 @@ body.ws-v3-ready .app-main .preview-header::before{
 }
 body.ws-v3-ready .app-main .panel-top h2,
 body.ws-v3-ready .app-main .preview-header h2{font-weight:900;color:#0d5281!important}
+/* The welcome canvas uses only the untouched, original brand symbol as a faint accent. */
+@media(min-width:980px){
+ #loginScreen.login-screen{
+  isolation:isolate;
+ }
+ #loginScreen.login-screen::after{
+  content:"";display:block;position:fixed;inset-inline-end:2.5vw;top:9vh;
+  width:min(32vw,470px);height:min(72vh,650px);pointer-events:none;
+  background:url('/assets/wsc-mark.svg?v=20261118-identity2') center/contain no-repeat;
+  opacity:.08;transform:rotate(-16deg);z-index:0;
+ }
+ #loginScreen.login-screen .login-layout{z-index:1}
+}
 /* Login keeps original corporate logo in its own high-fidelity white field. */
 .login-screen .login-layout{
  border-radius:20px!important;
