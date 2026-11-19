@@ -101,3 +101,36 @@ test('mobile sidebar and report submit toolbar work without overflowing the view
  await expect(page.locator('#archiveModal')).toBeVisible();
  await expect(page.locator('body')).not.toHaveClass(/ws-v3-nav-open/);
 });
+
+test('authentic company mark and tricolor corporate language appear across pages without touching the original logo',async({page})=>{
+ await login(page,'admin');
+ const fullLogo=page.locator('.ws-v3-sidebar .ws-v3-logo');
+ const topMark=page.locator('.ws-v4-top-signature img');
+ await expect(fullLogo).toBeVisible();
+ await expect(topMark).toBeVisible();
+ await expect(fullLogo).toHaveAttribute('src',/\/assets\/wsc-logo\.svg/);
+ await expect(topMark).toHaveAttribute('src',/\/assets\/wsc-mark\.svg/);
+ const brand=await page.evaluate(()=>{
+  const logo=document.querySelector('.ws-v3-sidebar .ws-v3-logo');
+  const sidebar=getComputedStyle(document.querySelector('.ws-v3-sidebar'));
+  const hero=getComputedStyle(document.querySelector('.ws-v3-hero'));
+  const marker=getComputedStyle(document.querySelector('.ws-v4-hero-stripe'));
+  return {logoFit:getComputedStyle(logo).objectFit,logoWidth:logo.getBoundingClientRect().width,
+   logoLoaded:logo.complete&&logo.naturalWidth>0,
+   sidebar:sidebar.backgroundImage,hero:hero.backgroundImage,
+   marker:marker.backgroundImage};
+ });
+ expect(brand.logoLoaded).toBe(true);
+ expect(brand.logoFit).toBe('contain');
+ expect(brand.logoWidth).toBeGreaterThan(190);
+ expect(brand.sidebar).toContain('linear-gradient');
+ expect(brand.hero).toContain('linear-gradient');
+ expect(brand.marker).toContain('linear-gradient');
+ await expect(page.locator('#wsV4Coverage')).toBeVisible();
+ await expect(page.locator('#wsV4Coverage')).toContainText('0 من 2 محطة');
+ await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
+ await expect(page.locator('#archiveModal')).toBeVisible();
+ await expect(page.locator('#archiveModal')).toHaveClass(/ws-v3-docked/);
+ const bar=await page.locator('#archiveModal .modal-head').evaluate(el=>getComputedStyle(el,'::before').backgroundImage);
+ expect(bar).toContain('linear-gradient');
+});
