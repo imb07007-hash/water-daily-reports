@@ -55,7 +55,7 @@ test('admin login and navigation keep the chosen station in daily and monthly ma
  await login(page);
  await expect(page.locator('body')).toHaveAttribute('data-auth','ready');
  if(await page.locator('#dashboardModal').isVisible())await page.locator('#dashboardClose').click();
- await page.locator('#maintenanceLink').click();
+ await page.locator('#wsV3Nav [data-ws-to="maintenance/overview"]').click();
  const station=page.locator('#mw-station');
  await expect(station).toBeVisible();
  await station.selectOption('damad');
