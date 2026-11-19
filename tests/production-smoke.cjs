@@ -15,6 +15,9 @@ const v3Style=source.match(/\/assets\/wsc-platform-v3\.css\?v=[A-Za-z0-9_-]+/);
 if(!v3Script||!v3Style)throw new Error('Missing unified Water Solutions V3 workspace assets.');
 const uxStyle=source.match(/\/assets\/wsc-ux-v41\.css\?v=[A-Za-z0-9_-]+/);
 if(!uxStyle)throw new Error('Missing V4.1 smart user-experience stylesheet.');
+const v42Script=source.match(/\/assets\/wsc-intelligence-v42\.js\?v=[A-Za-z0-9_-]+/);
+const v42Style=source.match(/\/assets\/wsc-intelligence-v42\.css\?v=[A-Za-z0-9_-]+/);
+if(!v42Script||!v42Style)throw new Error('Missing V4.2 source-aware search, comparison and visual assets.');
 
 const base=process.env.RENDER_SITE_URL||'https://water-daily-reports.onrender.com';
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -25,7 +28,7 @@ async function check(){
  if(!indexResponse.ok)throw new Error('Render homepage returned HTTP '+indexResponse.status);
  const html=await indexResponse.text();
  if(!html.includes(expectedAsset))throw new Error('Render HTML has not reached expected asset: '+expectedAsset);
- for(const asset of [bulkScript[0],bulkStyle[0],v3Script[0],v3Style[0],uxStyle[0]]){
+ for(const asset of [bulkScript[0],bulkStyle[0],v3Script[0],v3Style[0],uxStyle[0],v42Script[0],v42Style[0]]){
   if(!html.includes(asset))throw new Error('Production HTML has not reached batch maintenance asset: '+asset);
   const assetResponse=await fetch(new URL(asset,base),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(12000)});
   if(!assetResponse.ok)throw new Error('Batch maintenance asset returned '+assetResponse.status+': '+asset);
@@ -38,6 +41,10 @@ async function check(){
    if(!body.includes('.ws-v3-sidebar')||!body.includes('.ws-v3-report-bar'))throw new Error('Production V3 workspace styling is stale.');
   }else if(asset===uxStyle[0]){
    if(!body.includes('ws-v41-collapsed')||!body.includes('data-ws-bulk-active'))throw new Error('Production V4.1 UX styling is stale.');
+  }else if(asset===v42Script[0]){
+   if(!body.includes('WSV42')||!body.includes('onReportRendered')||!body.includes('searchTable'))throw new Error('V4.2 application intelligence script is stale.');
+  }else if(asset===v42Style[0]){
+   if(!body.includes('ws-v42-report-review')||!body.includes('ws-v42-provenance'))throw new Error('V4.2 brand styling is stale.');
   }else if(!body.includes('maintenance_bulk_edit_records')||!body.includes('pasteLines')){
    throw new Error('Production batch editor does not contain current edit and paste actions.');
   }
