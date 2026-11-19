@@ -312,3 +312,35 @@ body.ws-v3-ready .ws-v3-page-head p{font-size:12px;color:#6b8191;margin:0}
  body.ws-v3-ready[data-ws-page="reports"] .app-main{margin:0!important;padding:0!important}
  body.ws-v3-ready:not([data-ws-page="reports"]) .app-main{display:none!important}
 }
+
+/* Precise typography rather than font shorthand fallbacks. */
+.ws-v3-link{font-family:'Cairo','Tajawal',Tahoma,Arial,sans-serif;font-weight:750;font-size:13px;line-height:1.6}
+.ws-v3-subnav .ws-v3-link{font-size:12px;font-weight:650}
+.ws-v3-primary,.ws-v3-secondary,.ws-v3-quick{
+ font-family:'Cairo','Tajawal',Tahoma,Arial,sans-serif;line-height:1.7;font-weight:800
+}
+.ws-v3-shell button,.ws-v3-command button{
+ -webkit-tap-highlight-color:transparent
+}
+.ws-v3-docked:not(.hidden) .modal-head>button,
+#maintenanceModal.ws-v3-docked .mw-regular-close{
+ border-radius:9px!important
+}
+/* Focused maintenance engineer login keeps its existing functionality and
+   dedicated full-screen space while sharing the same corporate surfaces. */
+body[data-auth="maintenance"] #maintenanceModal .mw-dialog{
+ background:#f3f6fa;border-radius:0!important;
+ border:0!important;box-shadow:none!important;
+ width:100%;height:100dvh;max-height:none
+}
+body[data-auth="maintenance"] #maintenanceModal .mw-header{
+ background:linear-gradient(108deg,#fff,#edf6ff)!important;
+ border-bottom:2px solid #0362AF!important
+}
+body[data-auth="maintenance"] #maintenanceModal .mw-card{
+ border-color:#dce7f0;border-radius:13px;
+ box-shadow:0 3px 15px #0b436009
+}
+body[data-auth="maintenance"] #maintenanceModal .mw-tab{
+ font-size:12px;min-height:39px;border-radius:9px
+}
