@@ -63,7 +63,7 @@ test('client supports all batch modes, preview, and uses audited atomic RPCs',()
  for(const marker of ['data-bulk-action="filtered"','data-bulk-action="editNotes"','data-bulk-action="editAll"',
    'data-bulk-action="lock"','data-bulk-action="unlock"','data-bulk-editor-action="replaceNotes"',
    'data-bulk-editor-action="appendNotes"','data-bulk-editor-action="findReplace"',
-   'data-bulk-editor-action="applyField"','data-bulk-editor-action="preview"']){
+   'data-bulk-editor-action="applyField"','data-bulk-editor-action="pasteLines"','data-bulk-editor-action="preview"']){
   assert.ok(js.includes(marker),marker);
  }
  assert.match(js,/const LIMIT=200,EDIT_LIMIT=50/);
@@ -72,7 +72,7 @@ test('client supports all batch modes, preview, and uses audited atomic RPCs',()
  assert.match(js,/\/rest\/v1\/rpc\/maintenance_bulk_edit_records/);
  assert.match(js,/\/rest\/v1\/rpc\/maintenance_bulk_set_lock/);
  assert.match(core,/WSMaintenanceBulk\?\.enhance\?\./);
- assert.match(html,/maintenance-bulk\.js\?v=20261119-bulk1/);
+ assert.match(html,/maintenance-bulk\.js\?v=20261119-bulk2/);
  assert.match(html,/maintenance-bulk\.css\?v=20261119-bulk1/);
  assert.match(css,/mw-bulk-overlay/);
  assert.match(css,/@media\(max-width:720px\)/);
