@@ -10,7 +10,7 @@
  const report=()=>window.WSPlatformHost?.reportReadOnly?.();
  const accessible=()=>document.body.dataset.auth==='ready'&&!!host()?.signedIn?.();
  const routeAllowed=route=>window.WSShellUI?.paths?.includes(route);
- const state={uid:'',favorites:[],recents:[],seq:0,searchTimer:0,priorSeq:0,priorKey:'',prior:null,priorError:'',reviewTimer:0,booted:false};
+ const state={uid:'',favorites:[],recents:[],seq:0,searchTimer:0,priorSeq:0,priorKey:'',prior:null,priorError:'',priorFetched:false,reviewTimer:0,booted:false};
  const escapeAttr=escapeHtml;
  const arabicNum=n=>Number.isFinite(n)?new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n):'—';
  const safeNumber=v=>{
@@ -181,7 +181,7 @@
      '" data-ws42-id="'+escapeAttr(item.id)+'" data-ws42-station="'+escapeAttr(item.stationId||item.id)+
      '" data-ws42-label="'+escapeAttr(item.label||row.title)+'" data-ws42-date="'+escapeAttr(item.date||'')+'">'+
      '<strong>'+escapeHtml(row.title)+'</strong><small>'+escapeHtml(row.meta||'')+'</small></button>'+
-     '<button type="button" class="ws-v42-search-star" data-ws42-toggle="'+escapeAttr(item.kind)+'" data-ws42-id="'+escapeAttr(item.id)+
+     '<button type="button" class="ws-v42-search-star" '+(item.kind==='report'?'hidden ':'')+'data-ws42-toggle="'+escapeAttr(item.kind)+'" data-ws42-id="'+escapeAttr(item.id)+
      '" data-ws42-label="'+escapeAttr(item.label||row.title)+'" data-ws42-station="'+escapeAttr(item.stationId||item.id)+'" title="حفظ في المفضلة" aria-label="تثبيت في المفضلة">'+
      (isFavorite(item)?'★':'☆')+'</button></div>';
    }).join(''):'<div class="ws-v42-search-note">'+escapeHtml(msg||'لا توجد نتائج مطابقة.')+'</div>');
@@ -353,21 +353,23 @@
   const ctx=report();if(!ctx)return;
   const k=ctx.stationId+'@'+ctx.date;
   if(force||k!==state.priorKey){
-   state.priorKey=k;state.prior=null;state.priorError='';
+   state.priorKey=k;state.prior=null;state.priorError='';state.priorFetched=false;
+   ++state.priorSeq;
+  }
+  drawReview(ctx);
+  if(!state.priorFetched&&!ctx.loading&&/^\d{4}-\d{2}-\d{2}$/.test(ctx.date)){
+   state.priorFetched=true;
    const seq=++state.priorSeq;
-   drawReview(ctx);
-   if(!ctx.loading&&/^\d{4}-\d{2}-\d{2}$/.test(ctx.date)){
-    try{
-     const res=await searchTable('reports',{
-      select:'id,report_date,station_id,data,source,source_sent_at,created_at,imported_from',
-      station_id:'eq.'+ctx.stationId,report_date:'lt.'+ctx.date,order:'report_date.desc,created_at.desc',limit:'1'
-     });
-     if(seq!==state.priorSeq||state.priorKey!==k)return;
-     state.prior=res[0]||null;
-    }catch{
-     if(seq!==state.priorSeq)return;
-     state.priorError='تعذرت قراءة التقرير السابق؛ لا تؤثر المقارنة على التقرير الحالي.';
-    }
+   try{
+    const res=await searchTable('reports',{
+     select:'id,report_date,station_id,data,source,source_sent_at,created_at,imported_from',
+     station_id:'eq.'+ctx.stationId,report_date:'lt.'+ctx.date,order:'report_date.desc,created_at.desc',limit:'1'
+    });
+    if(seq!==state.priorSeq||state.priorKey!==k)return;
+    state.prior=res[0]||null;
+   }catch{
+    if(seq!==state.priorSeq)return;
+    state.priorError='تعذرت قراءة التقرير السابق؛ لا تؤثر المقارنة على التقرير الحالي.';
    }
   }
   const newCtx=report();
