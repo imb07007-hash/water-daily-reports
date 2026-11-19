@@ -409,6 +409,7 @@ function makeShell(){
  '<div class="ws-v3-report-bar-main">'+
  '<button type="button" class="ws-v3-report-submit" data-ws-original="saveBtn">'+icon('shield')+' إرسال التقرير</button>'+
  '<button type="button" class="ws-v3-report-tool" data-ws-original="newBtn">'+icon('plus')+' تقرير جديد</button>'+
+ '<button type="button" class="ws-v3-report-tool" data-ws-original="restoreBtn">'+icon('history')+' استرجاع تقرير</button>'+
  '<button type="button" class="ws-v3-report-tool" data-ws-original="exportBtn">'+icon('file')+' حفظ صورة</button>'+
  '<button type="button" class="ws-v3-report-tool" data-ws-original="shareBtn">مشاركة واتساب</button>'+
  '<button type="button" class="ws-v3-report-tool" data-ws-original="printBtn">طباعة</button>'+
