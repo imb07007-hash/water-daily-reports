@@ -231,6 +231,7 @@ function setPage(route){
  if(send)send.hidden=host()?.role?.()==='admin';
  const message=$('wsV3SaveStatus');if(message)message.textContent=$('saveStatus')?.textContent||'حالة التقرير';
  buildNav();
+ window.WSV42?.recordVisit?.(route);
  closeNav();
 }
 function closeNav(){body().classList.remove('ws-v3-nav-open');state.navOpen=false}
@@ -411,6 +412,7 @@ async function loadHome(){
  const version=++state.loadVersion;
  const root=$('wsV3Home');if(!root||state.page!=='home')return;
  root.innerHTML=homeMarkup();
+ window.WSV42?.renderQuickPanel?.();
  const today=dateSaudi(),all=host()?.stations?.()||[];
  const visible=host()?.role?.()==='station'?all.filter(s=>s.id===host()?.stationId?.()):all;
  try{
@@ -496,6 +498,7 @@ function drawCommand(text){
  list.innerHTML=available.length?available.map(([path,config])=>
   '<button data-ws-to="'+esc(path)+'" type="button">'+icon(config.icon)+' &nbsp;'+esc(pageTitle(path))+'</button>').join(''):
  '<div class="ws-v3-loading">لا توجد أقسام مطابقة للبحث.</div>';
+ window.WSV42?.search?.(text);
 }
 function makeShell(){
  if($('wsV3Shell'))return;
