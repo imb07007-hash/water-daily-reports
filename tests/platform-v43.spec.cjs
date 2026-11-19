@@ -90,12 +90,8 @@ test('V4.3 archive preview is RLS-scoped, quick, and leaves the current list on 
  await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
  await expect(page.locator('#archiveModal')).toBeVisible();
  const previous=await page.locator('#archiveFrom').inputValue();
- await page.evaluate(id=>{
-  const btn=document.createElement('button');
-  btn.type='button';btn.dataset.ws43PreviewId=id;btn.textContent='معاينة سريعة';
-  document.getElementById('archiveModal').querySelector('.modal-body').appendChild(btn);
- },ID);
- await page.locator('#archiveModal [data-ws43-preview-id]').click();
+ await expect(page.locator('#archiveModal [data-ws43-preview-id]')).toHaveCount(1);
+ await page.locator('#archiveModal [data-ws43-preview-id]').first().click();
  await expect(page.locator('.ws-v43-dialog')).toBeVisible();
  await expect(page.locator('.ws-v43-dialog')).toContainText('محطة وادي جيزان');
  await expect(page.locator('.ws-v43-dialog')).toContainText('الإنتاج');
