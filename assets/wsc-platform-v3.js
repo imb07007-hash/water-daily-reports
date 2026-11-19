@@ -273,7 +273,10 @@ function homeMarkup(){
   ['reports','إدخال تقرير اليوم','file'],['archive/daily','تقاريري السابقة','archive'],
   ['chemicals/overview','مخزون الكيماويات','flask'],['maintenance/overview','بيانات الصيانة','wrench']
  ];
- return '<div class="ws-v3-hero"><div class="ws-v3-hero-content"><div class="ws-v3-eyebrow">شركة حلول المياه | منظومة التشغيل والمتابعة</div>'+
+ return '<div class="ws-v3-hero"><span class="ws-v4-hero-stripe" aria-hidden="true"></span>'+
+ '<span class="ws-v4-hero-bottomline" aria-hidden="true"></span>'+
+ '<div class="ws-v3-hero-content"><div class="ws-v4-hero-contentmark">Water Solutions Company · حلول المياه</div>'+
+ '<div class="ws-v3-eyebrow">منصة التشغيل والمتابعة | منطقة التشغيل</div>'+
  '<h2>'+(manager?'مركز المتابعة التشغيلي':'مساحة المحطة التشغيلية')+'</h2>'+
  '<p>'+(manager?'تابع التقارير والمواقع وأعمال الصيانة من لوحة موحدة، وانتقل مباشرة إلى التفاصيل.':'كل ما تحتاجه لإدخال التقرير ومراجعة بيانات محطتك في مكان واحد.')+'</p></div>'+
  '<div class="ws-v3-hero-actions">'+
@@ -285,6 +288,11 @@ function homeMarkup(){
  '<article class="ws-v3-kpi"><div class="ws-v3-kpi-title">جارٍ التحميل</div><strong class="ws-v3-kpi-value">—</strong></article>').join('')+'</div>'+
  '<div class="ws-v3-section-title"><h3>التفاصيل والوصول السريع</h3><small>الأرقام من التقارير المحفوظة فعليًا</small></div>'+
  '<div class="ws-v3-home-grid"><section class="ws-v3-card"><h3>حالة إرسال التقارير</h3>'+
+ '<div id="wsV4Coverage" class="ws-v4-coverage" role="status" aria-live="polite">'+
+ '<div class="ws-v4-coverage-ring" style="--ws4-percent:0%"><strong>—</strong></div>'+
+ '<div class="ws-v4-coverage-copy"><h4>مؤشر استلام تقارير اليوم</h4>'+
+ '<p>يعكس نسبة المحطات التي لديها تقرير مسجل بتاريخ اليوم، بناءً على التقارير المتاحة لحسابك.</p>'+
+ '<span class="ws-v4-coverage-empty">جارٍ قراءة بيانات المحطات...</span></div></div>'+
  '<div class="ws-v3-list" id="wsV3StationList"><div class="ws-v3-loading">جارٍ قراءة التقارير…</div></div></section>'+
  '<section class="ws-v3-card"><h3>الانتقال السريع</h3><div class="ws-v3-quick-grid">'+
  btns.map(x=>'<button class="ws-v3-quick" type="button" data-ws-to="'+x[0]+'">'+icon(x[2])+esc(x[1])+'</button>').join('')+
@@ -294,6 +302,7 @@ function homeMarkup(){
 function homeError(msg){
  const text='<div class="ws-v3-loading">'+esc(msg)+'</div>';
  $('wsV3StationList').innerHTML=text;$('wsV3RecentList').innerHTML=text;
+ const coverage=$('wsV4Coverage');if(coverage)coverage.innerHTML='<div class="ws-v4-coverage-empty">'+esc(msg)+'</div>';
  $('wsV3Kpis').innerHTML=['تقارير اليوم','محطات أرسلت','لم ترسل','تاريخ المتابعة'].map(label=>
  '<article class="ws-v3-kpi"><div class="ws-v3-kpi-title">'+label+'</div><strong class="ws-v3-kpi-value">—</strong></article>').join('');
 }
@@ -327,6 +336,16 @@ async function loadHome(){
    {icon:'clock',title:'محطات لم ترسل',value:number(Math.max(0,visible.length-sent.size)),hint:'لم يُعثر على تقرير بتاريخ اليوم'},
    {icon:'calendar',title:'تاريخ المتابعة',value:today.slice(5),hint:'بتوقيت السعودية'}
   ];
+  const coverage=$('wsV4Coverage');
+  if(coverage){
+   const percentage=visible.length?Math.round(sent.size/visible.length*100):0;
+   const angle=Math.max(0,Math.min(100,percentage));
+   coverage.innerHTML='<div class="ws-v4-coverage-ring" style="--ws4-percent:'+angle+'%" aria-label="نسبة التقارير المستلمة '+angle+' بالمئة">'+
+    '<strong>'+angle+'%</strong></div>'+
+    '<div class="ws-v4-coverage-copy"><h4>استلام تقارير اليوم</h4>'+
+    '<p>من المحطات المتاحة لحسابك، وفق تاريخ التقرير المسجل في النظام.</p>'+
+    '<span class="ws-v4-coverage-summary">'+number(sent.size)+' من '+number(visible.length)+' محطة</span></div>';
+  }
   $('wsV3Kpis').innerHTML=kpis.map(k=>'<article class="ws-v3-kpi">'+
    '<div class="ws-v3-kpi-title"><span class="ws-v3-kpi-icon">'+icon(k.icon)+'</span>'+k.title+'</div>'+
    '<strong class="ws-v3-kpi-value">'+esc(k.value)+'</strong><small>'+esc(k.hint)+'</small></article>').join('');
@@ -389,12 +408,14 @@ function makeShell(){
  const root=document.createElement('div');root.className='ws-v3-shell';root.id='wsV3Shell';
  root.innerHTML='<div class="ws-v3-backdrop" data-ws-close-menu></div>'+
  '<aside class="ws-v3-sidebar" aria-label="قائمة أقسام الموقع">'+
- '<div class="ws-v3-side-head"><img class="ws-v3-logo" src="/assets/wsc-logo.svg?v=20261118-identity2" alt="الشعار الأصلي لشركة حلول المياه" width="170" height="81">'+
- '<div class="ws-v3-brand-tag">منصة التشغيل والمتابعة</div><div class="ws-v3-brand-sub">Water Solutions Company</div></div>'+
+ '<div class="ws-v3-side-head"><div class="ws-v4-logo-panel"><img class="ws-v3-logo" src="/assets/wsc-logo.svg?v=20261118-identity2" alt="الشعار الأصلي لشركة حلول المياه" width="208" height="122"></div>'+
+ '<div class="ws-v3-brand-tag">منصة التشغيل والمتابعة</div><div class="ws-v3-brand-sub">Water Solutions Company</div>'+
+ '<div class="ws-v4-brand-divider" aria-hidden="true"><span></span><span></span><span></span></div></div>'+
  '<nav class="ws-v3-scroll" id="wsV3Nav" aria-label="التنقل الرئيسي"></nav>'+
  '<div class="ws-v3-foot"><div class="ws-v3-foot-card">'+icon('shield')+
  '<div><strong id="wsV3Role">الحساب</strong><small id="wsV3RoleSubtitle">مساحة العمل</small></div></div></div></aside>'+
  '<header class="ws-v3-topbar"><button type="button" class="ws-v3-icon-button ws-v3-menu-toggle" data-ws-open-menu aria-label="فتح قائمة الأقسام">'+icon('menu')+'</button>'+
+ '<div class="ws-v4-top-signature"><img src="/assets/wsc-mark.svg?v=20261118-identity2" alt="" aria-hidden="true" width="57" height="40"></div>'+
  '<div class="ws-v3-title-area"><div class="ws-v3-breadcrumb" id="wsV3Breadcrumb">الرئيسية</div>'+
  '<h1 class="ws-v3-page-title" id="wsV3PageTitle">الرئيسية</h1></div>'+
  '<div class="ws-v3-top-actions">'+
