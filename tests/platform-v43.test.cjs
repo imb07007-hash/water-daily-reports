@@ -111,7 +111,7 @@ test('maintenance caches only catalog metadata, not editable work records',()=>{
  assert.match(maintenance,/WSV43Maintenance\?\.renderAssetCard/);
 });
 test('V4.3 loads all code and styles without new route, logo or SQL migration',()=>{
- for(const ref of ['wsc-workflow-v43.js?v=20261119-v43a','wsc-maintenance-v43.js?v=20261119-v43a',
+ for(const ref of ['wsc-workflow-v43.js?v=20261119-v43b','wsc-maintenance-v43.js?v=20261119-v43a',
   'wsc-workflow-v43.css?v=20261119-v43a'])assert.ok(html.includes(ref));
  assert.doesNotThrow(()=>new Function(core));
  assert.doesNotThrow(()=>new Function(maintenance));
