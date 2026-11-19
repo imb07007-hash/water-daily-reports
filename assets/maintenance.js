@@ -174,14 +174,14 @@ async function renderOverview(id){
   '<div class="mw-month-kpis">'+
   card('سجلات الصيانة للشهر',monthTotal,'PM + CM + SS','month-total')+
   card('تم التنفيذ — DONE',done,'يشمل DONE WITH COMMENT','done')+
-  card('غير مكتمل من السجلات',remaining,'جميع الحالات غير DONE','remaining')+
+  card('حالات أخرى غير DONE',remaining,'يشمل الحالات غير المؤكدة؛ وليس حكمًا بعدم التنفيذ','remaining')+
   card('NOT DONE',n(m,'not_done_count'),'الحالة المحددة صراحة')+
   '</div>'+
   '<div class="mw-yesterday-strip"><div><strong>صيانة أمس · '+h(day)+'</strong>'+
   '<span>أعمال بتاريخ التنفيذ أمس، بغض النظر عن شهر الجدول</span></div>'+
   '<div><b>'+fmt(yesterdayCount)+'</b><small>أعمال مسجلة</small></div>'+
   '<div><b>'+fmt(yesterdayDone)+'</b><small>تم تنفيذها</small></div>'+
-  '<div><b>'+fmt(Math.max(0,yesterdayCount-yesterdayDone))+'</b><small>غير مكتملة</small></div></div>'+
+  '<div><b>'+fmt(Math.max(0,yesterdayCount-yesterdayDone))+'</b><small>حالات أخرى غير DONE</small></div></div>'+
   '<div class="mw-actions mw-month-actions">'+
   '<button type="button" class="mw-button main" data-mw="goDaily">＋ إدخال صيانة</button>'+
   '<button type="button" class="mw-button" data-mw="goMonthly">التقرير الشهري</button>'+
