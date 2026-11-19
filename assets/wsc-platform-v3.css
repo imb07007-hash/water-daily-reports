@@ -168,15 +168,16 @@ body.ws-v3-ready[data-ws-page="reports"] .ws-v3-report-bar{display:flex}
 .ws-v3-report-status{font-size:11px;color:#5c7d91;white-space:nowrap}
 body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:calc(var(--ws3-topbar) + 59px)}
 @media(max-width:1300px){
- .ws-v3-report-bar{flex-wrap:wrap}
+ .ws-v3-report-bar{flex-wrap:nowrap;overflow-x:auto}
+ .ws-v3-report-bar-main{flex-wrap:nowrap;white-space:nowrap}
  .ws-v3-report-bar .ws-v3-report-clear{display:none}
  .ws-v3-report-bar button{font-size:11px}
  .ws-v3-report-status{display:none}
 }
 @media(max-width:920px){
- .ws-v3-report-bar{position:relative;inset:auto;top:auto;margin-top:var(--ws3-topbar);padding:9px 12px;flex-wrap:nowrap;overflow-x:auto;min-height:55px}
+ .ws-v3-report-bar{position:fixed;inset-inline-start:0;inset-inline-end:0;top:var(--ws3-topbar);margin-top:0;padding:8px 12px;flex-wrap:nowrap;overflow-x:auto;height:57px;min-height:57px}
  .ws-v3-report-bar-main{flex-wrap:nowrap;white-space:nowrap}
- body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:0}
+ body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:calc(var(--ws3-topbar) + 57px)}
 }
 @media print{.ws-v3-report-bar{display:none!important}}
 
