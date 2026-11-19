@@ -24,6 +24,13 @@ body.ws-v3-ready .ws-v3-shell{display:block}
 .ws-v3-brand-sub{font-size:10.5px;color:var(--ws3-muted);margin-top:3px}
 .ws-v3-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:15px 12px;scrollbar-width:thin;scrollbar-color:#c6d6e4 transparent}
 .ws-v3-nav-group{margin-bottom:5px}
+.ws-v3-parent-row{display:flex;align-items:center;gap:2px}
+.ws-v3-parent-row>.ws-v3-link{min-width:0;flex:1}
+.ws-v3-group-toggle{width:34px;height:36px;display:flex;align-items:center;justify-content:center;
+ border:0;background:transparent;border-radius:8px;color:#66869d;cursor:pointer;flex:none}
+.ws-v3-group-toggle:hover{background:#eaf5fc;color:#0362AF}
+.ws-v3-group-toggle .ws3-icon{width:15px;height:15px}
+
 .ws-v3-nav-divider{margin:13px 11px 9px;border-top:1px solid #e8eef4}
 .ws-v3-nav-caption{color:#8a98a6;font-weight:800;font-size:10px;letter-spacing:.1px;padding:5px 13px}
 .ws-v3-link{
