@@ -114,8 +114,10 @@ function buildNav(){
   if(!children.length)return '<div class="ws-v3-nav-group">'+navButton(g.route,false)+'</div>';
   const groupName=section(g.route),open=currentSection===groupName||state.group===groupName;
   return '<div class="ws-v3-nav-group'+(open?' open':'')+'" data-ws-section="'+esc(groupName)+'">'+
-   '<button type="button" class="ws-v3-link" data-ws-to="'+esc(g.route)+'"'+(currentSection===groupName?' aria-current="page"':'')+'>'+
-   icon(g.icon)+'<span class="ws-v3-link-label">'+esc(g.name)+'</span>'+icon('chevron').replace('ws3-icon','ws3-icon ws-v3-chevron')+'</button>'+
+   '<div class="ws-v3-parent-row"><button type="button" class="ws-v3-link" data-ws-to="'+esc(g.route)+'"'+(currentSection===groupName?' aria-current="page"':'')+'>'+
+   icon(g.icon)+'<span class="ws-v3-link-label">'+esc(g.name)+'</span></button>'+
+   '<button type="button" class="ws-v3-group-toggle" data-ws-toggle="'+esc(groupName)+'" aria-expanded="'+open+'" aria-label="عرض صفحات '+esc(g.name)+'">'+
+   icon('chevron').replace('ws3-icon','ws3-icon ws-v3-chevron')+'</button></div>'+
    '<div class="ws-v3-subnav">'+children.map(c=>navButton(c,true)).join('')+'</div></div>';
  }).join('');
  $('wsV3Role').textContent=host()?.role?.()==='station'?'حساب محطة':isSuper()?'سوبر أدمن':'أدمن';
@@ -423,6 +425,12 @@ function makeShell(){
  '<div class="ws-v3-command-hint">اختر القسم المطلوب · اختصار Ctrl + K · إغلاق Escape</div></div>';
  document.body.appendChild(command);
  document.addEventListener('click',event=>{
+  const groupButton=event.target.closest('[data-ws-toggle]');
+  if(groupButton){
+   const groupName=groupButton.dataset.wsToggle;
+   state.group=state.group===groupName?'':groupName;
+   buildNav();return;
+  }
   const to=event.target.closest('[data-ws-to]');
   if(to){event.preventDefault();if(navigate(to.dataset.wsTo))closeCommand();return}
   if(event.target.closest('[data-ws-open-menu]')){showNav();return}
