@@ -18,6 +18,10 @@ if(!uxStyle)throw new Error('Missing V4.1 smart user-experience stylesheet.');
 const v42Script=source.match(/\/assets\/wsc-intelligence-v42\.js\?v=[A-Za-z0-9_-]+/);
 const v42Style=source.match(/\/assets\/wsc-intelligence-v42\.css\?v=[A-Za-z0-9_-]+/);
 if(!v42Script||!v42Style)throw new Error('Missing V4.2 source-aware search, comparison and visual assets.');
+const v43Flow=source.match(/\/assets\/wsc-workflow-v43\.js\?v=[A-Za-z0-9_-]+/);
+const v43Maintenance=source.match(/\/assets\/wsc-maintenance-v43\.js\?v=[A-Za-z0-9_-]+/);
+const v43Style=source.match(/\/assets\/wsc-workflow-v43\.css\?v=[A-Za-z0-9_-]+/);
+if(!v43Flow||!v43Maintenance||!v43Style)throw new Error('Missing V4.3 completeness, final-review, equipment insights and styles.');
 
 const base=process.env.RENDER_SITE_URL||'https://water-daily-reports.onrender.com';
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -28,7 +32,7 @@ async function check(){
  if(!indexResponse.ok)throw new Error('Render homepage returned HTTP '+indexResponse.status);
  const html=await indexResponse.text();
  if(!html.includes(expectedAsset))throw new Error('Render HTML has not reached expected asset: '+expectedAsset);
- for(const asset of [bulkScript[0],bulkStyle[0],v3Script[0],v3Style[0],uxStyle[0],v42Script[0],v42Style[0]]){
+ for(const asset of [bulkScript[0],bulkStyle[0],v3Script[0],v3Style[0],uxStyle[0],v42Script[0],v42Style[0],v43Flow[0],v43Maintenance[0],v43Style[0]]){
   if(!html.includes(asset))throw new Error('Production HTML has not reached batch maintenance asset: '+asset);
   const assetResponse=await fetch(new URL(asset,base),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(12000)});
   if(!assetResponse.ok)throw new Error('Batch maintenance asset returned '+assetResponse.status+': '+asset);
@@ -45,6 +49,12 @@ async function check(){
    if(!body.includes('WSV42')||!body.includes('onReportRendered')||!body.includes('searchTable'))throw new Error('V4.2 application intelligence script is stale.');
   }else if(asset===v42Style[0]){
    if(!body.includes('ws-v42-report-review')||!body.includes('ws-v42-provenance'))throw new Error('V4.2 brand styling is stale.');
+  }else if(asset===v43Flow[0]){
+   if(!body.includes('reviewBeforeSubmit')||!body.includes('dashboardSections')||!body.includes('previewArchive'))throw new Error('Production V4.3 workflow is stale.');
+  }else if(asset===v43Maintenance[0]){
+   if(!body.includes('findPairs')||!body.includes('renderAssetCard'))throw new Error('Production V4.3 maintenance insights are stale.');
+  }else if(asset===v43Style[0]){
+   if(!body.includes('ws-v43-coverage')||!body.includes('ws-v43-dialog'))throw new Error('Production V4.3 styles are stale.');
   }else if(!body.includes('maintenance_bulk_edit_records')||!body.includes('pasteLines')){
    throw new Error('Production batch editor does not contain current edit and paste actions.');
   }
