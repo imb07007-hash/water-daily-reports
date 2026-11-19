@@ -1,0 +1,143 @@
+/* Water Solutions UX V4.1 — zero new pages, brand assets untouched.
+   The nav width is changed only for the authenticated workspace on desktop. */
+.ws-v41-compact-logo{display:none}
+.ws-v41-collapse-control{
+ display:flex;align-items:center;gap:11px;width:100%;
+ border:1px solid rgba(156,213,248,.16);background:rgba(255,255,255,.075);
+ border-radius:10px;min-height:42px;padding:9px 12px;
+ font:800 12px/1.7 'Cairo','Tajawal',Tahoma,Arial,sans-serif;
+ color:#daeeff;cursor:pointer;margin-bottom:10px;
+ transition:background .18s,border-color .18s;
+}
+.ws-v41-collapse-control:hover{
+ background:rgba(255,255,255,.16);
+ border-color:rgba(172,223,250,.35)
+}
+.ws-v41-collapse-control .ws3-icon{width:19px;height:19px;flex:none;color:#9de0ff}
+.ws-v41-collapse-control:focus-visible{
+ outline:3px solid #50B4F2;outline-offset:2px
+}
+@media(min-width:921px){
+ body.ws-v3-ready.ws-v41-collapsed{--ws3-sidebar:86px}
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-sidebar{
+  width:var(--ws3-sidebar);transition:width .20s ease
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-side-head{
+  padding:17px 9px 18px;min-height:104px;
+  display:grid;place-items:center
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v4-logo-panel,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-brand-tag,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-brand-sub,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v4-brand-divider{
+  display:none!important
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v41-compact-logo{
+  display:block;width:60px;height:48px;object-fit:contain;
+  padding:6px;border-radius:10px;
+  background:#fff;border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 5px 13px #00192f40
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-side-head::after{
+  left:12px;right:12px
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-scroll{
+  padding:13px 8px;overflow-x:hidden
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-nav-caption,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-nav-divider{
+  display:none!important
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-link{
+  min-height:54px;width:100%;padding:9px;display:flex;
+  align-items:center;justify-content:center;
+  border-radius:12px;gap:0;white-space:nowrap
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-link .ws3-icon{
+  width:22px;height:22px;flex:none
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-link-label,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-group-toggle,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-subnav{
+  display:none!important
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-parent-row{
+  display:block
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-foot{padding:8px 9px 12px}
+ body.ws-v3-ready.ws-v41-collapsed .ws-v41-collapse-control{
+  width:100%;min-height:46px;justify-content:center;padding:9px
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v41-collapse-control span{display:none}
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-foot-card{
+  display:flex;justify-content:center;padding:9px 6px
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-foot-card>div{display:none!important}
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-topbar,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-report-bar{
+  inset-inline-start:var(--ws3-sidebar)
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-docked:not(.hidden){
+  inset-inline-start:var(--ws3-sidebar)!important
+ }
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-home,
+ body.ws-v3-ready.ws-v41-collapsed .ws-v3-data,
+ body.ws-v3-ready.ws-v41-collapsed .app-main{
+  margin-inline-start:var(--ws3-sidebar)
+ }
+}
+@media(max-width:920px){
+ .ws-v41-collapse-control{display:none}
+}
+/* Contextual actions: selection helpers stay visible; editing appears only when needed. */
+#maintenanceModal .mw-bulk-toolbar{
+ transition:background-color .18s,border-color .18s,box-shadow .18s;
+}
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="true"]{
+ background:linear-gradient(105deg,#e9f5fe,#f5faff);
+ border-color:#9cccec;
+ box-shadow:0 4px 14px rgba(3,98,175,.08)
+}
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="false"]
+ [data-bulk-action="clear"],
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="false"]
+ [data-bulk-action="editNotes"],
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="false"]
+ [data-bulk-action="editAll"],
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="false"]
+ [data-bulk-action="lock"],
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="false"]
+ [data-bulk-action="unlock"]{
+ display:none!important
+}
+#maintenanceModal .mw-bulk-toolbar [data-ws-bulk-guide]{
+ color:#346d92;font-weight:700;line-height:1.8
+}
+#maintenanceModal .mw-bulk-toolbar[data-ws-bulk-active="true"] [data-bulk-count]{
+ background:#0362AF;color:#fff
+}
+#maintenanceModal .mw-bulk-toolbar .mw-bulk-actions{
+ align-items:center;flex-wrap:wrap;gap:7px
+}
+/* Stable focus outlines and softer loading transitions without changing report output. */
+body.ws-v3-ready .ws-v3-nav-group,
+body.ws-v3-ready .ws-v3-docked{
+ scrollbar-gutter:stable
+}
+body.ws-v3-ready .ws-v3-docked .archive-empty,
+body.ws-v3-ready #maintenanceModal .mw-empty{
+ border-radius:11px;color:#54768e;
+}
+body.ws-v3-ready .ws-v3-docked [aria-busy="true"]{
+ cursor:progress
+}
+@media(prefers-reduced-motion:reduce){
+ body.ws-v3-ready .ws-v3-sidebar,
+ .ws-v41-collapse-control,
+ #maintenanceModal .mw-bulk-toolbar{
+  transition:none!important
+ }
+}
+@media print{
+ .ws-v41-collapse-control,.ws-v41-compact-logo{display:none!important}
+}
