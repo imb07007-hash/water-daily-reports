@@ -4,6 +4,9 @@ const read=x=>fs.readFileSync(x,'utf8');
 const page=read('index.html'),platform=read('assets/wsc-platform-v3.js');
 const css=read('assets/wsc-platform-v3.css'),core=read('assets/core-app.js');
 const maintenance=read('assets/maintenance.js');
+const v4=read('assets/wsc-corporate-v4.css');
+const crypto=require('node:crypto');
+function gitBlobHash(value){const bytes=Buffer.from(value);return crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex')}
 test('official Water Solutions identity is retained verbatim in the unified workspace',()=>{
  const oldLogo='/assets/wsc-logo.svg?v=20261118-identity2';
  const oldMark='/assets/wsc-mark.svg?v=20261118-identity2';
@@ -50,6 +53,25 @@ test('sidebar logo is drawn from original vector and cannot be clipped or replac
  assert.match(css,/\.ws-v3-logo\{[^}]*object-fit:contain/);
  assert.doesNotMatch(css,/\.ws-v3-logo\{[^}]*clip-path:/);
  assert.doesNotMatch(css,/\.ws-v3-logo\{[^}]*filter:/);
- assert.ok(page.includes('/assets/wsc-platform-v3.css?v=20261119-v3-3'));
- assert.ok(page.includes('/assets/wsc-platform-v3.js?v=20261119-v3-3'));
+ assert.ok(page.includes('/assets/wsc-platform-v3.css?v=20261119-brand4'));
+ assert.ok(page.includes('/assets/wsc-platform-v3.js?v=20261119-brand4'));
+});
+
+test('original logo and original mark remain byte-for-byte identical to the approved Git blobs',()=>{
+ assert.equal(gitBlobHash(read('assets/wsc-logo.svg')),'95b97adcce3a020346d8eb9d9123f78c885566dd');
+ assert.equal(gitBlobHash(read('assets/wsc-mark.svg')),'92ead9adb56d6295abf8ac363418e54a7ec43243');
+});
+test('Water Solutions V4 creates a distinctive brand system without modifying report print layout',()=>{
+ assert.ok(page.includes('/assets/wsc-corporate-v4.css?v=20261119-brand4'));
+ for(const item of [
+  '.ws-v4-logo-panel','.ws-v4-top-signature','.ws-v4-coverage',
+  '.ws-v4-hero-stripe','wsc-mark.svg','--ws4-blue:#0362AF','--ws4-purple:#87329A'
+ ])assert.ok(v4.includes(item),item);
+ assert.ok(platform.includes('ws-v4-logo-panel'));
+ assert.ok(platform.includes('ws-v4-top-signature'));
+ assert.ok(platform.includes('wsV4Coverage'));
+ assert.ok(platform.includes('sent.size/visible.length'));
+ assert.ok(v4.includes('.report-sheet'));
+ assert.ok(v4.includes('@media print'));
+ assert.doesNotThrow(()=>new Function(platform));
 });
