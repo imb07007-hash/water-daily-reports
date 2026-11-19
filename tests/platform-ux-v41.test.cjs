@@ -37,11 +37,13 @@ test('selected-only maintenance actions remain secured by existing admin checks'
  assert.ok(bulk.includes("if(!isAdmin()||!root||!stationId)return"));
  assert.ok(css.includes('data-ws-bulk-active="false"'));
  assert.ok(css.includes('data-ws-bulk-active="true"'));
+ assert.ok(css.includes('pointer-events:auto!important;'));
+ assert.ok(css.includes('> .mw-bulk-overlay'));
  assert.ok(bulk.includes("maintenance_bulk_edit_records"));
  assert.ok(bulk.includes("maintenance_bulk_set_lock"));
 });
 test('production index includes and versions both new client assets without modifying print reports',()=>{
- assert.ok(html.includes('/assets/wsc-ux-v41.css?v=20261119-ux41-1'));
+ assert.ok(html.includes('/assets/wsc-ux-v41.css?v=20261119-ux41-2'));
  assert.ok(html.includes('/assets/wsc-platform-v3.js?v=20261119-ux41-2'));
  assert.ok(html.includes('/assets/maintenance-bulk.js?v=20261119-ux41-1'));
  assert.ok(css.includes('@media print'));
