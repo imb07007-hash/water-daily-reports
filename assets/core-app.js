@@ -160,7 +160,7 @@ async function loadSelectedDailyReport(){
   dailyLookupError=true;
   toast(error.message||'تعذّر التحقق من التقرير المحفوظ.',true);
  }finally{
-  if(request===dailyLookupVersion){dailyLookupBusy=false;updateSaveStatus();}
+  if(request===dailyLookupVersion){dailyLookupBusy=false;updateSaveStatus();window.WSV42?.onReportRendered?.();}
  }
 }
 function goTo(s,d){
@@ -945,7 +945,7 @@ async function archiveSearch(){
  const searchVersion=++archiveSearchVersion;
  archiveRows=[];archiveHistoricalRows=[];archiveQueryInfo=null;archiveVisibleCount=ARCHIVE_SHOW_STEP;
  button.disabled=true;out.setAttribute('aria-busy','true');
- out.innerHTML='<div class="archive-empty">جاري تحميل التقارير…</div>';
+ if(!out.querySelector('.archive-report-list,.archive-table,.archive-block'))out.innerHTML='<div class="archive-empty">جاري تحميل التقارير…</div>';
  $('archiveExports').classList.add('hidden');
  try{
   const scope=archiveChosenStation(),period=archivePeriod();
