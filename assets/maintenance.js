@@ -36,11 +36,12 @@ const host=()=>window.WSMaintenanceHost;
 const accessible=()=>['ready','maintenance'].includes(document.body.dataset.auth)&&!!host()?.signedIn?.();
 const isMaintenance=()=>host()?.role?.()==='maintenance';
 const isStation=()=>['station','maintenance'].includes(host()?.role?.());
+const isMaintenanceAdmin=()=>['admin','superadmin'].includes(host()?.role?.());
 const getStations=()=>host()?.stations?.().filter(s=>s&&s.id)||[];
 const owns=id=>accessible()&&getStations().some(s=>s.id===id)&&(!isStation()||id===host()?.stationId?.());
 const canEditRecord=r=>!!r&&owns(r.station_id)&&(
- ['admin','superadmin'].includes(host()?.role?.())||
- (!!r.created_by&&r.created_by===host()?.userId?.()&&['station','maintenance'].includes(host()?.role?.()))
+ isMaintenanceAdmin()||
+ (!r.is_locked&&!!r.created_by&&r.created_by===host()?.userId?.()&&['station','maintenance'].includes(host()?.role?.()))
 );
 const EDIT_FIELDS=['work_type','frequency','work_date','status','description','notes','cost','spare_parts_cost','workers','hours','materials','spares'];
 const NULLABLE_EDIT_FIELDS=new Set(['work_date','cost','spare_parts_cost','workers','hours']);
@@ -316,7 +317,7 @@ async function renderAssets(id){
  el('maintenanceBody').innerHTML=html;
 }
 function recordsParams(id){
- const p={select:'id,station_id,created_by,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,spare_parts_cost,workers,hours,materials,spares,source_file,source_sheet,source_row,original_date,original_status,original_equipment,original_area,import_issues,maintenance_assets(asset_name,area,asset_code)',
+ const p={select:'id,station_id,created_by,is_locked,locked_at,locked_by,asset_id,work_type,frequency,work_date,period_month,status,description,notes,cost,spare_parts_cost,workers,hours,materials,spares,source_file,source_sheet,source_row,original_date,original_status,original_equipment,original_area,import_issues,maintenance_assets(asset_name,area,asset_code)',
  station_id:'eq.'+id,order:'period_month.desc.nullslast,work_date.desc.nullslast,created_at.desc',limit:String(PAGE),offset:String(M.page*PAGE)};
  if(M.focusRecordId){p.id='eq.'+M.focusRecordId;return p;}
  if(M.assetId)p.asset_id='eq.'+M.assetId;
@@ -329,7 +330,7 @@ function recordsParams(id){
 async function renderRecords(id){
  const list=await getRows('maintenance_records',recordsParams(id));
  M.visibleRecords=list;
- const canReview=['admin','superadmin'].includes(host()?.role?.());
+ const canReview=isMaintenanceAdmin();
  let html=toolbar()+'<div class="mw-card"><div class="mw-top"><h3>السجل التاريخي لأعمال الصيانة '+(M.assetName?' — '+h(M.assetName):'')+'</h3>'+
  '<button class="mw-button" data-mw="clearFilters">عرض جميع السجلات</button></div>'+
  '<div class="mw-actions"><label>النوع <select class="mw-select" id="mw-type"><option value="">الكل</option>'+
@@ -347,13 +348,14 @@ async function renderRecords(id){
   const name=r.original_equipment||r.maintenance_assets?.asset_name||'—',area=r.original_area||r.maintenance_assets?.area||'—';
   return '<tr><td class="mw-note"><span class="mw-original">'+h(name)+'</span>'+(unlinked?'<small class="mw-source-warning" style="display:block">الربط بمعدة غير مؤكد</small>':'')+
    '</td><td class="mw-note">'+h(area)+'</td><td>'+h(r.work_type)+'</td><td>'+h(r.period_month?String(r.period_month).slice(0,7):'—')+'</td>'+
-   '<td dir="ltr"><strong>'+h(prettyDate(r.work_date))+'</strong>'+(r.original_date?'<small style="display:block;color:#73899a">المصدر: '+h(r.original_date)+'</small>':'')+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+'</td>'+
+   '<td dir="ltr"><strong>'+h(prettyDate(r.work_date))+'</strong>'+(r.original_date?'<small style="display:block;color:#73899a">المصدر: '+h(r.original_date)+'</small>':'')+'</td><td>'+h(r.frequency||'—')+'</td><td>'+badge(r.status)+(r.is_locked?'<small style="display:block;margin-top:5px">🔒 مقفل للتعديل</small>':'')+'</td>'+
    '<td class="mw-note">'+h([r.description,r.notes].filter(Boolean).join(' — ')||'—')+'</td>'+
    '<td>'+h(r.cost==null?'—':fmt(r.cost))+'</td><td class="mw-note"><small>'+h(r.source_sheet||r.source_file||'إدخال مباشر')+
    (r.source_row?' — صف '+h(r.source_row):'')+'</small></td>'+
  '<td class="mw-actions"><button type="button" class="mw-button" data-mw="inspect" data-record="'+h(r.id)+'">عرض</button>'+
  (canEditRecord(r)?'<button type="button" class="mw-button main" data-mw="correct" data-record="'+h(r.id)+'">تعديل</button>'+
- '<button type="button" class="mw-button" data-mw="audit" data-record="'+h(r.id)+'">سجل التعديلات</button>':'')+'</td></tr>';
+ '<button type="button" class="mw-button" data-mw="audit" data-record="'+h(r.id)+'">سجل التعديلات</button>':'')+
+ (canReview?'<button type="button" class="mw-button" data-mw="toggleRecordLock" data-record="'+h(r.id)+'">'+(r.is_locked?'🔓 فتح التعديل':'🔒 قفل التعديل')+'</button>':'')+'</td></tr>';
  }).join('')+'</tbody></table></div>':
  '<div class="mw-empty">لا توجد أعمال صيانة مسجلة ضمن الفلاتر الحالية.</div>';
  html+='<div id="mw-record-editor"></div><div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
@@ -390,6 +392,7 @@ function showRecordDetails(id){
  if(!r||!box)return;
  const rows=[
   ['المعدة',r.original_equipment||r.maintenance_assets?.asset_name||'—'],
+  ['حالة التعديل',r.is_locked?'🔒 مقفل — الإدارة فقط':'مفتوح'],['وقت القفل',r.locked_at?new Date(r.locked_at).toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}):'—'],['معرّف مسؤول القفل',r.locked_by||'—'],
   ['نوع الصيانة',r.work_type],['التكرار',r.frequency||'—'],
   ['تاريخ التنفيذ',prettyDate(r.work_date)],['الحالة',r.status],
   ['الوصف',r.description||'—'],['الملاحظات',r.notes||'—'],
@@ -401,7 +404,8 @@ function showRecordDetails(id){
   rows.map(([label,val])=>'<div class="mw-label"><strong>'+h(label)+'</strong><div class="mw-muted">'+h(val)+'</div></div>').join('')+
   '</div><div class="mw-actions" style="margin-top:12px">'+
   (canEditRecord(r)?'<button class="mw-button main" type="button" data-mw="correct" data-record="'+h(r.id)+'">تعديل بيانات الصيانة</button>':
-    '<span class="mw-muted">هذا السجل للعرض فقط؛ التعديل لصاحب الإدخال أو الإدارة.</span>')+
+    '<span class="mw-muted">'+(r.is_locked?'هذا السجل مقفل؛ يسمح بالعرض فقط، والتعديل للإدارة.':'هذا السجل للعرض فقط؛ التعديل لصاحب الإدخال أو الإدارة.')+'</span>')+
+  (isMaintenanceAdmin()?'<button class="mw-button" type="button" data-mw="toggleRecordLock" data-record="'+h(r.id)+'">'+(r.is_locked?'🔓 فتح التعديل':'🔒 قفل التعديل')+'</button>':'')+
   '<button class="mw-button" type="button" data-mw="closeCorrection">إغلاق</button></div></div>';
  box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -433,6 +437,26 @@ function showCorrection(id){
   '</div><div class="mw-actions" style="margin-top:12px"><button class="mw-button main" type="submit">حفظ التعديلات</button>'+
   '<button class="mw-button" type="button" data-mw="closeCorrection">إلغاء</button></div></form><div id="mw-correction-feedback"></div></div>';
  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function toggleRecordLock(id){
+ const r=(M.visibleRecords||[]).find(item=>item.id===id);
+ if(!r||!owns(r.station_id)||!isMaintenanceAdmin())throw Error('قفل السجل متاح للأدمن والسوبر أدمن فقط.');
+ if(M.lockingRecordId)return;
+ const next=!r.is_locked;
+ if(!window.confirm(next?'قفل هذا السجل؟ لن يستطيع مهندس الصيانة تعديل بياناته بعد القفل.':'فتح تعديل هذا السجل؟ سيستعيد صاحب الإدخال صلاحية تعديله.'))return;
+ M.lockingRecordId=id;
+ try{
+  const result=await request('/rest/v1/rpc/maintenance_set_lock',{
+   method:'POST',
+   body:JSON.stringify({
+    p_record_id:id,p_locked:next,p_expected_locked:!!r.is_locked,
+    p_reason:next?'قفل تعديل تقرير الصيانة بواسطة الإدارة':'فتح تعديل تقرير الصيانة بواسطة الإدارة'
+   })
+  });
+  if(!result||result.updated!==true||result.id!==id||result.is_locked!==next)throw Error('لم يصل تأكيد القفل من قاعدة البيانات.');
+  await update();
+  alertInline(next?'تم قفل تقرير الصيانة. التعديل متاح للأدمن والسوبر أدمن فقط.':'تم فتح تعديل تقرير الصيانة لصاحب الإدخال.');
+ }finally{M.lockingRecordId=''}
 }
 async function showAudit(id){
  const rec=(M.visibleRecords||[]).find(r=>r.id===id);
@@ -998,6 +1022,7 @@ function onClick(e){
  if(action==='discardPreview'){M.preview=null;renderImport(getId());return}
  if(action==='commitImport'){importCommit();return}
  if(action==='correct'){showCorrection(b.dataset.record);return}
+ if(action==='toggleRecordLock'){void toggleRecordLock(b.dataset.record).catch(err=>alertInline('تعذر تغيير قفل السجل: '+err.message,true));return}
  if(action==='inspect'){showRecordDetails(b.dataset.record);return}
  if(action==='dailyEdit'){void openRecordFromDaily(b.dataset.record);return}
  if(action==='audit'){showAudit(b.dataset.record);return}
