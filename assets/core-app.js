@@ -290,7 +290,7 @@ async function saveReport(){
  const errors=validateReport();
  if(errors.length){toast('راجع الحقول: '+errors.slice(0,3).join('، '),true);return}
  // Lock the action while review is open to prevent double submission.
- const reviewStation=stationId,reviewDate=date,reviewEditId=editingReportId;
+ const reviewStation=stationId,reviewDate=date,reviewEditId=editingReportId,reviewUserId=currentUserId,reviewData=JSON.stringify(record);
  cloudSubmitting=true;updateSaveStatus();
  try{
   const approved=window.WSV43?.reviewBeforeSubmit
@@ -301,7 +301,7 @@ async function saveReport(){
      })
    :confirm((editingReportId?'تعديل التقرير المؤرشف':'اعتماد وإرسال التقرير')+' — '+selected().name+' بتاريخ '+date+'؟');
   if(!approved)return;
-  if(!signedIn()||stationId!==reviewStation||date!==reviewDate||editingReportId!==reviewEditId||
+  if(!signedIn()||currentUserId!==reviewUserId||JSON.stringify(record)!==reviewData||stationId!==reviewStation||date!==reviewDate||editingReportId!==reviewEditId||
      archiveViewing||dailyLookupBusy||dailyLookupError){
    toast('تغيّر التقرير أثناء المراجعة. راجع البيانات وحاول مجددًا.',true);return;
   }
@@ -2426,6 +2426,14 @@ window.addEventListener('keydown',event=>{
 window.WSPlatformHost=Object.freeze({
  saveDraft:()=>{if(signedIn()&&currentRole!=='maintenance')preserveDraft();},
  settingsHaveChanges:()=>!!(settingsEditing&&((settingsBackup&&JSON.stringify(stations)!==JSON.stringify(settingsBackup))||pendingInactiveIds.length)),
+ trackReportPreview:r=>{
+  if(!signedIn()||!r||!stations.some(st=>st.id===r.station_id)||currentRole==='maintenance')return;
+  // The existing audit endpoint receives the actual report identity, not the current editor selection.
+  const payload={action:'VIEW_REPORT',stationId:r.station_id,reportDate:r.report_date,reportId:r.id};
+  authedFetch('/functions/v1/activity-log',{method:'POST',body:JSON.stringify(payload)})
+   .then(response=>{if(!response.ok)console.warn('Preview audit unavailable',response.status)})
+   .catch(error=>console.warn('Preview audit request failed',error));
+ },
  stationBlueprints:()=>signedIn()?stations.filter(st=>isAdmin()||st.id===currentStationId).map(st=>({
   id:st.id,name:st.name,metrics:(st.metrics||[]).filter(m=>m.visible!==false).map(m=>({
    id:m.id,label:m.label,required:!!m.required,auto:!!m.auto,unit:m.unit||''
