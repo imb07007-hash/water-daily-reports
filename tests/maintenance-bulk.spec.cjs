@@ -109,6 +109,22 @@ test('admin can lock selected records in a single audited request',async({page})
  expect(lock.payload.p_locked).toBe(true);
  expect(state.records.every(x=>x.is_locked)).toBe(true);
 });
+test('multi-line Excel comment paste distributes one line per selected maintenance record',async({page})=>{
+ const state=await mocked(page);
+ page.on('dialog',dialog=>dialog.accept());
+ await loginOpenRecords(page);
+ await page.locator('[data-bulk-page-all]').check();
+ await page.locator('[data-bulk-action="editNotes"]').click();
+ const modal=page.locator('.mw-bulk-overlay');
+ await modal.locator('#mw-bulk-multi-paste').fill('Updated PUMP comment\nUpdated GENERATOR comment');
+ await modal.locator('[data-bulk-editor-action="pasteLines"]').click();
+ await expect(modal.locator('[data-bulk-record-id="'+ID1+'"][data-bulk-field="notes"]')).toHaveValue('Updated PUMP comment');
+ await expect(modal.locator('[data-bulk-record-id="'+ID2+'"][data-bulk-field="notes"]')).toHaveValue('Updated GENERATOR comment');
+ await modal.locator('[data-bulk-editor-action="preview"]').click();
+ await expect(modal.locator('#mw-bulk-preview')).toContainText('2 سجلًا');
+ expect(state.rpc).toHaveLength(0); // Preview and paste never save until explicit confirmation
+});
+
 test('maintenance engineer never sees admin bulk actions',async({page})=>{
  await mocked(page,'maintenance');
  await page.goto('/');
