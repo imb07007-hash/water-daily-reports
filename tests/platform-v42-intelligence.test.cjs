@@ -63,7 +63,7 @@ test('favorites store only navigation references and local client UI prefs, not 
 test('release includes V4.2 scripts, source labels, charts and unchanged print template',()=>{
  assert.ok(html.includes('/assets/wsc-intelligence-v42.css?v=20261119-v42a'));
  assert.ok(html.includes('/assets/wsc-intelligence-v42.js?v=20261119-v42a'));
- assert.ok(html.includes('/assets/core-app.js?v=20261119-v43a'));
+ assert.ok(html.includes('/assets/core-app.js?v=20261119-v43b'));
  assert.ok(html.includes('/assets/wsc-platform-v3.js?v=20261119-v42b'));
  assert.ok(css.includes('.dashboard-week-fill'));
  assert.ok(css.includes('.archive-barfill'));
