@@ -2400,6 +2400,7 @@ window.addEventListener('keydown',event=>{
 // Read-only workspace bridge. Existing business rules remain inside this module.
 window.WSPlatformHost=Object.freeze({
  saveDraft:()=>{if(signedIn()&&currentRole!=='maintenance')preserveDraft();},
+ settingsHaveChanges:()=>!!(settingsEditing&&((settingsBackup&&JSON.stringify(stations)!==JSON.stringify(settingsBackup))||pendingInactiveIds.length)),
  role:()=>currentRole,
  station:()=>currentStationId
 });
