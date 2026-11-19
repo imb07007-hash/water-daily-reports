@@ -2426,6 +2426,11 @@ window.addEventListener('keydown',event=>{
 window.WSPlatformHost=Object.freeze({
  saveDraft:()=>{if(signedIn()&&currentRole!=='maintenance')preserveDraft();},
  settingsHaveChanges:()=>!!(settingsEditing&&((settingsBackup&&JSON.stringify(stations)!==JSON.stringify(settingsBackup))||pendingInactiveIds.length)),
+ stationBlueprints:()=>signedIn()?stations.filter(st=>isAdmin()||st.id===currentStationId).map(st=>({
+  id:st.id,name:st.name,metrics:(st.metrics||[]).filter(m=>m.visible!==false).map(m=>({
+   id:m.id,label:m.label,required:!!m.required,auto:!!m.auto,unit:m.unit||''
+  }))
+ })):[],
  reportReadOnly:()=>{
   if(!signedIn()||!stations.some(s=>s.id===stationId))return null;
   return {stationId,date,locked:archiveViewing,loading:dailyLookupBusy,lookupError:dailyLookupError,
