@@ -147,9 +147,12 @@ test('V4.1 remembers compact sidebar preference and still permits navigation aft
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('ws-company-ux-v41')));
  expect(saved.collapsed).toBe(true);
  await page.reload();
- await page.locator('#loginUsername').fill('test-user');
- await page.locator('#loginPassword').fill('correct-password');
- await page.locator('#loginForm button[type="submit"]').first().click();
+ // Refresh restores an existing authenticated session; only sign in if it did not.
+ if(await page.locator('body').getAttribute('data-auth')!=='ready'){
+  await page.locator('#loginUsername').fill('test-user');
+  await page.locator('#loginPassword').fill('correct-password');
+  await page.locator('#loginForm button[type="submit"]').first().click();
+ }
  await expect(page.locator('body')).toHaveAttribute('data-auth','ready');
  await expect(page.locator('body')).toHaveClass(/ws-v41-collapsed/);
  await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
