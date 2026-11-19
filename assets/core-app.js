@@ -155,6 +155,7 @@ async function loadSelectedDailyReport(){
    record=fetchRecord();
   }
   renderInputs();renderReport();
+  window.WSV43?.refreshReport?.();
  }catch(error){
   if(request!==dailyLookupVersion)return;
   dailyLookupError=true;
@@ -197,6 +198,7 @@ html+='<section class="edit-section"><h3>الحالة والملاحظات</h3><
 for(let f of s.noteFields||[]){html+=`<div class="field wide"><label>${esc(f.label)}</label>${f.id==='status'?`<input class="control" type="text" data-note="${esc(f.id)}" value="${esc(record.notes[f.id]??'')}" placeholder="مثال: تعمل / متوقفة / احتياطية">`:`<textarea class="control" rows="2" data-note="${esc(f.id)}" placeholder="أدخل ${esc(f.label)}">${esc(record.notes[f.id]??'')}</textarea>`}</div>`}
 html+='</div></section>';$('reportInputFields').innerHTML=html;
  window.WSV42?.onReportRendered?.();
+ window.WSV43?.refreshReport?.();
 }
 function computePct(r){let p=num(r.pct);if(p===null){let q=num(r.qty),c=num(r.capacity);return q!==null&&c!==null&&c>0?100*q/c:null}return p}
 function fraction(n,total){return total===null||total===0?0:Math.min(100,Math.max(0,100*n/total))}
@@ -287,9 +289,24 @@ async function saveReport(){
  if(receipts[k]&&!editingReportId){toast('سبق إرسال هذا التقرير من حسابك.',true);return}
  const errors=validateReport();
  if(errors.length){toast('راجع الحقول: '+errors.slice(0,3).join('، '),true);return}
- if(!confirm((editingReportId?'تعديل التقرير المؤرشف':'اعتماد وإرسال التقرير')+' — '+selected().name+' بتاريخ '+date+'؟'))return;
+ // Lock the action while review is open to prevent double submission.
+ const reviewStation=stationId,reviewDate=date,reviewEditId=editingReportId;
  cloudSubmitting=true;updateSaveStatus();
  try{
+  const approved=window.WSV43?.reviewBeforeSubmit
+   ? await window.WSV43.reviewBeforeSubmit({
+      stationName:selected().name,stationId,date,editing:!!editingReportId,
+      metrics:window.WSPlatformHost?.reportReadOnly?.()?.metrics||[],
+      warnings:validateReport(),reportType:editingReportId?'تعديل تقرير محفوظ':'إرسال تقرير جديد'
+     })
+   :confirm((editingReportId?'تعديل التقرير المؤرشف':'اعتماد وإرسال التقرير')+' — '+selected().name+' بتاريخ '+date+'؟');
+  if(!approved)return;
+  if(!signedIn()||stationId!==reviewStation||date!==reviewDate||editingReportId!==reviewEditId||
+     archiveViewing||dailyLookupBusy||dailyLookupError){
+   toast('تغيّر التقرير أثناء المراجعة. راجع البيانات وحاول مجددًا.',true);return;
+  }
+  const refreshedErrors=validateReport();
+  if(refreshedErrors.length){toast('راجع الحقول: '+refreshedErrors.slice(0,3).join('، '),true);return}
   const requestId=requestIds[k]||(crypto.randomUUID?crypto.randomUUID():null);
   if(!requestId)throw Error('هذا المتصفح لا يدعم معرفات الطلب الآمنة');
   requestIds[k]=requestId;store(perUserKey(REQUESTS_KEY),requestIds);
@@ -745,7 +762,8 @@ function archiveReportEntries(rows){
     +esc(origin)+'</span><span class="ws-v42-evidence">'+esc(evidence)+'</span>';
   return '<div class="archive-entry"><div><strong>'+esc(station?.name||r.station_id)+'</strong>'+provenance+
    '<small>تاريخ التقرير: '+esc(dashboardShortDate(r.report_date))+' — '+esc(archiveTimeLabel(r))+'</small></div>'+
-   '<div class="sec-actions"><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+
+   '<div class="sec-actions"><button class="btn" data-ws43-preview-id="'+esc(r.id)+'" type="button">معاينة سريعة</button>'+
+   '<button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+
    (isSuperAdmin()?'<button class="btn" data-archive-edit="'+esc(r.id)+'">تعديل</button>'+
    '<button class="btn danger" data-archive-delete="'+esc(r.id)+'">حذف</button>':'')+'</div></div>';
  }).join('');
@@ -1475,6 +1493,7 @@ async function dashboardRefresh(){
     ['إجمالي الإنتاج (م³)',dashboardTotal(selectedRows,'production')],
     ['إجمالي المياه الخام (م³)',dashboardTotal(selectedRows,'raw')],
     ['إجمالي التصدير (م³)',dashboardTotal(selectedRows,'export')]];
+  const wsV43Summary=window.WSV43?.dashboardSections?.({stations,selectedRows,allRows:reports,date})||'';
   const summary='<section class="dashboard-summary" aria-label="ملخص التقارير">'+
    totals.map(([label,value],i)=>'<div class="dashboard-kpi'+(i===1?' good':i===2?' pending':'')+'"><strong>'+
      esc(value===null?'—':i<3?String(value):fmt(value))+'</strong><small>'+esc(label)+'</small></div>').join('')+
@@ -1534,7 +1553,7 @@ async function dashboardRefresh(){
   }).join(''):'<div class="dashboard-empty">لا توجد تقارير مرسلة حتى الآن.</div>';
   const recentSection='<section class="dashboard-section"><div class="dashboard-section-head"><h3>آخر عمليات إرسال التقارير</h3>'+
    '<small>توقيت السعودية (UTC+3)</small></div><div class="dashboard-recent">'+recentRows+'</div></section>';
-  view.innerHTML=wsInstruments(selectedRows,byDayStation,date,readyRate)+summary+stationSection+historySection+recentSection;
+  view.innerHTML=wsInstruments(selectedRows,byDayStation,date,readyRate)+summary+wsV43Summary+stationSection+historySection+recentSection;
   wsAnimateInstruments(view);
   window.WSMotion?.animate(view);
  }catch(e){
