@@ -69,7 +69,8 @@ const isManager=()=>['admin','superadmin'].includes(host()?.role?.());
 const isSuper=()=>host()?.role?.()==='superadmin';
 const allowed=route=>{
  const p=paths[route],role=host()?.role?.();
- return !!(p&&host()?.signedIn?.()&&role!=='maintenance'&&(!p.manager||isManager())&&(!p.super||isSuper()));
+ return !!(p&&host()?.signedIn?.()&&role!=='maintenance'&&
+  !(route==='chemicals/entry'&&role==='admin')&&(!p.manager||isManager())&&(!p.super||isSuper()));
 };
 const visibleGroups=()=>groups.filter(x=>allowed(x.route)).map(x=>({...x,children:(x.children||[]).filter(allowed)}));
 const section=route=>paths[route]?.section||'home';
@@ -206,7 +207,7 @@ function openCurrent(route,sameSection){
  if(sec==='chemicals'){
   if(!sameSection||$('chemicalsModal').classList.contains('hidden'))originalClick('chemicalsLink');
   if(route==='chemicals/entry'){
-   if(isManager()){status('يمكنك مراجعة مخزون المواد، لكن تعديل القراءات متاح للحساب المصرح له.',true);return}
+   if(host()?.role?.()==='admin'){status('يمكنك مراجعة مخزون المواد، لكن تعديل القراءات متاح للحساب المصرح له.',true);return}
    setTimeout(()=>{
     const btn=$('chem-widget-goEditor');
     if(btn&&!btn.hidden){btn.click();$('chem-widget-editor')?.scrollIntoView({block:'start',behavior:'smooth'})}
