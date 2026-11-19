@@ -77,8 +77,12 @@ test('admin edits multiple comments in one scrolling window and saves only chang
  page.on('dialog',dialog=>dialog.accept());
  await loginOpenRecords(page);
  await expect(page.locator('[data-bulk-record]')).toHaveCount(2);
+ await expect(page.locator('.mw-bulk-toolbar')).toHaveAttribute('data-ws-bulk-active','false');
+ await expect(page.locator('[data-bulk-action="editNotes"]')).toBeHidden();
  await page.locator('[data-bulk-page-all]').check();
  await expect(page.locator('[data-bulk-count]')).toContainText('2');
+ await expect(page.locator('.mw-bulk-toolbar')).toHaveAttribute('data-ws-bulk-active','true');
+ await expect(page.locator('[data-bulk-action="editNotes"]')).toBeVisible();
  await page.locator('[data-bulk-action="editNotes"]').click();
  const overlay=page.locator('.mw-bulk-overlay');
  await expect(overlay).toBeVisible();
