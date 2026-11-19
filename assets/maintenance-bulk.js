@@ -230,7 +230,11 @@ function editorHtml(){
   '<select id="mw-bulk-common-field" class="mw-select">'+
   [['status','الحالة'],['work_type','نوع الصيانة'],['frequency','التكرار']].map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join('')+'</select>'+
   '<select id="mw-bulk-common-value" class="mw-select">'+STATUS.map(v=>option(v,STATUS[0])).join('')+'</select>'+
-  '<button class="mw-button" type="button" data-bulk-editor-action="applyField">تطبيق على المحدد</button></div></section>'+
+  '<button class="mw-button" type="button" data-bulk-editor-action="applyField">تطبيق على المحدد</button></div>'+
+  '<div class="mw-bulk-tool"><strong>لصق تعليقات متعددة من Excel</strong>'+
+  '<textarea id="mw-bulk-multi-paste" rows="3" placeholder="كل سطر يُكتب في تعليق سجل واحد، حسب ترتيب السجلات أدناه"></textarea>'+
+  '<small>يجب أن يتطابق عدد الأسطر مع عدد السجلات المفتوحة، مع الحفاظ على الأسطر الفارغة للتعليقات المطلوب مسحها.</small>'+
+  '<button class="mw-button" type="button" data-bulk-editor-action="pasteLines">توزيع التعليقات على السجلات</button></div></section>'+
   '<section class="mw-bulk-records">'+viewRows()+'</section>'+
   '<div id="mw-bulk-preview" class="mw-bulk-preview" hidden></div></div>'+
   '<footer class="mw-bulk-footer"><label>سبب التعديل (إلزامي للتوثيق)'+
@@ -339,6 +343,16 @@ async function editorAction(action){
   if(!affected)throw Error('العبارة غير موجودة في التعليقات المحددة');
   if(!window.confirm('سيُستبدل النص في '+affected+' تعليقًا. المتابعة؟'))return;
   applyToAll(r=>String(r.notes||'').split(search).join(replacement));return;
+ }
+ if(action==='pasteLines'){
+  const pasted=String(B.overlay.querySelector('#mw-bulk-multi-paste').value||'').replace(/\r\n?/g,'\n');
+  if(!pasted)throw Error('ألصق التعليقات المطلوبة أولًا');
+  const lines=pasted.split('\n');
+  if(lines.length!==B.original.length)throw Error('عدد الأسطر '+lines.length+' لا يطابق عدد السجلات '+B.original.length+'؛ لم يتغير أي تعليق.');
+  if(!window.confirm('توزيع '+lines.length+' تعليقًا على السجلات المعروضة حسب ترتيبها؟ ستتمكن من معاينتها قبل الحفظ.'))return;
+  let cursor=0;
+  applyToAll(()=>lines[cursor++]);
+  return;
  }
  if(action==='applyField'){
   const field=B.overlay.querySelector('#mw-bulk-common-field').value;
