@@ -360,6 +360,10 @@ async function renderRecords(id){
  '<div class="mw-empty">لا توجد أعمال صيانة مسجلة ضمن الفلاتر الحالية.</div>';
  html+='<div id="mw-record-editor"></div><div class="mw-pager"><button class="mw-button" data-mw="recordsPrev" '+(M.page?'':'disabled')+'>السابق</button><span class="mw-muted">الصفحة '+(M.page+1)+'</span><button class="mw-button" data-mw="recordsNext" '+(list.length===PAGE?'':'disabled')+'>التالي</button></div></div>';
  el('maintenanceBody').innerHTML=html;
+ window.WSMaintenanceBulk?.enhance?.({
+  root:el('maintenanceBody'),records:list,stationId:id,
+  params:recordsParams(id),onRefresh:update,onNotice:alertInline
+ });
 }
 async function renderPlanned(id){
  const p={select:'id,work_type,frequency,period_month,source_sheet,source_row,original_equipment,original_area,maintenance_assets(asset_name,area,asset_code)',
