@@ -196,6 +196,7 @@ html+='</div></section>'
 html+='<section class="edit-section"><h3>الحالة والملاحظات</h3><div class="section-fields">';
 for(let f of s.noteFields||[]){html+=`<div class="field wide"><label>${esc(f.label)}</label>${f.id==='status'?`<input class="control" type="text" data-note="${esc(f.id)}" value="${esc(record.notes[f.id]??'')}" placeholder="مثال: تعمل / متوقفة / احتياطية">`:`<textarea class="control" rows="2" data-note="${esc(f.id)}" placeholder="أدخل ${esc(f.label)}">${esc(record.notes[f.id]??'')}</textarea>`}</div>`}
 html+='</div></section>';$('reportInputFields').innerHTML=html;
+ window.WSV42?.onReportRendered?.();
 }
 function computePct(r){let p=num(r.pct);if(p===null){let q=num(r.qty),c=num(r.capacity);return q!==null&&c!==null&&c>0?100*q/c:null}return p}
 function fraction(n,total){return total===null||total===0?0:Math.min(100,Math.max(0,100*n/total))}
@@ -737,7 +738,12 @@ function archiveReportEntries(rows){
  const subset=rows.slice(0,archiveVisibleCount);
  const list=subset.map(r=>{
   const station=stations.find(s=>s.id===r.station_id);
-  return '<div class="archive-entry"><div><strong>'+esc(station?.name||r.station_id)+'</strong>'+
+  const origin=isExcelImportedReport(r)?'مستورد من Excel':r.source==='migration'?'مستورد من واتساب':'أُدخل في الموقع';
+  const evidence=isExcelImportedReport(r)?'تاريخ الحفظ في الموقع':r.source==='migration'
+    ?r.source_sent_at?'وقت الرسالة الأصلية متاح':'وقت الرسالة الأصلية غير متوفر':'وقت الحفظ في الموقع';
+  const provenance='<span class="ws-v42-provenance '+(r.source==='migration'?'imported':'native')+'">'
+    +esc(origin)+'</span><span class="ws-v42-evidence">'+esc(evidence)+'</span>';
+  return '<div class="archive-entry"><div><strong>'+esc(station?.name||r.station_id)+'</strong>'+provenance+
    '<small>تاريخ التقرير: '+esc(dashboardShortDate(r.report_date))+' — '+esc(archiveTimeLabel(r))+'</small></div>'+
    '<div class="sec-actions"><button class="btn primary" data-archive-id="'+esc(r.id)+'">عرض</button>'+
    (isSuperAdmin()?'<button class="btn" data-archive-edit="'+esc(r.id)+'">تعديل</button>'+
@@ -2401,6 +2407,14 @@ window.addEventListener('keydown',event=>{
 window.WSPlatformHost=Object.freeze({
  saveDraft:()=>{if(signedIn()&&currentRole!=='maintenance')preserveDraft();},
  settingsHaveChanges:()=>!!(settingsEditing&&((settingsBackup&&JSON.stringify(stations)!==JSON.stringify(settingsBackup))||pendingInactiveIds.length)),
+ reportReadOnly:()=>{
+  if(!signedIn()||!stations.some(s=>s.id===stationId))return null;
+  return {stationId,date,locked:archiveViewing,loading:dailyLookupBusy,lookupError:dailyLookupError,
+   role:currentRole,metrics:selected().metrics.filter(m=>m.visible!==false).map(m=>({
+    id:m.id,label:m.label,unit:m.unit||'',type:m.type||'number',required:!!m.required,
+    raw:record.metrics[m.id]??'',value:metricValue(m)
+   })),validation:validateReport().slice(0,40)};
+ },
  role:()=>currentRole,
  station:()=>currentStationId
 });
