@@ -27,7 +27,7 @@ test('V4.2 search uses authenticated RLS API and limited field-only queries',()=
  assert.ok(!code.includes('/auth/v1/admin'));
 });
 test('report comparison is read only and separates zero from missing values',()=>{
- assert.ok(code.includes('function safeNumber'));
+ assert.ok(code.includes('const safeNumber='));
  assert.ok(code.includes("String(v).trim()===''"));
  assert.ok(code.includes("if(a===null||b===null)continue"));
  assert.ok(code.includes('priorFetched'));
