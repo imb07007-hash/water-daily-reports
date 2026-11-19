@@ -18,6 +18,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Verify maintenance roles, lock enforcement and audited edits
+        run: node --test tests/maintenance-record-lock.test.cjs tests/maintenance-record-owner-edit.test.cjs
       - name: Run actual browser login and XLSX roundtrip tests
         run: npm run test:e2e
 
