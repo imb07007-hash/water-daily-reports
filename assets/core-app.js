@@ -1233,10 +1233,13 @@ async function enterApplication(){
  $('loginPassword').value='';
  $('accessNote').textContent=isAdmin()?'إدارة المحطات':selected().name;
  if(location.hash==='#chemicals'){
-  // Backward-compatible deep link opens inside the existing signed-in app.
-  history.replaceState(null,document.title,location.pathname+location.search);
-  chemicalsOpen();
- }else if(isAdmin())dashboardOpen();
+  // Keep the legacy chemical deep link, but use the new page router when enabled.
+  if(window.WSShellUI?.enabled)window.WSShellUI.navigate('chemicals/overview',{history:'replace'});
+  else{
+   history.replaceState(null,document.title,location.pathname+location.search);
+   chemicalsOpen();
+  }
+ }else if(isAdmin()&&!window.WSShellUI?.enabled)dashboardOpen();
 }
 async function loginSubmit(e){
  e.preventDefault();
@@ -2392,6 +2395,13 @@ $('chemicalsModal').addEventListener('click',event=>{
 });
 window.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&!$('chemicalsModal').classList.contains('hidden'))chemicalsClose();
+});
+
+// Read-only workspace bridge. Existing business rules remain inside this module.
+window.WSPlatformHost=Object.freeze({
+ saveDraft:()=>{if(signedIn()&&currentRole!=='maintenance')preserveDraft();},
+ role:()=>currentRole,
+ station:()=>currentStationId
 });
 
 // Scoped integration API for the embedded maintenance panel.
