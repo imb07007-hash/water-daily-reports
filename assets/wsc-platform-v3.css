@@ -177,7 +177,6 @@ body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:calc(var(--ws3-top
 @media(max-width:1300px){
  .ws-v3-report-bar{flex-wrap:nowrap;overflow-x:auto}
  .ws-v3-report-bar-main{flex-wrap:nowrap;white-space:nowrap}
- .ws-v3-report-bar .ws-v3-report-clear{display:none}
  .ws-v3-report-bar button{font-size:11px}
  .ws-v3-report-status{display:none}
 }
