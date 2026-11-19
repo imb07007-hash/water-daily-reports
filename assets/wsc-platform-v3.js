@@ -172,7 +172,8 @@ function canLeave(next){
  if(state.page==='admin/stations'&&next!=='admin/stations'){
   const n=$('modalBackdrop');
   if(n&&!n.classList.contains('hidden')){
-   return confirm('هل تريد مغادرة إعدادات المحطات؟ ستُلغى التغييرات غير المحفوظة.');
+   if(window.WSPlatformHost?.settingsHaveChanges?.())return confirm('هل تريد مغادرة إعدادات المحطات؟ ستُلغى التغييرات غير المحفوظة.');
+   return true;
   }
  }
  const editor=$('maintenanceModal')?.querySelector('[data-maintenance-bulk-overlay]');
