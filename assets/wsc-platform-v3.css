@@ -150,6 +150,36 @@ body.ws-v3-ready .preview-viewport{background:#e9eff5}
 .ws-v3-data-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
 .ws-v3-data-actions button{min-height:44px;border-radius:9px;padding:9px 14px;font:inherit;font-size:12px;font-weight:800;background:#fff;border:1px solid #bdd4e5;color:#0c639f;cursor:pointer}
 .ws-v3-data-actions button:hover{background:#edf7fe}
+/* Report actions remain visible after the legacy toolbar is visually retired. */
+.ws-v3-report-bar{
+ position:fixed;inset-inline-start:var(--ws3-sidebar);inset-inline-end:0;top:var(--ws3-topbar);
+ display:none;align-items:center;gap:12px;justify-content:space-between;
+ padding:10px 22px;background:#f8fbff;border-bottom:1px solid #e0e9f1;z-index:315;
+ min-height:59px
+}
+body.ws-v3-ready[data-ws-page="reports"] .ws-v3-report-bar{display:flex}
+.ws-v3-report-bar-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ws-v3-report-bar button{min-height:36px;border:1px solid #cfdeea;border-radius:8px;padding:7px 11px;
+ background:#fff;color:#24638e;font-size:12px;font-weight:800;font-family:inherit;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.ws-v3-report-bar button:hover{background:#e7f4fd}
+.ws-v3-report-bar .ws-v3-report-submit{background:var(--ws3-blue);border-color:var(--ws3-blue);color:#fff}
+.ws-v3-report-bar .ws-v3-report-submit:hover{background:#064e8b}
+.ws-v3-report-bar button[hidden]{display:none!important}
+.ws-v3-report-status{font-size:11px;color:#5c7d91;white-space:nowrap}
+body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:calc(var(--ws3-topbar) + 59px)}
+@media(max-width:1300px){
+ .ws-v3-report-bar{flex-wrap:wrap}
+ .ws-v3-report-bar .ws-v3-report-clear{display:none}
+ .ws-v3-report-bar button{font-size:11px}
+ .ws-v3-report-status{display:none}
+}
+@media(max-width:920px){
+ .ws-v3-report-bar{position:relative;inset:auto;top:auto;margin-top:var(--ws3-topbar);padding:9px 12px;flex-wrap:nowrap;overflow-x:auto;min-height:55px}
+ .ws-v3-report-bar-main{flex-wrap:nowrap;white-space:nowrap}
+ body.ws-v3-ready[data-ws-page="reports"] .app-main{margin-top:0}
+}
+@media print{.ws-v3-report-bar{display:none!important}}
+
 /* Application wide section surfaces replace modal-sized content with genuine workspaces. */
 @media screen {
  body.ws-v3-ready .ws-v3-docked:not(.hidden){
