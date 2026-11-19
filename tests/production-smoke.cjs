@@ -13,6 +13,8 @@ if(!bulkScript||!bulkStyle)throw new Error('Missing versioned admin batch mainte
 const v3Script=source.match(/\/assets\/wsc-platform-v3\.js\?v=[A-Za-z0-9_-]+/);
 const v3Style=source.match(/\/assets\/wsc-platform-v3\.css\?v=[A-Za-z0-9_-]+/);
 if(!v3Script||!v3Style)throw new Error('Missing unified Water Solutions V3 workspace assets.');
+const uxStyle=source.match(/\/assets\/wsc-ux-v41\.css\?v=[A-Za-z0-9_-]+/);
+if(!uxStyle)throw new Error('Missing V4.1 smart user-experience stylesheet.');
 
 const base=process.env.RENDER_SITE_URL||'https://water-daily-reports.onrender.com';
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -23,7 +25,7 @@ async function check(){
  if(!indexResponse.ok)throw new Error('Render homepage returned HTTP '+indexResponse.status);
  const html=await indexResponse.text();
  if(!html.includes(expectedAsset))throw new Error('Render HTML has not reached expected asset: '+expectedAsset);
- for(const asset of [bulkScript[0],bulkStyle[0],v3Script[0],v3Style[0]]){
+ for(const asset of [bulkScript[0],bulkStyle[0],v3Script[0],v3Style[0],uxStyle[0]]){
   if(!html.includes(asset))throw new Error('Production HTML has not reached batch maintenance asset: '+asset);
   const assetResponse=await fetch(new URL(asset,base),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(12000)});
   if(!assetResponse.ok)throw new Error('Batch maintenance asset returned '+assetResponse.status+': '+asset);
@@ -31,9 +33,11 @@ async function check(){
   if(asset.endsWith('css?v=20261119-bulk1')){
    if(!body.includes('.mw-bulk-overlay'))throw new Error('Production batch editor styling is stale.');
   }else if(asset===v3Script[0]){
-   if(!body.includes('window.WSShellUI')||!body.includes('wsc-logo.svg'))throw new Error('Production V3 router or official logo reference is stale.');
+   if(!body.includes('window.WSShellUI')||!body.includes('wsc-logo.svg')||!body.includes('ws-v41-collapsed')||!body.includes('captureView(previous)'))throw new Error('Production V4.1 navigation or filter memory is stale.');
   }else if(asset===v3Style[0]){
    if(!body.includes('.ws-v3-sidebar')||!body.includes('.ws-v3-report-bar'))throw new Error('Production V3 workspace styling is stale.');
+  }else if(asset===uxStyle[0]){
+   if(!body.includes('ws-v41-collapsed')||!body.includes('data-ws-bulk-active'))throw new Error('Production V4.1 UX styling is stale.');
   }else if(!body.includes('maintenance_bulk_edit_records')||!body.includes('pasteLines')){
    throw new Error('Production batch editor does not contain current edit and paste actions.');
   }
