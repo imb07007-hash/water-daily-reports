@@ -47,7 +47,7 @@ test('lock status is visible but only admins receive the lock/unlock actions',()
  assert.match(daily,/select:'id,created_by,is_locked,/);
  assert.match(daily,/\(!r\.is_locked&&!!r\.created_by&&r\.created_by===uid\)/);
  assert.match(daily,/مقفل للتعديل/);
- assert.match(html,/maintenance\.js\?v=20261119-bulk1/);
+ assert.match(html,/maintenance\.js\?v=20261119-v3-focus1/);
  assert.match(html,/maintenance-daily\.js\?v=20261119-lock-admin1/);
 });
 test('database forbids engineer lock edits and deletes, checks actor and audits locks',()=>{
