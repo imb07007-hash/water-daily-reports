@@ -186,7 +186,11 @@ function originalClick(id){
 function openCurrent(route,sameSection){
  const sec=section(route),modalId=selectModalId(route);
  if(modalId)$(modalId)?.classList.add('ws-v3-docked');
- if(route==='reports'||route==='home'||route==='admin/data')return;
+ if(route==='reports'){
+  requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
+  return;
+ }
+ if(route==='home'||route==='admin/data')return;
  if(sec==='dashboard'){if(!sameSection||$('dashboardModal').classList.contains('hidden'))originalClick('dashboardBtn');return}
  if(sec==='archive'){
   if(!sameSection||$('archiveModal').classList.contains('hidden'))originalClick('archiveBtn');
