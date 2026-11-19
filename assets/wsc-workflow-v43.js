@@ -13,10 +13,11 @@ const defined=v=>v!==null&&v!==undefined&&String(v).trim()!=='';
 const present=v=>defined(v);
 const number=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:1}).format(Number(v)||0);
 const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''));
-let refreshTicket=0,dialog=null,returnFocus=null,resolveReview=null;
+let refreshTicket=0,dialog=null,returnFocus=null,resolveReview=null,dialogKeyHandler=null;
 function dismiss(accepted=false){
  if(!dialog)return;
  const node=dialog;dialog=null;
+ if(dialogKeyHandler){document.removeEventListener('keydown',dialogKeyHandler,true);dialogKeyHandler=null}
  node.remove();document.body.classList.remove('ws-v43-dialog-open');
  const settle=resolveReview;resolveReview=null;
  if(settle)settle(accepted);
@@ -46,6 +47,7 @@ function createDialog(markup,review=false){
    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
   }
  };
+ dialogKeyHandler=keydown;
  document.addEventListener('keydown',keydown,true);
  const close=overlay.querySelector('[data-ws43-close]');
  close?.focus({preventScroll:true});
@@ -206,6 +208,7 @@ async function previewArchive(id){
   if(!ready()||overlay!==dialog)return;
   if(!(host()?.stations?.()||[]).some(st=>st.id===list[0].station_id))throw Error('لا توجد صلاحية للمحطة.');
   overlay.querySelector('.ws-v43-dialog').innerHTML=quickPreviewMarkup(list[0]);
+  window.WSPlatformHost?.trackReportPreview?.(list[0]);
   overlay.querySelector('[data-ws43-close]')?.focus({preventScroll:true});
  }catch(err){
   if(overlay!==dialog)return;
