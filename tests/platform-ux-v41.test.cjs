@@ -44,7 +44,7 @@ test('selected-only maintenance actions remain secured by existing admin checks'
 });
 test('production index includes and versions both new client assets without modifying print reports',()=>{
  assert.ok(html.includes('/assets/wsc-ux-v41.css?v=20261119-ux41-2'));
- assert.ok(html.includes('/assets/wsc-platform-v3.js?v=20261119-v43c'));
+ assert.ok(html.includes('/assets/wsc-platform-v3.js?v=20261122-source-archive1'));
  assert.ok(html.includes('/assets/maintenance-bulk.js?v=20261119-ux41-1'));
  assert.ok(css.includes('@media print'));
  assert.doesNotThrow(()=>new Function(js));
