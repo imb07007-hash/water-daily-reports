@@ -1,0 +1,43 @@
+name: Capture executive video real-site visuals and narration
+on:
+  push:
+    branches:
+      - video/executive-approval
+    paths:
+      - scripts/executive-video-captures.cjs
+      - .github/workflows/executive-video-assets.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install chromium
+      - name: Start local website
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/executive-http.log 2>&1 &
+          sleep 2
+      - name: Capture the real UI in training mode
+        continue-on-error: true
+        run: node scripts/executive-video-captures.cjs
+      - name: Download final approved Arabic voiceover
+        run: |
+          mkdir -p executive-assets
+          curl -fL --retry 3 --retry-delay 1 'https://resource2.heygen.ai/text_to_speech/c871aafa6a9c4f6081e781c4047c0919/24c7556125674f17bc2c4904074827e5/id=1146d04b3994498a96b22ad6bb2287d7.wav' -o executive-assets/narration.wav
+      - name: Upload source assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: executive-video-source-assets
+          path: executive-assets/
+          if-no-files-found: warn
+          retention-days: 14
