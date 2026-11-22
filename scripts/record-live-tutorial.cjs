@@ -9,6 +9,7 @@ function ok(route,data){return route.fulfill({status:200,contentType:'applicatio
 const browser=await chromium.launch({headless:true,channel:'chrome'}).catch(()=>chromium.launch({headless:true}));
 const ctx=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1,locale:'ar-SA',timezoneId:'Asia/Riyadh',recordVideo:{dir:out,size:{width:1440,height:900}}});
 const page=await ctx.newPage(),video=page.video(),state={record:null,posts:0};
+page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(15000);
 await page.route(API+'/**',route=>{
 const req=route.request(),u=new URL(req.url()),p=u.pathname;
 if(p==='/functions/v1/station-login')return ok(route,{access_token:'training-token',refresh_token:'training-refresh',expires_in:3600});
@@ -41,36 +42,36 @@ window.setTutorialCaption=t=>{cap.textContent=t};
 const caption=async(t,ms)=>{await page.evaluate(x=>window.setTutorialCaption?.(x),t);await delay(ms)};
 let error;
 try{
-await page.goto(base,{waitUntil:'domcontentloaded'});
+console.log('stage: open real login page');await page.goto(base,{waitUntil:'domcontentloaded'});
 await page.locator('#loginUsername').waitFor({timeout:20000});
 await caption('1. افتح الموقع ثم أدخل اسم المستخدم وكلمة المرور',3000);
 await page.locator('#loginUsername').click();await page.locator('#loginUsername').pressSequentially('training.operator',{delay:50});
 await page.locator('#loginPassword').click();await page.locator('#loginPassword').pressSequentially('Tutorial123!',{delay:60});
 await caption('هذا حساب تدريبي؛ لا نعرض كلمات مرور حقيقية',1600);
 await page.locator('#loginForm button[type="submit"]').first().click();
-await page.locator('body[data-auth="ready"]').waitFor({timeout:30000});
+console.log('stage: login submitted');await page.locator('body[data-auth="ready"]').waitFor({timeout:15000});
 await caption('2. افتح التقرير التشغيلي اليومي من القائمة',3000);
 const nav=page.locator('#wsV3Nav [data-ws-to="reports"]').first();
 if(await nav.isVisible().catch(()=>false))await nav.click();
-await page.locator('#wsV43Completion').waitFor({timeout:15000});
+console.log('stage: report entry');await page.locator('#wsV43Completion').waitFor({timeout:15000});
 await caption('3. راجع تاريخ التقرير والحقول التابعة لمحطتك',2500);
 const metric=page.locator('#reportInputFields [data-metric="production"]');
 await metric.scrollIntoViewIfNeeded();await metric.click();await metric.fill('0');
 await caption('4. الصفر قراءة فعلية، بينما الحقل الفارغ لا يعني صفرًا',3000);
 await caption('5. راجع نسبة اكتمال البيانات ومعاينة التقرير',2600);
 await page.locator('#wsV3ReportBar [data-ws-original="saveBtn"]').click();
-await page.locator('.ws-v43-dialog').waitFor({timeout:15000});
+console.log('stage: report final review');await page.locator('.ws-v43-dialog').waitFor({timeout:15000});
 await caption('6. تظهر المراجعة النهائية قبل اعتماد التقرير',4000);
 await caption('تأكد من اسم المحطة وتاريخ التقرير وقيم المؤشرات',3500);
 await page.locator('.ws-v43-dialog [data-ws43-confirm]').click();
 await delay(1200);
 await caption('7. أُرسلت البيانات داخل بيئة التدريب فقط',2200);
 await page.locator('#wsV3Nav [data-ws-to="archive/daily"]').first().click();
-await page.locator('#archiveModal').waitFor({timeout:15000});
+console.log('stage: daily archive');await page.locator('#archiveModal').waitFor({timeout:15000});
 await caption('8. افتح الأرشيف لعرض التقارير السابقة',4200);
 await caption('شركة حلول المياه • نهاية شرح التقرير اليومي',2900);
 if(state.posts<1)throw new Error('No mocked report submission was captured');
 }catch(e){error=e;console.error(e.stack||e)}
-finally{await delay(300);await ctx.close();await video.saveAs(path.join(out,'live-ui.webm'));await browser.close();}
+finally{console.log('stage: closing browser and saving capture');await delay(300);await ctx.close();const vp=await video.path();fs.copyFileSync(vp,path.join(out,'live-ui.webm'));await browser.close();}
 console.log('Mock submissions:',state.posts);if(error)process.exitCode=1;
 })().catch(e=>{console.error(e.stack||e);process.exitCode=1});
