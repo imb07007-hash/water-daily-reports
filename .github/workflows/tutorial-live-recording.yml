@@ -18,10 +18,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - name: Install requirements
         run: |
-          npm ci
+          npm install --no-audit --no-fund
           if ! command -v google-chrome >/dev/null; then npx playwright install --with-deps chromium; fi
       - name: Start local copy of actual website
         run: |
