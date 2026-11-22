@@ -1,0 +1,49 @@
+name: Record real-site Arabic tutorial (training only)
+on:
+  push:
+    branches:
+      - tutorial/live-screen-demo
+    paths:
+      - scripts/record-live-tutorial.cjs
+      - .github/workflows/tutorial-live-recording.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tutorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install requirements
+        run: |
+          npm ci
+          if ! command -v google-chrome >/dev/null; then npx playwright install --with-deps chromium; fi
+      - name: Start local copy of actual website
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/training-http.log 2>&1 &
+          sleep 2
+      - name: Record actual browser interaction with simulated login and test-only data
+        run: node scripts/record-live-tutorial.cjs
+      - name: Get Arabic voice narration
+        run: |
+          curl -fLsS --retry 2 'https://resource2.heygen.ai/text_to_speech/c871aafa6a9c4f6081e781c4047c0919/24c7556125674f17bc2c4904074827e5/id=8b70cc79ed224f29b4b3909505e8245f.wav' -o tutorial-output/narration.wav
+      - name: Render professional MP4 with voiceover
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -i tutorial-output/live-ui.webm -i tutorial-output/narration.wav \
+          -filter_complex '[0:v]fps=30,scale=1280:800:flags=lanczos,format=yuv420p[v];[1:a]loudnorm=I=-16:TP=-1.5:LRA=11,apad=pad_dur=30[a]' \
+          -map '[v]' -map '[a]' -c:v libx264 -preset fast -crf 22 -c:a aac -b:a 160k \
+          -movflags +faststart -shortest tutorial-output/WSC_Arabic_Live_Training.mp4
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 tutorial-output/WSC_Arabic_Live_Training.mp4
+      - name: Save video files for viewing and download
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WSC_Arabic_Live_Training
+          path: tutorial-output/
+          if-no-files-found: warn
+          retention-days: 14
