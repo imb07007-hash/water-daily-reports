@@ -24,9 +24,9 @@ if(req.method()==='POST'){state.posts++;const b=JSON.parse(req.postData()||'{}')
 const selected=state.record||record;
 if(u.searchParams.get('id')?.startsWith('eq.'))return ok(route,[selected]);
 const wanted=u.searchParams.get('report_date');
-if(wanted?.startsWith('eq.'))return ok(route,selected.report_date===wanted.slice(3)?[selected]:[]);
+if(wanted?.startsWith('eq.'))return ok(route,state.record&&state.record.report_date===wanted.slice(3)?[state.record]:[]);
 if(wanted?.startsWith('lt.'))return ok(route,[]);
-return ok(route,[selected]);}
+return ok(route,state.record?[state.record]:[]);}
 if(p.startsWith('/rest/v1/'))return ok(route,[]);
 return ok(route,{});});
 await page.addInitScript(()=>{
