@@ -1,0 +1,53 @@
+name: Build contextual help GIFs from actual training screen recording
+on:
+  push:
+    branches:
+      - feature/contextual-help
+    paths:
+      - .github/workflows/context-help-gifs.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  gif-guide:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GIF rendering dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Download recorded application walkthrough (training data only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/wsc-guide
+          gh run download 44996460641 --repo "$GITHUB_REPOSITORY" --name WSC_Arabic_Live_Training --dir /tmp/wsc-guide
+          test -s /tmp/wsc-guide/WSC_Arabic_Live_Training.mp4
+      - name: Generate compact authentic animated walkthroughs
+        run: |
+          mkdir -p assets/help
+          source=/tmp/wsc-guide/WSC_Arabic_Live_Training.mp4
+          gif() {
+            local name="$1" start="$2" secs="$3"
+            ffmpeg -nostdin -hide_banner -loglevel error -y \
+              -ss "$start" -t "$secs" -i "$source" \
+              -filter_complex "[0:v]fps=4,scale=600:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=64:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5" \
+              -loop 0 "assets/help/$name.gif"
+            test -s "assets/help/$name.gif"
+          }
+          gif login 2 8
+          gif report 17 9
+          gif review 31 9
+          gif archive 45 8
+          ls -lh assets/help/*.gif
+      - name: Commit media to the isolated feature branch
+        run: |
+          git config user.name "Water Solutions Help Builder"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/help/login.gif assets/help/report.gif assets/help/review.gif assets/help/archive.gif
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add four animated help guides recorded from the actual application"
+          git push origin HEAD:feature/contextual-help
