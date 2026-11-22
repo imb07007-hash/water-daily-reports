@@ -350,3 +350,21 @@ body[data-auth="maintenance"] #maintenanceModal .mw-card{
 body[data-auth="maintenance"] #maintenanceModal .mw-tab{
  font-size:12px;min-height:39px;border-radius:9px
 }
+
+
+/* Full-source daily Excel archive: superadmin only (permission also checked server-side). */
+.ws-source-archive{margin-top:20px}
+.ws-source-archive p{color:#60788a;font-size:13px;line-height:1.9}
+.ws-source-archive h3{margin:15px 0 10px}
+.ws-source-status{min-height:22px}
+.ws-source-snapshots{max-height:390px;overflow-y:auto;border:1px solid #e2eaf2;border-radius:10px}
+.ws-source-snapshot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:11px 14px;border-bottom:1px solid #e6eef5}
+.ws-source-snapshot:last-child{border-bottom:0}
+.ws-source-snapshot .ws-v3-item-details{min-width:210px;flex:1}
+.ws-source-snapshot small{display:block;font-size:12px;color:#62798e}
+.ws-source-linker{margin-top:20px;padding-top:16px;border-top:1px solid #dde8f2}
+.ws-source-forms{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.ws-source-forms label{font-size:12px;color:#41586c;flex:1 1 225px}
+.ws-source-forms select{display:block;min-height:42px;width:100%;max-width:100%;background:#fff;color:#1d3854;border:1px solid #cddce9;border-radius:8px;padding:8px;font:inherit;margin-top:6px}
+.ws-source-forms button{min-height:42px}
+@media(max-width:650px){.ws-source-forms label,.ws-source-forms button{flex:1 1 100%}.ws-source-snapshot button{width:100%}}
