@@ -53,8 +53,8 @@ test('sidebar logo is drawn from original vector and cannot be clipped or replac
  assert.match(css,/\.ws-v3-logo\{[^}]*object-fit:contain/);
  assert.doesNotMatch(css,/\.ws-v3-logo\{[^}]*clip-path:/);
  assert.doesNotMatch(css,/\.ws-v3-logo\{[^}]*filter:/);
- assert.ok(page.includes('/assets/wsc-platform-v3.css?v=20261119-v3-3'));
- assert.ok(page.includes('/assets/wsc-platform-v3.js?v=20261119-v43c'));
+ assert.ok(page.includes('/assets/wsc-platform-v3.css?v=20261122-source-archive1'));
+ assert.ok(page.includes('/assets/wsc-platform-v3.js?v=20261122-source-archive1'));
 });
 
 test('original logo and original mark remain byte-for-byte identical to the approved Git blobs',()=>{
