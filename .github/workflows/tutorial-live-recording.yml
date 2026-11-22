@@ -21,6 +21,7 @@ jobs:
       - name: Install requirements
         run: |
           npm install --no-audit --no-fund
+          npx playwright install ffmpeg
           if ! command -v google-chrome >/dev/null; then npx playwright install --with-deps chromium; fi
       - name: Start local copy of actual website
         run: |
