@@ -38,6 +38,6 @@ test('private, additive, station-independent snapshot schema',()=>{
 });
 test('deployment references fresh version of daily archive controls',()=>{
  const html=read('index.html');
- assert.match(html,/wsc-platform-v3\.js\?v=20261122-source-archive1/);
+ assert.match(html,/wsc-platform-v3\.js\?v=20261122-source-archive2/);
  assert.match(html,/wsc-platform-v3\.css\?v=20261122-source-archive1/);
 });
