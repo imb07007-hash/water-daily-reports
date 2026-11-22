@@ -291,6 +291,14 @@ function openCurrent(route,sameSection){
  if(sec==='dashboard'){if(!sameSection||$('dashboardModal').classList.contains('hidden'))originalClick('dashboardBtn');return}
  if(sec==='archive'){
   if(!sameSection||$('archiveModal').classList.contains('hidden'))originalClick('archiveBtn');
+  const archiveHead=$('archiveModal')?.querySelector('.modal-head');
+  let excelLink=$('wsExcelArchiveLink');
+  if(isSuper()&&archiveHead&&!excelLink){
+   excelLink=document.createElement('button');
+   excelLink.id='wsExcelArchiveLink';excelLink.type='button';excelLink.className='btn';
+   excelLink.dataset.wsTo='admin/data';excelLink.textContent='أرشيف Excel الكامل';
+   archiveHead.insertBefore(excelLink,$('archiveClose'));
+  }else if(!isSuper()&&excelLink)excelLink.remove();
   const kind=route.split('/')[1]||'daily';
   const button=document.querySelector('[data-archive-mode="'+kind+'"]');
   if(button&&kind!=='daily')button.click();
