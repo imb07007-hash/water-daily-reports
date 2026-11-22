@@ -58,6 +58,8 @@ console.log('stage: report entry');await page.locator('#wsV43Completion').waitFo
 await caption('3. راجع تاريخ التقرير والحقول التابعة لمحطتك',4200);
 const metric=page.locator('#reportInputFields [data-metric="production"]');
 await metric.scrollIntoViewIfNeeded();await metric.click();await metric.fill('0');
+for(const [id,v] of [['raw','0'],['export','0'],['electricity','1.2'],['diesel','0']]){const input=page.locator('#reportInputFields [data-metric="'+id+'"]');await input.scrollIntoViewIfNeeded();await input.fill(v);await delay(320);}
+await page.locator('#wsV43Completion').scrollIntoViewIfNeeded();
 await caption('4. الصفر قراءة فعلية، بينما الحقل الفارغ لا يعني صفرًا',4800);
 await caption('5. راجع نسبة اكتمال البيانات ومعاينة التقرير',4200);
 await page.locator('#wsV3ReportBar [data-ws-original="saveBtn"]').click();
