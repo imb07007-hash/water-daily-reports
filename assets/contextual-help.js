@@ -99,16 +99,23 @@ dashboard:d('مساعدة لوحة المتابعة التشغيلية','مسا�
 };
 const isOpen=el=>el&&!el.classList.contains('hidden')&&getComputedStyle(el).display!=='none';
 const getRole=()=>{try{return window.WSMaintenanceHost?.role?.()||''}catch{return ''}};
-const signedIn=()=>document.body.dataset.auth==='ready';
+const signedIn=()=>['ready','maintenance'].includes(document.body.dataset.auth);
 const routeNow=()=>{
  if(!signedIn()){
   if(isOpen($('recoveryScreen'))||isOpen($('forgotForm')))return 'password-recovery';
   return 'login';
  }
  const role=getRole();
+ const maintenance=$('maintenanceModal');
+ if(isOpen(maintenance)){
+  const selected=maintenance.querySelector('.mw-tab.active[data-tab]');
+  const tab=selected?.dataset.tab||'overview';
+  const route='maintenance/'+tab;
+  if(content[route])return route;
+ }
  if(role==='maintenance'){
-   const raw=location.hash.match(/^#ws\/(maintenance\/[a-z-]+)/);
-   return raw?.[1]||'maintenance/daily';
+  const raw=location.hash.match(/^#ws\/(maintenance\/[a-z-]+)/);
+  return raw?.[1]||'maintenance/overview';
  }
  let raw=location.hash.match(/^#ws\/([a-z0-9/-]+)/);
  return raw?.[1]&&content[raw[1]]?raw[1]:(role==='station'?'reports':'home');
