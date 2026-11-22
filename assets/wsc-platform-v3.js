@@ -462,13 +462,137 @@ async function loadHome(){
   if(version===state.loadVersion&&state.page==='home')homeError('تعذر تحميل ملخص التقارير: '+err.message);
  }
 }
+
+let sourceArchiveBusy=false;
+const sourceArchiveApi=async(action,extra={})=>{
+ const api=host()?.authedFetch;
+ if(!api||!isSuper())throw Error('هذه الخدمة متاحة للسوبر أدمن فقط.');
+ const response=await api('/functions/v1/plant-source-archive',{
+  method:'POST',body:JSON.stringify({action,...extra})
+ });
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(result?.message||({
+  superadmin_required:'هذا الإجراء متاح للسوبر أدمن فقط.',
+  source_archive_failed:'تعذر سحب ملف المصدر أو حفظه. راجع حالة الاتصال.'
+ }[result?.error])||'تعذر إكمال العملية ('+response.status+').');
+ return result;
+};
+function archiveStatus(message,error=false){
+ const node=$('wsSourceArchiveStatus');if(!node)return;
+ node.textContent=message;
+ node.style.color=error?'#b53a43':'#325b77';
+}
+function archiveSourceRenderSnapshots(items){
+ const node=$('wsSourceSnapshots');if(!node)return;
+ if(!Array.isArray(items)||!items.length){
+  node.innerHTML='<div class="ws-v3-loading">لم يتم حفظ أي نسخة Excel يومية بعد.</div>';return;
+ }
+ const dateTime=v=>{
+  try{return new Intl.DateTimeFormat('ar-SA',{timeZone:'Asia/Riyadh',dateStyle:'short',timeStyle:'short'}).format(new Date(v))}
+  catch{return String(v||'—')}
+ };
+ node.innerHTML=items.map(s=>'<div class="ws-v3-item ws-source-snapshot">'+
+  '<span class="ws-v3-item-details"><strong>نسخة '+esc(s.snapshot_date)+'</strong>'+
+  '<small>تاريخ السحب: '+esc(dateTime(s.captured_at))+
+  ' · تاريخ التقرير: '+esc(s.report_date)+
+  ' · صفوف المصدر: '+esc(s.row_count)+
+  (s.stale_revision?' · الملف لم يتغير عن نسخة سابقة':'')+
+  '</small></span><button type="button" data-ws-source-download="'+esc(s.id)+'" data-snapshot-date="'+esc(s.snapshot_date)+'">تنزيل Excel</button></div>').join('');
+}
+async function sourceArchiveLoad(){
+ if(!isSuper()||state.page!=='admin/data')return;
+ try{
+  const [listed,sources]=await Promise.all([sourceArchiveApi('list'),sourceArchiveApi('sources')]);
+  if(state.page!=='admin/data')return;
+  archiveSourceRenderSnapshots(listed.snapshots||[]);
+  const options=(sources.sources||[]).map(s=>
+   '<option value="'+esc(s.key)+'">'+esc(s.name)+'</option>').join('');
+  const select=$('wsArchiveSourceSelect');
+  if(select){
+   const previous=select.value;
+   select.innerHTML='<option value="">اختر اسم المحطة كما يظهر في ملف Excel</option>'+options;
+   if(previous&&[...select.options].some(o=>o.value===previous))select.value=previous;
+  }
+  archiveStatus((listed.snapshots||[]).length?'الأرشيف اليومي متاح؛ يمكنك تحميل النسخ أو ربط محطة جديدة.':'لم تُسجل نسخة Excel بعد. يمكنك تشغيل السحب الآن.');
+ }catch(e){archiveStatus('تعذر تحميل أرشيف المصدر: '+e.message,true)}
+}
+async function archiveRunNow(){
+ if(sourceArchiveBusy||!isSuper())return;
+ sourceArchiveBusy=true;
+ const button=$('wsSourceArchiveRun');if(button)button.disabled=true;
+ archiveStatus('جارٍ سحب ملف Google Drive وحفظ النسخة الكاملة ثم تحديث تقارير المحطات...');
+ try{
+  const result=await sourceArchiveApi('run',{mode:'both'});
+  const snapshot=result.snapshot||{},sync=result.sync||{};
+  archiveStatus(result.syncError
+   ?'تم حفظ نسخة Excel بتاريخ '+(snapshot.date||'—')+'، لكن استيراد تقارير التشغيل لم يكتمل: '+result.syncError
+   :'تم حفظ النسخة الكاملة ('+(snapshot.rows||0)+' صفًا). أضيف '+(sync.inserted||0)+' تقريرًا جديدًا دون استبدال التقارير الموجودة.',!!result.syncError);
+  await sourceArchiveLoad();
+  if(result.syncError)archiveStatus('حُفظ ملف Excel؛ يوجد تنبيه في مزامنة التقارير: '+result.syncError,true);
+ }catch(e){archiveStatus('تعذر تنفيذ السحب: '+e.message,true)}
+ finally{sourceArchiveBusy=false;if(button)button.disabled=false}
+}
+async function sourceArchiveDownload(button){
+ if(sourceArchiveBusy||!isSuper())return;
+ const id=button.dataset.wsSourceDownload;
+ button.disabled=true;
+ try{
+  const r=await sourceArchiveApi('download',{id});
+  if(!/^https:\/\//.test(r.url||''))throw Error('رابط التنزيل غير صالح.');
+  const a=document.createElement('a');
+  a.href=r.url;a.download='مصدر_جميع_المحطات_'+(button.dataset.snapshotDate||'')+'.xlsx';
+  a.rel='noopener noreferrer';a.target='_blank';
+  document.body.appendChild(a);a.click();a.remove();
+ }catch(e){archiveStatus('تعذر تنزيل الملف: '+e.message,true)}
+ finally{button.disabled=false}
+}
+async function sourceArchiveBackfill(){
+ if(sourceArchiveBusy||!isSuper())return;
+ const stationId=$('wsArchiveStationSelect')?.value;
+ const sourceKey=$('wsArchiveSourceSelect')?.value;
+ const stationName=host()?.stations?.().find(x=>x.id===stationId)?.name||stationId;
+ const excelName=$('wsArchiveSourceSelect')?.selectedOptions?.[0]?.textContent||'';
+ if(!stationId||!sourceKey){archiveStatus('اختر المحطة واسمها المطابق في ملف Excel أولًا.',true);return}
+ if(!confirm('ربط '+stationName+' بصف المصدر «'+excelName+'»؟ سيتم استعادة التقارير التاريخية الناقصة فقط، دون تغيير أي تقرير محفوظ.'))return;
+ sourceArchiveBusy=true;
+ const button=$('wsArchiveBackfill');if(button)button.disabled=true;
+ archiveStatus('جارٍ مطابقة سجلات Excel التاريخية للمحطة...');
+ try{
+  const r=await sourceArchiveApi('backfill',{stationId,sourceKey});
+  archiveStatus('تم ربط المحطة بالمصدر. تمت استعادة '+(r.inserted||0)+' تقريرًا؛ أيام المصدر المطابقة: '+(r.matchedDays||0)+'.');
+ }catch(e){archiveStatus('تعذر ربط المحطة: '+e.message,true)}
+ finally{sourceArchiveBusy=false;if(button)button.disabled=false}
+}
 function renderData(){
  const node=$('wsV3Data');if(!node)return;
- node.innerHTML='<div class="ws-v3-page-head"><h2>إدارة البيانات والنسخ</h2><p>أدوات تصدير واستيراد JSON الحالية. لا تتضمن هذه الأدوات نسخة شاملة من مستخدمي المصادقة أو قاعدة البيانات.</p></div>'+
- '<div class="ws-v3-card"><h3>أدوات البيانات</h3><p style="font-size:13px;color:#60788a;line-height:2">اختر العملية المناسبة. يخضع الاستيراد للصلاحيات والتحقق الحالي قبل تنفيذ أي تغيير.</p>'+
+ node.innerHTML='<div class="ws-v3-page-head"><h2>إدارة البيانات والنسخ</h2><p>ملفات المصدر الأصلية محفوظة بصورة مستقلة عن التقارير المُدخلة إلى الموقع.</p></div>'+
+ '<div class="ws-v3-card"><h3>أدوات البيانات</h3><p style="font-size:13px;color:#60788a;line-height:2">تصدير أو استيراد ملفات JSON الموجودة على هذا الجهاز. ليست بديلًا عن النسخ اليومية الكاملة.</p>'+
  '<div class="ws-v3-data-actions"><button type="button" data-ws-original="backupBtn">'+icon('database')+' تصدير JSON</button>'+
- '<button type="button" data-ws-original="importBtn">'+icon('upload')+' استيراد JSON</button></div></div>';
+ '<button type="button" data-ws-original="importBtn">'+icon('upload')+' استيراد JSON</button></div></div>'+
+ (isSuper()?'<section class="ws-v3-card ws-source-archive"><h3>سحب الإنتاج وأرشيف Excel اليومي</h3>'+
+ '<p>يُحفظ ملف المصدر كاملًا بكل المحطات بصيغته الأصلية، بما فيها المحطات غير المفعّلة. السحب التلقائي مستمر، ويمكن تشغيله يدويًا في أي وقت. لا تُستبدل التقارير المسجلة.</p>'+
+ '<div class="ws-v3-data-actions"><button type="button" class="ws-v3-primary" id="wsSourceArchiveRun">⟳ سحب البيانات الآن</button>'+
+ '<button type="button" id="wsSourceArchiveRefresh">تحديث قائمة النسخ</button></div>'+
+ '<p id="wsSourceArchiveStatus" class="ws-source-status" role="status">جارٍ تحميل أرشيف Excel...</p>'+
+ '<h3>النسخ اليومية المحفوظة</h3><div id="wsSourceSnapshots" class="ws-source-snapshots"><div class="ws-v3-loading">تحميل...</div></div>'+
+ '<div class="ws-source-linker"><h3>إضافة تاريخ محطة من النسخ المحفوظة</h3>'+
+ '<p>عند تفعيل محطة جديدة، اخترها واربط اسمها باسم المحطة في Excel لاستعادة أيامها السابقة بأمان.</p>'+
+ '<div class="ws-source-forms"><label>محطة الموقع<select id="wsArchiveStationSelect"><option value="">اختر محطة</option>'+
+ (host()?.stations?.()||[]).map(s=>'<option value="'+esc(s.id)+'">'+esc(s.name)+'</option>').join('')+
+ '</select></label><label>اسمها في ملف Excel<select id="wsArchiveSourceSelect"><option value="">جارٍ تحميل أسماء المحطات...</option></select></label>'+
+ '<button type="button" id="wsArchiveBackfill">ربط المحطة واستعادة سجلها</button></div></div></section>':'');
+ if(isSuper())void sourceArchiveLoad();
 }
+
+document.addEventListener('click',event=>{
+ if(state.page!=='admin/data'||!isSuper())return;
+ const t=event.target;
+ if(t.closest('#wsSourceArchiveRun')){void archiveRunNow();return}
+ if(t.closest('#wsSourceArchiveRefresh')){void sourceArchiveLoad();return}
+ const download=t.closest('[data-ws-source-download]');
+ if(download){void sourceArchiveDownload(download);return}
+ if(t.closest('#wsArchiveBackfill')){void sourceArchiveBackfill();return}
+});
 function focusChemicalEntry(){const node=$('chem-widget-editor');if(node)node.scrollIntoView({block:'start',behavior:'smooth'})}
 function launchArchiveFromHome(station,day){
  if(!navigate('archive/daily'))return;
