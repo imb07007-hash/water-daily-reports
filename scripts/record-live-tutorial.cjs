@@ -1,6 +1,7 @@
 const {chromium}=require('@playwright/test');
 const fs=require('fs'),path=require('path'),base='http://127.0.0.1:4173/',API='https://vksbjasfoysuwxdyeaed.supabase.co';
 const out=path.join(process.cwd(),'tutorial-output');fs.mkdirSync(out,{recursive:true});
+setTimeout(()=>{console.error('TUTORIAL_WATCHDOG: browser step exceeded 105 seconds');process.exit(24)},105000).unref();
 const delay=ms=>new Promise(r=>setTimeout(r,ms));const dt='2026-11-22';
 const cfg={id:'jizan',name:'محطة وادي جيزان',metrics:[{id:'production',label:'الإنتاج',unit:'م³',visible:true,required:true},{id:'raw',label:'المياه الخام',unit:'م³',visible:true},{id:'export',label:'التصدير',unit:'م³',visible:true},{id:'electricity',label:'استهلاك الكهرباء',unit:'MWh',visible:true},{id:'diesel',label:'استهلاك الديزل',unit:'لتر',visible:true}],groups:[],noteFields:[]};
 const record={id:'11111111-1111-4111-8111-111111111111',station_id:'jizan',report_date:dt,created_at:'2026-11-22T09:00:00Z',source:'public',data:{metrics:{production:0},groups:{},notes:{}},config_snapshot:cfg};
