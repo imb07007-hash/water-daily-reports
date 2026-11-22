@@ -1,0 +1,41 @@
+name: Test contextual help permissions and navigation
+on:
+  push:
+    branches:
+      - feature/contextual-help
+    paths:
+      - assets/contextual-help.js
+      - assets/contextual-help.css
+      - index.html
+      - tests/contextual-help.spec.cjs
+      - .github/workflows/context-help-tests.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Validate help JavaScript
+        run: node --check assets/contextual-help.js
+      - name: Run browser tests with isolated mocked authentication
+        run: npx playwright test tests/contextual-help.spec.cjs --workers=1 --reporter=list
+      - name: Save screenshot or trace evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contextual-help-test-evidence
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
