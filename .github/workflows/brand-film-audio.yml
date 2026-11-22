@@ -1,0 +1,23 @@
+name: Package three-minute Arabic brand film narration
+on:
+  push:
+    branches: [video/executive-approval]
+    paths:
+      - .github/workflows/brand-film-audio.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export-audio:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fetch studio narration
+        run: |
+          mkdir -p brand-film-audio
+          curl -fL --retry 3 --retry-delay 2 'https://resource2.heygen.ai/text_to_speech/c871aafa6a9c4f6081e781c4047c0919/24c7556125674f17bc2c4904074827e5/id=6e9c224d6f2a4e6cb721e6daebe16b43.wav' -o brand-film-audio/narration.wav
+          file brand-film-audio/narration.wav
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wsc-three-minute-brand-film-voiceover
+          path: brand-film-audio/
+          retention-days: 14
