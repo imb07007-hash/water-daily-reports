@@ -524,11 +524,11 @@ async function archiveRunNow(){
  try{
   const result=await sourceArchiveApi('run',{mode:'both'});
   const snapshot=result.snapshot||{},sync=result.sync||{};
-  archiveStatus(result.syncError
+  const message=result.syncError
    ?'تم حفظ نسخة Excel بتاريخ '+(snapshot.date||'—')+'، لكن استيراد تقارير التشغيل لم يكتمل: '+result.syncError
-   :'تم حفظ النسخة الكاملة ('+(snapshot.rows||0)+' صفًا). أضيف '+(sync.inserted||0)+' تقريرًا جديدًا دون استبدال التقارير الموجودة.',!!result.syncError);
+   :'تم حفظ النسخة الكاملة ('+(snapshot.rows||0)+' صفًا). أضيف '+(sync.inserted||0)+' تقريرًا جديدًا دون استبدال التقارير الموجودة.';
   await sourceArchiveLoad();
-  if(result.syncError)archiveStatus('حُفظ ملف Excel؛ يوجد تنبيه في مزامنة التقارير: '+result.syncError,true);
+  archiveStatus(message,!!result.syncError);
  }catch(e){archiveStatus('تعذر تنفيذ السحب: '+e.message,true)}
  finally{sourceArchiveBusy=false;if(button)button.disabled=false}
 }
