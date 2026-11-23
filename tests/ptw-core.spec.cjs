@@ -1,5 +1,6 @@
 'use strict';
 const {test,expect}=require('@playwright/test');
+const fs=require('node:fs');
 
 const STATION='jizan', SAP='00000000-0000-4000-8000-000000000001', AP='00000000-0000-4000-8000-000000000002';
 const EQUIP='00000000-0000-4000-8000-000000000003';
@@ -169,6 +170,9 @@ test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields
  await expect(iso.locator('[data-point="0"][data-col="tagNo"]').first()).toHaveValue('TEST-TAG-44');
  await expect(iso.locator('.sheet')).toHaveCount(2);
  await expect(iso.locator('[data-point="7"][data-col="tagNo"]').first()).toHaveValue('TEST-TAG-51');
+ fs.mkdirSync('ptw-evidence',{recursive:true});
+ await iso.screenshot({path:'ptw-evidence/ST7-11-8points-screen.png',fullPage:true});
+ await iso.pdf({path:'ptw-evidence/ST7-11-8points-A4-landscape.pdf',format:'A4',landscape:true,printBackground:true,preferCSSPageSize:true});
  await iso.close();
  await sap.locator('[data-view="details"]').first().click();
  const popMain=sap.waitForEvent('popup');
@@ -177,5 +181,7 @@ test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields
  await expect.poll(()=>main.evaluate(()=>window.__WS_PTW_PRINT_DATA_LOADED)).toBe(true);
  await expect(main.locator('[data-key="ptwNo"]')).toHaveValue('0206');
  await expect(main.locator('[data-key="workDescription"]')).toHaveValue('Valve inspection and manual isolation');
+ await main.screenshot({path:'ptw-evidence/ST7-1-main-screen.png',fullPage:true});
+ await main.pdf({path:'ptw-evidence/ST7-1-main-A4-portrait.pdf',format:'A4',landscape:false,printBackground:true,preferCSSPageSize:true});
  await main.close();await sap.close();
 });
