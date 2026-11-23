@@ -1,0 +1,44 @@
+#ptwModal{background:#f4f7fb;z-index:9999;position:fixed;inset:0;overflow:auto}#ptwModal.hidden{display:none!important}
+/* WS-PTW Core 1.0: isolated styles, does not modify daily reports */
+#ptwModal{position:fixed;inset:0;z-index:2200;background:#f3f7fb;color:#263b52;direction:rtl;overflow:auto;font-family:Tahoma,Arial,sans-serif}
+#ptwModal.hidden{display:none!important}
+#ptwModal *{box-sizing:border-box}
+#ptwModal button,#ptwModal input,#ptwModal select,#ptwModal textarea{font:inherit}
+.ptw-top{position:sticky;top:0;z-index:4;display:flex;justify-content:space-between;gap:15px;align-items:center;padding:14px 25px;background:#fff;border-bottom:1px solid #d9e5ed}
+.ptw-top h2{font-size:20px;color:#0362af;margin:0}.ptw-top small{display:block;color:#73879b;margin-top:5px}
+.ptw-top .ptw-actions{display:flex;align-items:center;gap:10px}
+.ptw-wrap{max-width:1320px;margin:0 auto;padding:21px}
+.ptw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:17px}
+#ptwModal .ptw-tab,#ptwModal .ptw-btn{border:1px solid #d1dfeb;border-radius:9px;background:#fff;color:#164f7a;padding:10px 15px;cursor:pointer;font-weight:700}
+#ptwModal .ptw-tab[aria-current="page"],#ptwModal .ptw-btn.primary{background:#0362af;color:#fff;border-color:#0362af}
+#ptwModal .ptw-btn:disabled{cursor:not-allowed;opacity:.55}
+.ptw-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.ptw-panel{border:1px solid #dfebf3;background:#fff;border-radius:14px;padding:22px;box-shadow:0 3px 13px #103c6210}
+.ptw-panel h3{margin:0 0 16px;font-size:17px;color:#163f62}
+.ptw-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.ptw-metric{border:1px solid #e2ebf3;background:#fff;border-radius:12px;padding:17px}
+.ptw-metric span{color:#5f748b;font-size:12px}.ptw-metric b{display:block;font-size:29px;margin-top:7px;color:#0362af}
+.ptw-field-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ptw-field{display:flex;flex-direction:column;gap:6px;min-width:0}.ptw-field.wide{grid-column:1/-1}
+.ptw-field label{font-size:12px;font-weight:700;color:#526981}
+#ptwModal .ptw-field input,#ptwModal .ptw-field select,#ptwModal .ptw-field textarea,#ptwModal .ptw-table input,#ptwModal .ptw-table select,#ptwModal .ptw-search{width:100%;border:1px solid #cbdbe8;background:#fcfdff;border-radius:8px;padding:10px;color:#203e58;min-width:0}
+#ptwModal .ptw-field input[readonly]{background:#eaf1f6;color:#2d6487;font-weight:800}
+.ptw-bar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:14px;flex-wrap:wrap}
+.ptw-caption{font-size:12px;color:#627b90;line-height:1.8}
+.ptw-table-wrap{overflow:auto;border:1px solid #e2ecf4;border-radius:10px}
+.ptw-table{border-collapse:collapse;width:100%;min-width:850px}
+.ptw-table th{background:#eaf3fa;color:#1e5c88;white-space:nowrap;font-size:12px}
+.ptw-table td,.ptw-table th{text-align:right;padding:9px;border-bottom:1px solid #e1ebf2;font-size:13px}
+.ptw-table tr:last-child td{border-bottom:0}
+.ptw-table input,.ptw-table select{padding:6px!important;font-size:12px!important}
+.ptw-badge{font-size:11px;border-radius:20px;padding:5px 10px;background:#e6f1fa;color:#155b91;display:inline-flex}
+.ptw-alert{background:#fff4df;border:1px solid #efd9a9;border-radius:9px;padding:12px;font-size:13px;color:#7f5a22;line-height:1.8}
+.ptw-failure{background:#ffedef;border-color:#f2bbc2;color:#a03443}
+.ptw-save{font-size:12px;color:#2b6488;padding:7px 9px;border-radius:7px;background:#eef6fb;white-space:nowrap}
+.ptw-save[data-state="error"]{color:#a12f39;background:#fdebee}.ptw-save[data-state="saved"]{color:#21734a;background:#e4f7ed}
+.ptw-empty{text-align:center;color:#8093a4;padding:40px;font-size:14px}
+.ptw-mini{font-size:12px;color:#637e91}.ptw-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ptw-check{display:inline-flex;gap:7px;align-items:center;padding:9px 12px;border:1px solid #dce8f1;border-radius:8px;margin:3px;cursor:pointer}
+.ptw-check input{accent-color:#0362af}
+@media(max-width:900px){.ptw-summary{grid-template-columns:repeat(2,1fr)}.ptw-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ptw-wrap{padding:12px}.ptw-panel{padding:14px}}
+@media(max-width:560px){.ptw-summary,.ptw-field-grid{grid-template-columns:1fr}.ptw-top{padding:12px}.ptw-top h2{font-size:17px}.ptw-tabs{flex-wrap:nowrap;overflow:auto}.ptw-tab{white-space:nowrap}}
