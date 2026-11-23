@@ -128,7 +128,7 @@ renderAll();
 @media screen{.wrap{grid-template-columns:1fr!important}.side,.sidebar{display:none!important}}
 .ptw-draft-flag{position:absolute;right:2mm;top:1mm;z-index:7;pointer-events:none;background:#fff5f5;border:1px solid #a44;color:#944;padding:1mm 1.5mm;font:700 7pt Arial}
 .document,.sheet{position:relative}
-@media print{.ptw-draft-flag{color:#855;border-color:#b77}.toolbar,.side,.sidebar{display:none!important}}
+@media print{.ptw-draft-flag{display:none!important}.toolbar,.side,.sidebar{display:none!important}}
 </style><script>
 (function(){
 const ready=()=>window.opener?.postMessage({type:'WS_PTW_PRINT_READY',kind:'iso'},location.origin);
