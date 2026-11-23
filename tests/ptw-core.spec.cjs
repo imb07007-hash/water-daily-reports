@@ -152,13 +152,23 @@ test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields
  await sap.locator('[data-iso="0:tag_no"]').fill('TEST-TAG-44');
  await sap.locator('[data-iso="0:component_no"]').fill('INTAKE-P1');
  await sap.locator('[data-iso="0:tag_position"]').selectOption('O L T');
- await sap.evaluate(()=>window.WSPTW.snapshotForPrint());
+ // Eight isolation points must span two A4 landscape pages without dropping row 8.
+ for(let i=1;i<8;i++){
+   await sap.locator('[data-act="addIsolation"]').click();
+   await sap.locator('[data-iso="'+i+':tag_no"]').fill('TEST-TAG-'+(44+i));
+   await sap.locator('[data-iso="'+i+':component_no"]').fill('INTAKE-P'+(i+1));
+   await sap.locator('[data-iso="'+i+':tag_position"]').selectOption('O L T');
+ }
+ const printed=await sap.evaluate(()=>window.WSPTW.snapshotForPrint());
+ expect(printed.isolation).toHaveLength(8);
  const pop= sap.waitForEvent('popup');
  await sap.locator('[data-act="printIso"]').click();
  const iso=await pop;await iso.waitForLoadState();
  await expect.poll(()=>iso.evaluate(()=>window.__WS_PTW_PRINT_DATA_LOADED)).toBe(true);
  await expect(iso.locator('[data-header="permitNo"]').first()).toHaveValue('0206');
  await expect(iso.locator('[data-point="0"][data-col="tagNo"]').first()).toHaveValue('TEST-TAG-44');
+ await expect(iso.locator('.sheet')).toHaveCount(2);
+ await expect(iso.locator('[data-point="7"][data-col="tagNo"]').first()).toHaveValue('TEST-TAG-51');
  await iso.close();
  await sap.locator('[data-view="details"]').first().click();
  const popMain=sap.waitForEvent('popup');
