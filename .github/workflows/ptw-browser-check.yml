@@ -1,0 +1,28 @@
+name: PTW core + isolation browser acceptance
+on:
+  push:
+    branches: ['feature/ws-ptw-drafts-print-v1']
+    paths: ['assets/ptw-*.js', 'assets/ptw-*.html', 'assets/ptw-*.css', 'tests/ptw-core.spec.cjs', '.github/workflows/ptw-browser-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ptw-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Install testing dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install browser only if unavailable
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo 'WSC_PLAYWRIGHT_CHANNEL=chrome' >> "$GITHUB_ENV"
+            google-chrome --version
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: PTW real-browser tests with isolated mocked API
+        run: npx playwright test tests/ptw-core.spec.cjs --reporter=line
