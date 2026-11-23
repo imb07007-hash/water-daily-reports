@@ -181,6 +181,9 @@ test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields
  await expect.poll(()=>main.evaluate(()=>window.__WS_PTW_PRINT_DATA_LOADED)).toBe(true);
  await expect(main.locator('[data-key="ptwNo"]')).toHaveValue('0206');
  await expect(main.locator('[data-key="workDescription"]')).toHaveValue('Valve inspection and manual isolation');
+ // Account login names are not verified physical persons. Their name/signature fields stay blank.
+ await expect(main.locator('[data-key="issuer.name"]')).toHaveValue('');
+ await expect(main.locator('[data-key="receipt.0.name"]')).toHaveValue('');
  await main.screenshot({path:'ptw-evidence/ST7-1-main-screen.png',fullPage:true});
  await main.pdf({path:'ptw-evidence/ST7-1-main-A4-portrait.pdf',format:'A4',landscape:false,printBackground:true,preferCSSPageSize:true});
  await main.close();await sap.close();
