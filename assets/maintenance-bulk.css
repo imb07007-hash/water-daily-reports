@@ -1,0 +1,69 @@
+/* Water Solutions — focused admin batch maintenance workspace */
+#maintenanceModal .mw-bulk-toolbar{margin:14px 0 9px;padding:13px 15px;border:1px solid #b8d5e9;border-radius:11px;background:linear-gradient(110deg,#edf6ff,#f8fbff);display:flex;flex-direction:column;gap:9px}
+#maintenanceModal .mw-bulk-title,#maintenanceModal .mw-bulk-actions,#maintenanceModal .mw-bulk-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#maintenanceModal .mw-bulk-title{justify-content:space-between;color:#145989}
+#maintenanceModal .mw-bulk-title>span{background:#fff;padding:3px 9px;border-radius:20px;font-size:12px;color:#51687b}
+#maintenanceModal .mw-bulk-hint{font-size:11px;color:#607e98}
+#maintenanceModal .mw-bulk-check-col{position:relative;min-width:72px;width:72px;text-align:center;white-space:normal}
+#maintenanceModal .mw-bulk-check-col input{width:17px;height:17px;accent-color:#0362AF;cursor:pointer}
+#maintenanceModal .mw-bulk-check-label{display:grid;justify-items:center;gap:3px;font-size:10px}
+#maintenanceModal .mw-bulk-toolbar .mw-button{min-height:35px}
+#maintenanceModal .mw-bulk-overlay{position:absolute;inset:0;z-index:1000;background:rgba(9,28,48,.72);display:flex;align-items:center;justify-content:center;padding:12px;direction:rtl}
+#maintenanceModal .mw-bulk-dialog{display:flex;flex-direction:column;min-height:0;width:min(1400px,100%);height:min(94vh,1100px);border-radius:16px;background:#f5f8fc;color:#17324d;box-shadow:0 22px 80px #0a253e66;overflow:hidden;border:1px solid #d5e5f0}
+#maintenanceModal .mw-bulk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(110deg,#fff,#eaf4ff);border-bottom:3px solid #0362AF;padding:14px 21px}
+#maintenanceModal .mw-bulk-head h3{font-size:19px;margin:0;color:#0362AF}
+#maintenanceModal .mw-bulk-head small{display:block;color:#5c778a;font-size:11px}
+#maintenanceModal .mw-bulk-mode{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:12px 20px;background:white;border-bottom:1px solid #dee8f1}
+#maintenanceModal .mw-bulk-mode>span{color:#245e87;font-size:12px;margin-right:auto}
+#maintenanceModal .mw-bulk-scroll{flex:1;overflow-y:auto;min-height:0;padding:14px 20px;scrollbar-color:#b7cfe2 #f1f6fa}
+#maintenanceModal .mw-bulk-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px}
+#maintenanceModal .mw-bulk-tool{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid #dde9f2;border-radius:10px;padding:12px;min-width:0}
+#maintenanceModal .mw-bulk-tool strong{font-size:12px;color:#0362AF}
+#maintenanceModal .mw-bulk-tool textarea,#maintenanceModal .mw-bulk-tool input,#maintenanceModal .mw-bulk-tool select{width:100%;min-height:38px;border:1px solid #cfdfeb;border-radius:7px;padding:7px 9px;font:inherit;background:#fff;color:#17324d}
+#maintenanceModal .mw-bulk-tool textarea{min-height:62px;resize:vertical}
+#maintenanceModal .mw-bulk-records{display:grid;gap:10px}
+#maintenanceModal .mw-bulk-record{background:white;border:1px solid #d8e5ef;border-right:4px solid #0362AF;border-radius:11px;padding:12px 16px;min-width:0}
+#maintenanceModal .mw-bulk-record-heading{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+#maintenanceModal .mw-bulk-record-heading strong{font-size:13px;color:#173f64;overflow-wrap:anywhere}
+#maintenanceModal .mw-bulk-record-heading>span{font-size:11px;color:#5b7182}
+#maintenanceModal .mw-bulk-textarea-label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:#4e6b81;font-weight:800}
+#maintenanceModal .mw-bulk-record textarea{width:100%;min-height:76px;line-height:1.8;resize:vertical;font:inherit;color:#17324d}
+#maintenanceModal .mw-bulk-more{margin-top:10px;border-top:1px solid #e5edf3;padding-top:7px}
+#maintenanceModal .mw-bulk-more summary{cursor:pointer;font-size:12px;color:#0362AF;font-weight:700}
+#maintenanceModal .mw-bulk-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:11px}
+#maintenanceModal .mw-bulk-fields label{display:flex;flex-direction:column;gap:4px;color:#657d8f;font-size:11px;font-weight:700;min-width:0}
+#maintenanceModal .mw-bulk-fields input,#maintenanceModal .mw-bulk-fields select,#maintenanceModal .mw-bulk-fields textarea{width:100%}
+#maintenanceModal .mw-bulk-fields .mw-bulk-wide{grid-column:span 2}
+#maintenanceModal .mw-bulk-preview{margin:12px 0;background:#fff;border:2px solid #a6cee8;border-radius:11px;padding:14px}
+#maintenanceModal .mw-bulk-preview[hidden]{display:none}
+#maintenanceModal .mw-bulk-preview h4{margin:0 0 5px;color:#0362AF}
+#maintenanceModal .mw-bulk-preview p{font-size:12px;color:#58718a}
+#maintenanceModal .mw-bulk-preview-list{display:grid;gap:8px;max-height:320px;overflow:auto}
+#maintenanceModal .mw-bulk-preview-item{padding:8px 12px;border:1px solid #e2ebf2;border-radius:7px}
+#maintenanceModal .mw-bulk-preview-item>b{display:block;color:#145585;margin-bottom:4px}
+#maintenanceModal .mw-bulk-difference{display:grid;grid-template-columns:100px 1fr 1fr;gap:8px;border-top:1px solid #e9eff4;padding:5px;font-size:11px;overflow-wrap:anywhere;white-space:pre-wrap}
+#maintenanceModal .mw-bulk-difference span{min-width:0}
+#maintenanceModal .mw-bulk-footer{display:grid;grid-template-columns:minmax(230px,1fr) auto auto;gap:12px;align-items:end;background:#fff;border-top:1px solid #dae8f1;box-shadow:0 -4px 18px #112d450c;padding:13px 20px}
+#maintenanceModal .mw-bulk-footer label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#61798b;font-weight:800}
+#maintenanceModal .mw-bulk-footer input{width:100%}
+#maintenanceModal .mw-bulk-footer #mw-bulk-feedback{font-size:11px;max-width:280px}
+#maintenanceModal .mw-bulk-error{color:#b13545!important;font-weight:700}
+@media(max-width:1000px){
+ #maintenanceModal .mw-bulk-tools{grid-template-columns:1fr 1fr}
+ #maintenanceModal .mw-bulk-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-bulk-footer{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+ #maintenanceModal .mw-bulk-overlay{padding:0}
+ #maintenanceModal .mw-bulk-dialog{width:100%;height:100%;max-height:100dvh;border-radius:0}
+ #maintenanceModal .mw-bulk-head{padding:10px}
+ #maintenanceModal .mw-bulk-head h3{font-size:15px}
+ #maintenanceModal .mw-bulk-scroll{padding:9px}
+ #maintenanceModal .mw-bulk-tools{grid-template-columns:1fr}
+ #maintenanceModal .mw-bulk-record{padding:10px}
+ #maintenanceModal .mw-bulk-fields{grid-template-columns:1fr 1fr}
+ #maintenanceModal .mw-bulk-fields .mw-bulk-wide{grid-column:1/-1}
+ #maintenanceModal .mw-bulk-mode{padding:9px}
+ #maintenanceModal .mw-bulk-footer{padding:9px}
+ #maintenanceModal .mw-bulk-difference{grid-template-columns:1fr}
+}

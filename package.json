@@ -1,0 +1,12 @@
+{
+  "name": "water-daily-reports",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "exceljs": "4.4.0",
+    "jszip": "3.10.1"
+  }
+}

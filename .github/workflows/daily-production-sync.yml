@@ -1,0 +1,55 @@
+name: Daily production import (Google Drive read-only)
+on:
+  # GitHub may delay/drop jobs scheduled at the start of an hour.
+  # Retries are safe: importer never overwrites a station/date and refuses
+  # a previously imported Excel file revision.
+  schedule:
+    - cron: '0 4 * * *'   # Saudi Arabia 07:00 (UTC+3)
+    - cron: '23 4 * * *'  # 07:23 fallback; after today's 07:16 source update
+    - cron: '43 4 * * *'  # 07:43 fallback
+    - cron: '13 5 * * *'  # 08:13 final fallback
+  # A change to the scheduler itself performs one immediate live verification.
+  # Other code pushes do not trigger an import.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily-production-sync.yml'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Read and validate only; do not write to Supabase
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-water-production-sync
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Excel reader
+        run: npm install --no-audit --no-fund
+      - name: Read source safely and import if configured
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            node scripts/sync-production.cjs --dry-run
+          elif [ -z "$SUPABASE_SECRET_KEY" ]; then
+            echo "::warning::Missing protected Supabase credential. Source validation only; no data writes."
+            node scripts/sync-production.cjs --check-source
+          else
+            node scripts/sync-production.cjs
+          fi

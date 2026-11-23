@@ -1,0 +1,298 @@
+/* Water Solutions: maintenance inside the existing authenticated reports application */
+#maintenanceLink{display:inline-flex;align-items:center}
+body[data-auth="locked"] #maintenanceLink{display:none!important}
+#maintenanceModal{position:fixed;inset:0;z-index:270;background:#102b4278;padding:16px;display:flex;align-items:center;justify-content:center;direction:rtl}
+#maintenanceModal.hidden{display:none!important}
+#maintenanceModal .mw-dialog{background:#f4f7fa;color:#17324d;border:1px solid #dce5ed;width:min(1540px,100%);height:min(95vh,1100px);display:flex;flex-direction:column;border-radius:16px;overflow:hidden;box-shadow:0 15px 65px #112c4550;font:14px/1.7 Tahoma,Arial,sans-serif}
+#maintenanceModal *{box-sizing:border-box}
+#maintenanceModal button,#maintenanceModal input,#maintenanceModal select{font:inherit}
+#maintenanceModal button{cursor:pointer}
+#maintenanceModal .mw-header{background:linear-gradient(105deg,#fff,#ecf4fb);border-bottom:3px solid #0362AF;padding:15px 20px;display:flex;align-items:center;gap:14px;justify-content:space-between}
+#maintenanceModal .mw-header h2{margin:0;font-size:19px;color:#0362AF}
+#maintenanceModal .mw-header small{font-size:11px;color:#708396}
+#maintenanceModal .mw-tabs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:10px 16px;background:white;border-bottom:1px solid #dfebf3}
+#maintenanceModal .mw-tab{border:1px solid #d4e1ed;color:#24597f;background:#fff;border-radius:8px;padding:9px 13px;font-size:12px;font-weight:bold}
+#maintenanceModal .mw-tab.active{background:#0362AF;border-color:#0362AF;color:white}
+#maintenanceModal .mw-body{flex:1;min-height:0;overflow-y:auto;padding:17px}
+#maintenanceModal .mw-card{background:white;border:1px solid #dce6ef;border-radius:12px;padding:17px;margin-bottom:14px;min-width:0}
+#maintenanceModal .mw-card h3{font-size:15px;color:#155b91;margin:0 0 12px}
+#maintenanceModal .mw-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#maintenanceModal .mw-top label{font-size:12px;color:#5e758a;font-weight:700}
+#maintenanceModal .mw-select,#maintenanceModal .mw-input{background:white;border:1px solid #ccdae7;min-height:39px;border-radius:8px;padding:8px 11px;color:#17324d;min-width:0;max-width:100%}
+#maintenanceModal .mw-select:focus,#maintenanceModal .mw-input:focus{border-color:#50b4f2;outline:2px solid #50b4f22c}
+#maintenanceModal .mw-button{border:1px solid #cbddeb;background:white;color:#205e8b;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px}
+#maintenanceModal .mw-button.main{background:#0362AF;color:white;border-color:#0362AF}
+#maintenanceModal .mw-button:disabled{opacity:.5;cursor:not-allowed}
+#maintenanceModal .mw-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#maintenanceModal .mw-kpi{background:white;border:1px solid #dce6ef;border-radius:11px;padding:14px 17px;border-top:4px solid #0362AF}
+#maintenanceModal .mw-kpi:nth-child(3n){border-top-color:#87329A}
+#maintenanceModal .mw-kpi small{color:#64798d;font-size:11px}
+#maintenanceModal .mw-kpi strong{display:block;font-size:24px;line-height:1.6;color:#17324d;direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-chart{display:flex;align-items:flex-end;gap:9px;height:164px;padding:20px 4px 0;direction:rtl}
+#maintenanceModal .mw-chart-col{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
+#maintenanceModal .mw-chart-col .bar{background:#0362AF;border-radius:6px 6px 0 0;width:min(68%,50px);min-height:2px}
+#maintenanceModal .mw-chart-col small{font-size:10px;color:#718397}
+#maintenanceModal .mw-table-wrap{width:100%;overflow:auto;border:1px solid #e0e9f1;border-radius:9px}
+#maintenanceModal table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;background:white}
+#maintenanceModal th,#maintenanceModal td{padding:10px 12px;text-align:right;border-bottom:1px solid #e8eef3}
+#maintenanceModal th{position:sticky;top:0;background:#f2f7fb;color:#526f84;font-weight:800}
+#maintenanceModal tr:hover td{background:#f7fbfe}
+#maintenanceModal .mw-note{white-space:normal;min-width:130px;max-width:340px;overflow-wrap:anywhere}
+#maintenanceModal .mw-tag{display:inline-block;background:#edf3f7;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:bold;color:#5a7488}
+#maintenanceModal .mw-tag.done{background:#e8f6ee;color:#18734c}
+#maintenanceModal .mw-tag.not{background:#ffeff0;color:#ae3948}
+
+#maintenanceModal .mw-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+#maintenanceModal .mw-muted{color:#75889a;font-size:12px}
+#maintenanceModal .mw-notice{padding:12px;border-radius:8px;background:#eaf3fd;color:#285f89;font-size:12px;margin:10px 0}
+#maintenanceModal .mw-error{background:#fff0ef;color:#a33b43}
+#maintenanceModal .mw-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+#maintenanceModal .mw-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#maintenanceModal .mw-form-grid .mw-label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#5c7183;font-weight:700}
+#maintenanceModal .mw-form-grid .mw-label input{width:100%}
+#maintenanceModal .mw-preview{max-height:290px;overflow:auto;margin-top:12px}
+#maintenanceModal .mw-progress{height:8px;border-radius:10px;background:#e5edf4;margin:10px 0;overflow:hidden}
+#maintenanceModal .mw-progress>div{height:100%;background:#0362AF;transition:width .2s}
+#maintenanceModal .mw-empty{text-align:center;color:#8192a0;padding:35px 15px}
+#maintenanceModal .mw-station{max-width:360px}
+#maintenanceModal .mw-foot{padding:8px 18px;background:#fff;border-top:1px solid #e4ecf4;color:#8996a4;font-size:10px}
+.mw-dash-summary{background:#fff;border:1px solid #dce5ee;border-right:4px solid #87329A;border-radius:12px;padding:14px 16px;margin:13px 0}
+.mw-dash-summary h3{margin:0 0 9px;font-size:14px;color:#0362AF}
+.mw-dash-summary .mw-dash-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.mw-dash-summary .mw-dash-values{display:flex;flex-wrap:wrap;gap:16px}
+.mw-dash-summary .mw-dash-values span{font-size:11px;color:#60788c}
+.mw-dash-summary .mw-dash-values strong{display:block;color:#17324d;font-size:17px}
+.mw-dash-summary button{border:1px solid #0362AF;background:#0362AF;color:white;border-radius:8px;padding:7px 14px;font-weight:700}
+@media(max-width:1050px){#maintenanceModal .mw-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){#maintenanceModal{padding:0}#maintenanceModal .mw-dialog{width:100%;height:100dvh;max-height:none;border-radius:0}#maintenanceModal .mw-header{padding:12px}#maintenanceModal .mw-body{padding:10px}#maintenanceModal .mw-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#maintenanceModal .mw-kpi{padding:10px}#maintenanceModal .mw-kpi strong{font-size:20px}#maintenanceModal .mw-tabs{padding:9px;gap:5px}#maintenanceModal .mw-tab{padding:8px 9px;font-size:11px}#maintenanceModal .mw-form-grid{grid-template-columns:1fr}#maintenanceModal .mw-card{padding:12px}.mw-dash-summary .mw-dash-values{gap:8px}}
+
+
+/* Unified 16 Nov visual identity: exact typography, white cards, gauges,
+   corporate gradients and number treatments from the operations dashboard. */
+#maintenanceModal .mw-dialog{
+ font-family:'Cairo','Tajawal','Noto Sans Arabic',Tahoma,Arial,sans-serif;
+ color:#17324d;background:#f3f5f8;border-color:#dde3ea;
+}
+#maintenanceModal .mw-header{
+ background:linear-gradient(105deg,#f9fbff 5%,#edf4fb 70%,#f9f7fc 100%);
+ border-bottom:3px solid #0362AF;position:relative;box-shadow:0 2px 8px #17324d0c;
+}
+#maintenanceModal .mw-header:before{
+ content:"";position:absolute;left:0;right:0;top:0;height:3px;
+ background:linear-gradient(90deg,#87329A 0%,#0362AF 55%,#50B4F2 100%);
+}
+#maintenanceModal .mw-brand{display:flex;align-items:center;gap:13px;min-width:0}
+#maintenanceModal .mw-brand img{width:110px;height:56px;object-fit:contain;flex:none;border-left:1px solid #dce7f0;padding-left:9px}
+#maintenanceModal .mw-header h2{font-weight:900;font-size:20px;color:#0362AF}
+#maintenanceModal .mw-header small{color:#687f92;font-size:11px}
+#maintenanceModal .mw-tabs{gap:9px;border-bottom:1px solid #dde6ef;box-shadow:0 2px 6px #12476d09}
+#maintenanceModal .mw-tab{font-size:12px;border-color:#d3e0eb;font-weight:800;padding:9px 13px;border-radius:8px;transition:background .18s,transform .18s}
+#maintenanceModal .mw-tab:hover:not(.active){background:#edf5fc;transform:translateY(-1px)}
+#maintenanceModal .mw-tab.active{background:#0362AF;box-shadow:0 3px 10px #0362af27}
+#maintenanceModal .mw-body{background:#f3f5f8}
+#maintenanceModal .mw-top{background:#fff;border:1px solid #dde3ea;border-radius:11px;padding:11px 14px;margin-bottom:14px}
+#maintenanceModal .mw-top strong{font-size:14px;font-weight:900;color:#17324d}
+#maintenanceModal .mw-card{border:1px solid #dde3ea;border-radius:13px;box-shadow:0 2px 9px #17324d0a}
+#maintenanceModal .mw-card h3{font-size:15px;color:#0362AF;font-weight:900}
+#maintenanceModal .mw-button{border-color:#c9d9e8;color:#145386;font-weight:800}
+#maintenanceModal .mw-button.main{color:#fff;background:#0362AF;border-color:#0362AF}
+#maintenanceModal .mw-button:hover:not(:disabled){filter:brightness(.97)}
+#maintenanceModal .mw-kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+#maintenanceModal .mw-kpi{
+ border:1px solid #dde3ea;border-top:0;border-radius:12px;background:#fff;
+ box-shadow:0 2px 8px #17324d0a;padding:12px 12px;min-height:99px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ text-align:center;gap:3px;position:relative;overflow:hidden;
+}
+#maintenanceModal .mw-kpi:before{
+ content:"";height:4px;position:absolute;top:0;right:0;left:0;
+ background:linear-gradient(90deg,#87329A,#0362AF);
+}
+#maintenanceModal .mw-kpi:nth-child(3n):before{background:linear-gradient(90deg,#50B4F2,#0362AF)}
+#maintenanceModal .mw-kpi small{font-size:12px;color:#67788b;font-weight:800}
+#maintenanceModal .mw-kpi strong{
+ display:block;font:900 clamp(21px,2.2vw,28px)/1.35 'Cairo','Tajawal',Tahoma,Arial,sans-serif;
+ color:#0362AF;text-align:center;direction:ltr;
+ font-variant-numeric:tabular-nums;letter-spacing:-.4px;
+}
+#maintenanceModal .mw-kpi:nth-child(3n) strong{color:#87329A}
+#maintenanceModal .mw-kpi-sub{color:#75889a;font-size:10px;font-weight:700}
+#maintenanceModal .mw-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#maintenanceModal .mw-status-item{background:#f7fbff;border:1px solid #e3ebf2;border-radius:10px;padding:11px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+#maintenanceModal .mw-status-item span{font-size:11px;color:#657d8d;font-weight:800}
+#maintenanceModal .mw-status-item strong{font-size:18px;color:#0362AF;font-weight:900;direction:ltr;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-status-item.warning strong{color:#cb6b2f}
+#maintenanceModal .mw-status-item.critical strong{color:#b33d4b}
+#maintenanceModal .mw-status-item.purple strong{color:#87329A}
+#maintenanceModal .mw-instrument-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 15px}
+#maintenanceModal .mw-instrument{
+ background:#fff;border:1px solid #dde3ea;border-radius:13px;
+ box-shadow:0 2px 9px #17324d0a;min-height:210px;padding:13px 10px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;
+}
+#maintenanceModal .mw-instrument:before{
+ content:"";height:4px;position:absolute;top:0;left:0;right:0;
+ background:linear-gradient(90deg,#87329A,#0362AF);border-radius:13px 13px 0 0;
+}
+#maintenanceModal .mw-instrument .ws-dial{width:170px;height:101px;margin:2px auto 5px;display:block;overflow:visible}
+#maintenanceModal .mw-instrument .mw-instrument-label{font-size:13px;font-weight:800;color:#17324d;text-align:center}
+#maintenanceModal .mw-instrument .mw-instrument-number{font-size:clamp(19px,2vw,26px);font-weight:900;color:#0362AF;text-align:center;direction:ltr;line-height:1.5;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-instrument .mw-instrument-sub{color:#79889b;text-align:center;font-size:10px}
+#maintenanceModal .ws-needle{transform-origin:70px 64px;transition:transform 1.2s cubic-bezier(.2,.9,.3,1.15)}
+#maintenanceModal .mw-month-chart{display:flex;align-items:flex-end;gap:6px;min-height:180px;direction:rtl;border-bottom:1px solid #e5edf3}
+#maintenanceModal .mw-month-item{display:flex;align-items:center;justify-content:flex-end;flex-direction:column;gap:7px;min-width:0;flex:1;height:170px}
+#maintenanceModal .mw-month-total{font-size:10px;color:#54718a;font-weight:900;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-month-bar{display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;width:min(75%,48px);height:115px;background:#f1f6fa;border:1px solid #e4eaf0;border-radius:6px 6px 0 0}
+#maintenanceModal .mw-month-bar .mw-month-done{background:linear-gradient(180deg,#50B4F2,#0362AF);width:100%}
+#maintenanceModal .mw-month-bar .mw-month-other{background:#d1b7e5;width:100%}
+#maintenanceModal .mw-month-item small{font-size:10px;color:#70849a;white-space:nowrap}
+#maintenanceModal .mw-small-note{font-size:11px;color:#708496;line-height:1.85;margin:10px 0 0}
+#maintenanceModal .mw-original{font-weight:800;color:#184d73}
+#maintenanceModal .mw-source-warning{font-weight:900;color:#b35f28}
+#maintenanceModal .mw-table-wrap{border-color:#dce6ed}
+#maintenanceModal table{font-family:inherit;font-size:12px}
+#maintenanceModal table th{background:#f1f7fc;color:#3e6783;font-weight:900}
+#maintenanceModal .mw-pager{padding-top:8px}
+.mw-dash-summary{
+ background:#fff;border:1px solid #dde3ea;border-radius:13px;
+ padding:14px 17px;box-shadow:0 2px 9px #17324d0a;
+ border-right:0;position:relative;overflow:hidden;
+}
+.mw-dash-summary:before{
+ content:"";position:absolute;top:0;right:0;left:0;height:4px;
+ background:linear-gradient(90deg,#87329A,#0362AF);
+}
+.mw-dash-summary h3{font-size:14px;color:#0362AF;font-weight:900;margin:0 0 12px}
+.mw-dash-summary .mw-dash-values{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.mw-dash-summary .mw-dash-values span{font-size:11px;background:#f6faff;border:1px solid #e3ebf2;padding:11px 8px;border-radius:9px;text-align:center;color:#64798d;font-weight:800}
+.mw-dash-summary .mw-dash-values strong{font-size:23px;color:#0362AF;line-height:1.5;direction:ltr;font-variant-numeric:tabular-nums}
+.mw-dash-summary .mw-dash-values span:nth-child(3) strong{color:#87329A}
+.mw-dash-summary button{align-self:center;border-radius:8px;white-space:nowrap}
+@media(max-width:1080px){
+ #maintenanceModal .mw-instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .mw-dash-summary .mw-dash-values{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+ #maintenanceModal .mw-brand img{width:75px;height:43px;padding-left:5px}
+ #maintenanceModal .mw-header h2{font-size:16px}
+ #maintenanceModal .mw-header small{font-size:9px}
+ #maintenanceModal .mw-instrument-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #maintenanceModal .mw-instrument{min-height:190px;padding:10px 5px}
+ #maintenanceModal .mw-instrument .ws-dial{width:135px;height:86px}
+ #maintenanceModal .mw-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #maintenanceModal .mw-kpi strong{font-size:22px}
+ #maintenanceModal .mw-month-chart{overflow-x:auto;min-height:185px}
+ #maintenanceModal .mw-month-item{min-width:36px}
+ .mw-dash-summary .mw-dash-values{gap:6px}
+ .mw-dash-summary .mw-dash-values strong{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ #maintenanceModal .ws-needle{transition:none!important}
+}
+
+#maintenanceModal button.mw-month-item{border:0;background:transparent;cursor:pointer;color:inherit;font-family:inherit;padding:0 2px 3px;border-radius:7px}
+#maintenanceModal button.mw-month-item:hover{background:#eef6fc}
+#maintenanceModal button.mw-month-item:focus-visible{outline:2px solid #50B4F2;outline-offset:2px}
+#maintenanceModal .mw-tag.unknown{background:#fff4df;color:#926719}
+#maintenanceModal .mw-tag.cm{background:#fdf0e8;color:#bd542d}
+#maintenanceModal .mw-tag.offline{background:#f0eff6;color:#74608f}
+
+/* The maintenance panel can be opened from the dashboard (z-index 300).
+   Keep it above that modal and preserve the original page on closing. */
+#maintenanceModal{z-index:390!important}
+#maintenanceModal .mw-correction textarea{min-height:78px;resize:vertical;line-height:1.8}
+#maintenanceModal .mw-correction .mw-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#maintenanceModal .mw-correction .mw-card{margin-top:12px}
+#maintenanceModal .mw-table-wrap td[dir=ltr]{font-variant-numeric:tabular-nums;text-align:right}
+#maintenanceModal .mw-preview{border:1px solid #e0e8ef;border-radius:9px}
+#maintenanceModal [data-mw]:focus-visible,#maintenanceModal input:focus-visible,#maintenanceModal select:focus-visible{outline:2px solid #50B4F2;outline-offset:2px}
+@media(max-width:720px){#maintenanceModal .mw-correction .mw-form-grid{grid-template-columns:1fr}}
+
+
+/* Monthly-first maintenance: current period is primary; lifetime archive is secondary. */
+#maintenanceModal .mw-month-overview{display:grid;gap:13px;margin-bottom:17px}
+#maintenanceModal .mw-month-titlebar{
+ display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:13px;
+ padding:15px 17px;background:linear-gradient(105deg,#f8fbff,#ecf3fc);
+ border:1px solid #dde3ea;border-right:4px solid #0362AF;border-radius:12px
+}
+#maintenanceModal .mw-month-titlebar h3{font-size:20px;color:#0362AF;font-weight:900;margin:4px 0}
+#maintenanceModal .mw-month-titlebar p{margin:0}
+#maintenanceModal .mw-month-picker{display:flex;flex-direction:column;gap:5px;color:#48657b;font-size:11px;font-weight:800}
+#maintenanceModal .mw-month-picker .mw-input{width:165px;min-height:42px}
+#maintenanceModal .mw-month-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#maintenanceModal .mw-month-kpi{
+ display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
+ border:1px solid #dde3ea;border-radius:11px;background:#fff;padding:13px 15px;
+ min-height:106px;border-top:3px solid #0362AF;box-shadow:0 1px 5px #17324d08
+}
+#maintenanceModal .mw-month-kpi.done{border-top-color:#2e9e5b}
+#maintenanceModal .mw-month-kpi.remaining{border-top-color:#87329A}
+#maintenanceModal .mw-month-kpi small{font-size:11px;color:#65788a;font-weight:800}
+#maintenanceModal .mw-month-kpi strong{font-size:26px;color:#17324d;line-height:1.35;font-weight:900;direction:ltr}
+#maintenanceModal .mw-month-kpi span{font-size:10px;color:#7b8e9c}
+#maintenanceModal .mw-yesterday-strip{
+ display:flex;align-items:center;flex-wrap:wrap;gap:13px 18px;
+ background:#f7fbfe;border:1px solid #dce7f0;border-radius:11px;padding:12px 16px
+}
+#maintenanceModal .mw-yesterday-strip>div:first-child{flex:1 1 200px;min-width:150px}
+#maintenanceModal .mw-yesterday-strip>div:first-child strong{display:block;color:#0362AF;font-size:13px}
+#maintenanceModal .mw-yesterday-strip>div:first-child span{display:block;color:#6c8090;font-size:10px;margin-top:2px}
+#maintenanceModal .mw-yesterday-strip>div:not(:first-child){min-width:85px;text-align:center}
+#maintenanceModal .mw-yesterday-strip b{display:block;color:#17324d;font-size:20px;line-height:1.3;font-variant-numeric:tabular-nums}
+#maintenanceModal .mw-yesterday-strip small{font-size:10px;color:#6b8093}
+#maintenanceModal .mw-month-actions{margin:0;gap:9px}
+#maintenanceModal .mw-overview-schedule{margin:0}
+#maintenanceModal .mw-overview-schedule .mw-top h3{margin:0 0 5px}
+#maintenanceModal .mw-overview-schedule .mw-actions .mw-button{font-size:11px}
+#maintenanceModal .mw-month-clarification{
+ font-size:11px;color:#62778b;margin:0;line-height:1.8;
+ background:#f7f9fb;border-right:3px solid #50B4F2;padding:8px 11px;border-radius:6px
+}
+#maintenanceModal .mw-history-corner{
+ display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap;
+ border:1px solid #e1e7ed;border-radius:11px;padding:12px 15px;background:#fafcfe
+}
+#maintenanceModal .mw-history-corner-title{
+ display:flex;flex-direction:column;gap:7px;min-width:175px;flex:0 0 auto
+}
+#maintenanceModal .mw-history-corner-title>div{display:flex;flex-direction:column;gap:2px}
+#maintenanceModal .mw-history-corner-title small{font-size:9px;color:#87329A;font-weight:800}
+#maintenanceModal .mw-history-corner-title strong{font-size:14px;color:#244a67}
+#maintenanceModal .mw-history-mini{display:grid;grid-template-columns:repeat(3,minmax(100px,1fr));gap:8px;flex:1}
+#maintenanceModal .mw-history-mini .mw-month-kpi{
+ min-height:72px;padding:8px 11px;border-top:0;border-right:3px solid #a6bbcf;box-shadow:none
+}
+#maintenanceModal .mw-history-mini .mw-month-kpi strong{font-size:19px}
+#maintenanceModal .mw-history-mini .mw-month-kpi small{font-size:10px}
+#maintenanceModal .mw-history-mini .mw-month-kpi span{font-size:9px}
+#maintenanceModal .mw-history-details{margin-top:0}
+#maintenanceModal .mw-history-details .mw-month-chart{margin-top:14px}
+.mw-dash-summary .mw-dash-values{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.mw-dash-summary .mw-dash-month-head{border:0;padding:0;margin:0 0 10px}
+.mw-dash-summary .mw-dash-history-foot{
+ display:flex;align-items:center;flex-wrap:wrap;gap:10px 15px;
+ margin-top:11px;padding:10px 12px;background:#f7f9fc;
+ border:1px solid #e3ebf1;border-radius:8px
+}
+.mw-dash-summary .mw-dash-history-foot>span{color:#87329A;font-weight:900;font-size:11px}
+.mw-dash-summary .mw-dash-history-foot small{font-size:10px;color:#677a8c}
+.mw-dash-summary .mw-dash-history-foot b{color:#17324d;font-size:12px}
+@media(max-width:1150px){
+ #maintenanceModal .mw-month-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mw-dash-summary .mw-dash-values{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:720px){
+ #maintenanceModal .mw-month-titlebar{padding:13px}
+ #maintenanceModal .mw-month-kpis{gap:7px}
+ #maintenanceModal .mw-month-kpi{padding:10px;min-height:88px}
+ #maintenanceModal .mw-month-kpi strong{font-size:22px}
+ #maintenanceModal .mw-month-kpi small{font-size:10px}
+ #maintenanceModal .mw-history-corner{align-items:stretch}
+ #maintenanceModal .mw-history-corner-title{width:100%;flex-direction:row;justify-content:space-between;align-items:center}
+ #maintenanceModal .mw-history-mini{grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+ #maintenanceModal .mw-history-mini .mw-month-kpi{min-width:0;padding:8px}
+ .mw-dash-summary .mw-dash-values{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
