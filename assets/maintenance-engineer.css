@@ -2,7 +2,10 @@
    This is a presentation guard only; actual authorization is enforced by Supabase RLS. */
 #maintenanceModal .mw-engineer-logout{display:none}
 body[data-auth="maintenance"]{margin:0;overflow:hidden;background:#f4f8fd}
-body[data-auth="maintenance"] > :not(#maintenanceModal):not(script):not(style){display:none!important}
+body[data-auth="maintenance"] > :not(#maintenanceModal):not(#ptwModal):not(script):not(style){display:none!important}
+/* PTW appears above the dedicated engineer workspace only when explicitly opened. */
+body[data-auth="maintenance"] #ptwModal:not(.hidden){display:block!important;z-index:10002!important}
+body[data-auth="maintenance"] #ptwModal.hidden{display:none!important}
 body[data-auth="maintenance"] #maintenanceModal{
  display:flex!important;
  position:fixed;inset:0;z-index:9999!important;padding:0;
