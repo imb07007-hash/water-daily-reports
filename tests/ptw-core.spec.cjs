@@ -140,6 +140,22 @@ test('central draft, autosave, AP retrieval, same equipment warning and manual S
  expect(db.events.map(x=>x.name)).toEqual(['ptw_record_paper_issue','ptw_cancel_by_sap','ptw_record_normalization']);
  await sap.close();await ap.close();
 });
+test('PTW prevents abandoning unsaved fields and archive exposes status filter',async({browser})=>{
+ const db=makeBackend(),page=await client(browser,db);
+ await page.locator('[data-act="new"]').first().click();
+ await page.locator('[data-field="description"]').fill('Keep this edit even before server confirms it');
+ await page.locator('[data-view="archive"]').first().click();
+ await expect(page.locator('[data-field="description"]')).toBeVisible();
+ await expect(page.locator('#ptwModal')).toContainText('لم يؤكد الخادم حفظ البيانات');
+ await expect.poll(()=>db.permits[0].description).toBe('Keep this edit even before server confirms it');
+ await page.locator('[data-view="archive"]').first().click();
+ await expect(page.locator('#ptwArchiveStatus')).toBeVisible();
+ await page.locator('#ptwArchiveStatus').selectOption('draft');
+ await page.locator('[data-act="search"]').click();
+ await expect(page.locator('#ptwArchiveStatus')).toHaveValue('draft');
+ await expect(page.locator('[data-open="ptw-0206"]')).toBeVisible();
+ await page.close();
+});
 test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields',async({browser})=>{
  const db=makeBackend(),sap=await client(browser,db);
  await sap.locator('[data-act="new"]').first().click();
