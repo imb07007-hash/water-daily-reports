@@ -1223,7 +1223,26 @@ async function openEngineerWorkspace(){
  $('accountRole').textContent='مهندس صيانة — '+(row.config?.name||currentStationId);
  $('accountRole').classList.remove('hidden');
  if(location.hash)history.replaceState(null,document.title,location.pathname+location.search);
- try{window.WSMaintenance.open('overview')}
+ try{
+  window.WSMaintenance.open('overview');
+  // Engineering accounts enter the maintenance workspace directly: expose the
+  // same PTW records without broadening role permissions or changing login.
+  const mh=document.querySelector('#maintenanceModal .mw-header');
+  if(mh&&!mh.querySelector('#ptwEngineerShortcut')){
+   const shortcut=document.createElement('button');
+   shortcut.id='ptwEngineerShortcut';
+   shortcut.type='button';
+   shortcut.className='mw-button';
+   shortcut.textContent='تصاريح العمل PTW';
+   shortcut.setAttribute('aria-label','فتح تصاريح العمل والعزل بصفة مهندس صيانة AP');
+   shortcut.addEventListener('click',()=>{
+    if(currentRole!=='maintenance')return;
+    if(!window.WSPTW?.open){toast('تعذّر تحميل وحدة تصاريح العمل.',true);return;}
+    void window.WSPTW.open('overview');
+   });
+   mh.insertBefore(shortcut,mh.querySelector('.mw-regular-close')||mh.querySelector('button')||null);
+  }
+ }
  catch(error){
   document.body.dataset.auth='locked';
   $('loginScreen').classList.remove('hidden');
