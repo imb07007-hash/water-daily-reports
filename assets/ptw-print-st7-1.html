@@ -59,7 +59,7 @@ const ready=()=>window.opener?.postMessage({type:'WS_PTW_PRINT_READY',kind:'main
 window.addEventListener('message',e=>{
 if(e.source!==window.opener||e.origin!==location.origin||e.data?.type!=='WS_PTW_PRINT_DATA'||e.data.kind!=='main')return;
 const d=e.data.payload||{},p=d.permit||{},r=d.receivers||[],f=p.form_fields||{};
-const printDate=x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(String(x||''))?String(x).slice(8,10)+'/'+String(x).slice(5,7)+'/'+String(x).slice(0,4):String(x||'');
+const printDate=x=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(x||''))?String(x).slice(8,10)+'/'+String(x).slice(5,7)+'/'+String(x).slice(0,4):String(x||'');
 const printTime=x=>String(x||'').slice(0,5);
 const v={...defaultForm(),ptwNo:p.permit_no||'',area:p.area||'',componentNo:p.component_no||p.equipment_name||'',workRequest:p.wr_no||p.work_order||'',lobNo:p.lob_no||'',workDescription:p.description||'','issue.live':p.work_condition==='live','issue.dead':p.work_condition==='dead','additional.hot':(p.activities||[]).includes('hot_work'),'additional.confined':(p.activities||[]).includes('confined_space'),'additional.excav':(p.activities||[]).includes('excavation'),'additional.scaffold':(p.activities||[]).includes('scaffolding')};
 // ST7-1 original has three AP rows. Do not infer a paper name from a shared login.
