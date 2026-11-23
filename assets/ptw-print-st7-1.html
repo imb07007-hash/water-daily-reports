@@ -64,11 +64,11 @@ for(let i=0;i<Math.min(3,r.length);i++){v['receipt.'+i+'.name']=r[i].full_name||
 populate(v);document.querySelector('.side')?.remove();document.querySelector('.wrap').style.gridTemplateColumns='1fr';
 document.querySelectorAll('#document input').forEach(x=>{if(x.type==='checkbox')x.disabled=true;else x.readOnly=true;});
 document.querySelectorAll('#document textarea').forEach(x=>x.readOnly=true);
-document.querySelector('#document')?.insertAdjacentHTML('afterbegin','<span class="ptw-draft-flag">DRAFT · غير صالح للعمل</span>');
+document.querySelector('#document')?.insertAdjacentHTML('afterbegin','<span class="ptw-draft-flag">للتوقيع اليدوي</span>');
 const overflow=[];document.querySelectorAll('#document input[data-key],#document textarea[data-key]').forEach(x=>{if(!x.value)return;let over=false;if(x.tagName==='TEXTAREA')over=x.scrollHeight>x.clientHeight+2;else{const c=document.createElement('canvas');const t=c.getContext('2d');t.font=getComputedStyle(x).font;over=t.measureText(x.value).width>x.clientWidth-8;}if(over)overflow.push(x.dataset.key)});
 const blockers=overflow.length?['حقول قد تُقص: '+overflow.join(', ')]:[];
 if(r.length>3)blockers.push('عدد المستلمين يتجاوز سعة النموذج؛ مطلوب ST7-19');
-document.querySelector('.toolbar').innerHTML='<div><h1>معاينة ST7-1 من السجل المحفوظ</h1><small>مسودة، لا تتضمن اعتمادًا رسميًا</small></div><div class="spacer"></div><button class="primary" id="ptwActualPrint" type="button">طباعة / حفظ PDF</button>';
+document.querySelector('.toolbar').innerHTML='<div><h1>معاينة ST7-1 من السجل المحفوظ</h1><small>التوقيع اليدوي على الأصل الورقي وفق ST-07 — المعاينة لا تنشئ توقيعًا</small></div><div class="spacer"></div><button class="primary" id="ptwActualPrint" type="button">طباعة / حفظ PDF</button>';
 document.getElementById('ptwActualPrint').disabled=blockers.length>0;
 if(blockers.length)document.querySelector('.toolbar').insertAdjacentHTML('beforeend','<div style="color:#a33;width:100%;font-size:12px">'+blockers.join(' | ')+'</div>');
 document.getElementById('ptwActualPrint').addEventListener('click',()=>window.print());
