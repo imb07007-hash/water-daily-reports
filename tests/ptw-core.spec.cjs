@@ -108,7 +108,7 @@ test('central draft, autosave, AP retrieval, same equipment warning and manual S
  const snapshot=await sap.evaluate(()=>window.WSPTW.snapshotForPrint());
  expect(snapshot.permit.permit_no).toBe('0206');
  expect(snapshot.isolation).toHaveLength(1);
- expect(snapshot.receivers[0].ap_account_user_id).toBeUndefined();
+ expect(snapshot.receivers[0].ap_account_user_id).toBe(AP);
  expect(db.permits[0].description).toContain('intake pump 1');
  // A second signed-in browser retrieves the same database-backed record.
  const ap=await client(browser,db,'maintenance');
