@@ -57,7 +57,7 @@ begin
  insert into public.ptw_events(permit_id,event_type,actor_id,new_version)
  values(v_permit.id,'DRAFT_CREATED',auth.uid(),v_permit.version);
  return v_permit;
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.ptw_save_draft(p_id uuid, p_expected_version integer, p_patch jsonb)
  RETURNS ptw_permits
@@ -137,6 +137,6 @@ begin
  values(p_id,'DRAFT_SAVED',auth.uid(),v_old.version,v_updated.version,
   jsonb_build_object('changed_fields',(select coalesce(jsonb_agg(k),'[]'::jsonb) from jsonb_object_keys(p_patch) k)));
  return v_updated;
-end $function$
+end $function$;
 
 commit;
