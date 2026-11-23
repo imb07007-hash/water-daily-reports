@@ -75,6 +75,21 @@ test('maintenance login opens only its assigned plant',async({page})=>{
  await expect(page.locator('#mw-station')).toHaveCount(0);
  await expect(page.locator('#maintenanceModal')).toContainText('محطة وادي جيزان');
 });
+test('maintenance engineer opens PTW over workbench and returns safely without SAP actions',async({page})=>{
+ await mockCloud(page,'maintenance');
+ await page.goto('/');
+ await login(page,'maint-test');
+ await expect(page.locator('body')).toHaveAttribute('data-auth','maintenance');
+ const shortcut=page.locator('#ptwEngineerShortcut');
+ await expect(shortcut).toBeVisible();
+ await shortcut.click();
+ await expect(page.locator('#ptwModal')).toBeVisible();
+ await expect(page.locator('#ptwModal')).toContainText('إدارة تصاريح العمل PTW');
+ await expect(page.locator('#ptwModal [data-act="sapCancel"]')).toHaveCount(0);
+ await page.locator('#ptwModal [data-act="close"]').click();
+ await expect(page.locator('#ptwModal')).toBeHidden();
+ await expect(page.locator('#maintenanceModal')).toBeVisible();
+});
 test('exports a readable multi-sheet XLSX with undated NOT DONE and unchanged source statuses',async({page})=>{
  await page.goto('/');
  await page.addScriptTag({path:require.resolve('jszip/dist/jszip.min.js')});
