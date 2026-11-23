@@ -1,6 +1,6 @@
 /* WS-PTW native print adapter (server-confirmed drafts only) */
 (()=>{'use strict';
-const target=k=>k==='main'?'/assets/ptw-print-st7-1.html':'/assets/ptw-print-st7-11.html';
+const target=k=>k==='main'?'/assets/ptw-print-st7-1.html?v=1.5.0':'/assets/ptw-print-st7-11.html?v=1.5.0';
 async function open(kind){
  if(!['main','iso'].includes(kind))throw Error('Invalid print form');
  const tab=window.open(target(kind),'_blank');if(!tab){alert('اسمح بفتح نافذة المعاينة');return;}
