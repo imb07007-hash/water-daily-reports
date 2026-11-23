@@ -35,15 +35,15 @@ declare v public.ptw_permits; begin
       (v.equipment_id is null or q.equipment_id is null)
       and (
         (nullif(btrim(v.equipment_name),'') is not null and
-         lower(regexp_replace(btrim(q.equipment_name),'\\s+',' ','g'))=
-         lower(regexp_replace(btrim(v.equipment_name),'\\s+',' ','g')))
+         lower(regexp_replace(btrim(q.equipment_name),'[[:space:]]+',' ','g'))=
+         lower(regexp_replace(btrim(v.equipment_name),'[[:space:]]+',' ','g')))
         or (nullif(btrim(v.component_no),'') is not null and
             lower(btrim(q.component_no))=lower(btrim(v.component_no)) and
             coalesce(lower(btrim(q.area)),'')=coalesce(lower(btrim(v.area)),''))
       )
     )
    )
- order by is_unresolved desc,q.created_at desc limit 20;
+ order by 5 desc,q.created_at desc limit 20;
 end $$;
 
 -- Registration reflects that the signed ORIGINAL PAPER exists; this RPC does NOT sign the permit or verify isolation.
@@ -80,7 +80,7 @@ begin
  return v_out;
 end $$;
 
--- In ST7-1 section 9 AP clears the signed original; SAP cancels/CL0SES in section 11.
+-- In ST7-1 section 9 AP clears the signed original; SAP cancels/CLOSES in section 11.
 -- Both paper steps must be confirmed. An electronic signature is never produced.
 create or replace function public.ptw_cancel_by_sap(p_id uuid,p_expected_version integer,
  p_ap_paper_clearance_confirmed boolean,p_sap_paper_cancellation_confirmed boolean)
