@@ -26,3 +26,19 @@ jobs:
           fi
       - name: PTW real-browser tests with isolated mocked API
         run: npx playwright test tests/ptw-core.spec.cjs --reporter=line
+      - name: Check generated PTW print PDFs
+        if: success()
+        run: |
+          test -s ptw-evidence/ST7-1-main-A4-portrait.pdf
+          test -s ptw-evidence/ST7-11-8points-A4-landscape.pdf
+          if command -v pdfinfo >/dev/null; then
+            pdfinfo ptw-evidence/ST7-1-main-A4-portrait.pdf | grep -E '^Pages:|^Page size:'
+            pdfinfo ptw-evidence/ST7-11-8points-A4-landscape.pdf | grep -E '^Pages:|^Page size:'
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PTW-native-print-acceptance
+          path: ptw-evidence/
+          if-no-files-found: warn
+          retention-days: 14
