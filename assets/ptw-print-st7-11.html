@@ -140,7 +140,8 @@ M.points=(d.isolation||[]).map(x=>{const a=String(x.tag_position||'').split(/\s+
 renderAll();document.querySelector('.sidebar')?.remove();document.querySelector('.layout').style.gridTemplateColumns='1fr';
 document.querySelectorAll('#sheets input,#sheets textarea').forEach(x=>x.readOnly=true);
 document.querySelectorAll('#sheets select').forEach(x=>x.disabled=true);
-document.querySelectorAll('#sheets .sheet').forEach(x=>x.insertAdjacentHTML('afterbegin','<span class="ptw-draft-flag">للتوقيع اليدوي</span>'));
+const label=({draft:'للتوقيع اليدوي',issued:'إصدار ورقي مسجل — نسخة غير موقعة',cancelled:'ملغى بواسطة SAP — نسخة غير موقعة',normalized:'تم التطبيع — نسخة غير موقعة'})[p.status]||'للتوقيع اليدوي';
+document.querySelectorAll('#sheets .sheet').forEach(x=>x.insertAdjacentHTML('afterbegin','<span class="ptw-draft-flag">'+label+'</span>'));
 document.querySelector('.toolbar').innerHTML='<div><h1>معاينة ST7-11 من السجل المحفوظ</h1><div class="sub">نقاط عزل مخططة وليست تحققًا ميدانيًا</div></div><div class="grow"></div><button class="btn primary" id="ptwActualPrint" type="button">طباعة / حفظ PDF</button>';
 document.getElementById('ptwActualPrint').addEventListener('click',()=>window.print());
 window.__WS_PTW_PRINT_DATA_LOADED=true;window.opener?.postMessage({type:'WS_PTW_PRINT_LOADED',kind:'iso',count:d.isolation?.length||0},location.origin);
