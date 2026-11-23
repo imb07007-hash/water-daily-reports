@@ -52,7 +52,7 @@ setupSuggestions();
 @media screen{.wrap{grid-template-columns:1fr!important}.side,.sidebar{display:none!important}}
 .ptw-draft-flag{position:absolute;right:2mm;top:1mm;z-index:7;pointer-events:none;background:#fff5f5;border:1px solid #a44;color:#944;padding:1mm 1.5mm;font:700 7pt Arial}
 .document,.sheet{position:relative}
-@media print{.ptw-draft-flag{color:#855;border-color:#b77}.toolbar,.side,.sidebar{display:none!important}}
+@media print{.ptw-draft-flag{display:none!important}.toolbar,.side,.sidebar{display:none!important}}
 </style><script>
 (function(){
 const ready=()=>window.opener?.postMessage({type:'WS_PTW_PRINT_READY',kind:'main'},location.origin);
@@ -60,7 +60,7 @@ window.addEventListener('message',e=>{
 if(e.source!==window.opener||e.origin!==location.origin||e.data?.type!=='WS_PTW_PRINT_DATA'||e.data.kind!=='main')return;
 const d=e.data.payload||{},p=d.permit||{},r=d.receivers||[];
 const v={...defaultForm(),ptwNo:p.permit_no||'',area:p.area||'',componentNo:p.component_no||p.equipment_name||'',workRequest:p.wr_no||p.work_order||'',lobNo:p.lob_no||'',workDescription:p.description||'','issue.live':p.work_condition==='live','issue.dead':p.work_condition==='dead','additional.hot':(p.activities||[]).includes('hot_work'),'additional.confined':(p.activities||[]).includes('confined_space'),'additional.excav':(p.activities||[]).includes('excavation'),'additional.scaffold':(p.activities||[]).includes('scaffolding')};
-for(let i=0;i<Math.min(3,r.length);i++){v['receipt.'+i+'.name']=r[i].full_name||'';v['receipt.'+i+'.dept']=r[i].department||'';v['receipt.'+i+'.id']=r[i].employee_id||'';}
+for(let i=0;i<Math.min(3,r.length);i++){v['receipt.'+i+'.name']=r[i].full_name||'';v['receipt.'+i+'.dept']=r[i].department==='MAINTENANCE'?'MAINT.':(r[i].department||'');v['receipt.'+i+'.id']=r[i].employee_id||'';}
 populate(v);document.querySelector('.side')?.remove();document.querySelector('.wrap').style.gridTemplateColumns='1fr';
 document.querySelectorAll('#document input').forEach(x=>{if(x.type==='checkbox')x.disabled=true;else x.readOnly=true;});
 document.querySelectorAll('#document textarea').forEach(x=>x.readOnly=true);
