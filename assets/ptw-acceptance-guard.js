@@ -17,6 +17,22 @@
    if(n)n.querySelector('[data-message]').textContent='هذه النسخة مخصصة لاختبار PTW فقط. بقية الوظائف موجودة على الموقع الرئيسي.';
  };
  document.addEventListener('click',lockNavigation,true);
+ // A separate PTW acceptance URL should open the PTW dashboard after a
+ // successful operations/admin sign-in, not redirect the tester to reports.
+ // AP maintenance sign-ins retain their dedicated workspace and PTW shortcut.
+ let launched=false;
+ const routeToPTW=()=>{
+   if(launched||document.body.dataset.auth!=='ready')return;
+   launched=true;
+   setTimeout(()=>{
+     if(document.body.dataset.auth!=='ready')return;
+     if(window.WSShellUI?.navigate)window.WSShellUI.navigate('ptw/overview',{history:'replace'});
+     else void window.WSPTW?.open?.('overview');
+   },0);
+ };
+ const roleWatcher=new MutationObserver(()=>routeToPTW());
+ roleWatcher.observe(document.body,{attributes:true,attributeFilter:['data-auth']});
+ routeToPTW();
  function addNotice(){
   if(document.getElementById('ptwAcceptanceNotice'))return;
   const bar=document.createElement('aside');
