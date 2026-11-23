@@ -3,10 +3,10 @@
  'use strict';
  if(location.hostname!=='water-ptw-acceptance.onrender.com')return;
  const lockNavigation=e=>{
-   const trigger=e.target?.closest?.('[data-ws-to],[data-act="new"]');
+   const trigger=e.target?.closest?.('[data-ws-to],[data-act="new"],#ptwModal [data-view="new"]');
    if(!trigger)return;
    const route=String(trigger.dataset.wsTo||'');
-   if(route==='ptw/new'||(trigger.dataset.act==='new'&&trigger.closest('#ptwModal'))){
+   if(route==='ptw/new'||((trigger.dataset.act==='new'||trigger.dataset.view==='new')&&trigger.closest('#ptwModal'))){
      const approved=window.confirm('تنبيه مهم: رابط التجربة متصل بقاعدة البيانات الحالية. إنشاء مسودة يحجز رقم PTW حقيقيًا لا يعاد استخدامه، ويظهر في الأرشيف. أنشئ مسودة فقط عندما تريد اختبار السجل، واكتب كلمة TEST في وصف العمل. هل تريد المتابعة؟');
      if(!approved){e.preventDefault();e.stopImmediatePropagation();}
      return;
