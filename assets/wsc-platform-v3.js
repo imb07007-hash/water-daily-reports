@@ -8,6 +8,11 @@ const host=()=>window.WSMaintenanceHost;
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const paths={
+ 'ptw/overview':{label:'لوحة تصاريح العمل',section:'ptw',icon:'shield'},
+ 'ptw/new':{label:'تصريح جديد',section:'ptw',icon:'plus'},
+ 'ptw/archive':{label:'أرشيف PTW',section:'ptw',icon:'archive'},
+ 'ptw/details':{label:'تفاصيل التصريح',section:'ptw',icon:'file'},
+ 'ptw/isolation':{label:'نقاط العزل',section:'ptw',icon:'layers'},
  home:{label:'الرئيسية',section:'home',icon:'home'},
  reports:{label:'التقرير اليومي',section:'reports',icon:'file'},
  dashboard:{label:'لوحة المتابعة التشغيلية',section:'dashboard',icon:'chart',manager:true},
@@ -29,6 +34,7 @@ const paths={
  'admin/data':{label:'إدارة البيانات والنسخ',section:'admin',icon:'database',manager:true}
 };
 const groups=[
+ {name:'تصاريح العمل PTW — تجريبي',route:'ptw/overview',icon:'shield',children:['ptw/overview','ptw/new','ptw/archive','ptw/details','ptw/isolation']},
  {name:'الرئيسية',route:'home',icon:'home'},
  {name:'التقرير اليومي',route:'reports',icon:'file'},
  {name:'لوحة المتابعة',route:'dashboard',icon:'chart',manager:true},
@@ -38,6 +44,7 @@ const groups=[
  {name:'الإدارة',route:'admin/stations',icon:'settings',children:['admin/stations','admin/accounts','admin/audit','admin/data']}
 ];
 const icons={
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
  home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-8h6v8"/>',
  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h7"/>',
  chart:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16v-4m5 4V8m5 8v-6"/>',
@@ -166,7 +173,7 @@ const section=route=>paths[route]?.section||'home';
 const body=()=>document.body;
 const modalFor=route=>({
  dashboard:'dashboardModal',archive:'archiveModal',chemicals:'chemicalsModal',
- maintenance:'maintenanceModal',admin:'modalBackdrop'
+ maintenance:'maintenanceModal',ptw:'ptwModal',admin:'modalBackdrop'
 }[section(route)]||'');
 const selectModalId=route=>{
  if(route==='admin/data')return '';
@@ -251,18 +258,20 @@ function closeModal(id){
  dashboardModal:'dashboardClose',archiveModal:'archiveClose',chemicalsModal:'chemicalsClose',
  accountsModal:'accountsClose',auditModal:'auditClose',modalBackdrop:'resetStationsBtn'
  }[id];
- if(id==='maintenanceModal')window.WSMaintenance?.close?.();
+ if(id==='ptwModal')window.WSPTW?.close?.();
+ else if(id==='maintenanceModal')window.WSMaintenance?.close?.();
  else if(btnId&&$(btnId))$(btnId).click();
  else n.classList.add('hidden');
  n.classList.remove('ws-v3-docked');
 }
 function closePrevious(next){
  const nextId=selectModalId(next);
- for(const id of ['dashboardModal','archiveModal','chemicalsModal','maintenanceModal','modalBackdrop','accountsModal','auditModal']){
+ for(const id of ['dashboardModal','archiveModal','chemicalsModal','maintenanceModal','ptwModal','modalBackdrop','accountsModal','auditModal']){
   if(id!==nextId)closeModal(id);
  }
 }
 function canLeave(next){
+ if(section(state.page)==='ptw'&&section(next)!=='ptw'&&!window.WSPTW?.canLeave?.()){status('هناك بيانات PTW لم يُؤكد حفظها بعد؛ انتظر أو عالج خطأ الحفظ.',true);return false;}
  if(state.page==='admin/stations'&&next!=='admin/stations'){
   const n=$('modalBackdrop');
   if(n&&!n.classList.contains('hidden')){
@@ -316,6 +325,7 @@ function openCurrent(route,sameSection){
   }else if(sameSection){$('chem-widget-stats')?.scrollIntoView({block:'start'})}
   return;
  }
+ if(sec==='ptw'){if(window.WSPTW?.open)window.WSPTW.open(route.split('/')[1]);else status('تعذر تحميل وحدة PTW.',true);return;}
  if(sec==='maintenance'){
   const tab=route.split('/')[1];
   if(window.WSMaintenance?.open)window.WSMaintenance.open(tab);
@@ -748,7 +758,7 @@ function makeShell(){
    if(body().classList.contains('ws-v3-nav-open'))closeNav();
   }
  },true);
- const monitored=['archiveModal','dashboardModal','chemicalsModal','maintenanceModal','modalBackdrop','accountsModal','auditModal'];
+ const monitored=['archiveModal','dashboardModal','chemicalsModal','maintenanceModal','ptwModal','modalBackdrop','accountsModal','auditModal'];
  const watcher=new MutationObserver(()=>{
   if(!state.page||state.busy||body().dataset.auth!=='ready')return;
   const active=selectModalId(state.page),node=$(active);
