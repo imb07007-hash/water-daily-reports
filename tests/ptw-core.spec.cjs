@@ -162,6 +162,16 @@ test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields
  await sap.locator('[data-field="area"]').selectOption('INTAKE');
  await sap.locator('[data-field="equipment_id"]').selectOption(EQUIP);
  await sap.locator('[data-field="description"]').fill('Valve inspection and manual isolation');
+ await sap.locator('[data-paper-field="issuer.name"]').fill('SAP Field Name');
+ await sap.locator('[data-paper-field="issuer.date"]').fill('2026-11-23');
+ await sap.locator('[data-paper-field="issuer.time"]').fill('10:15');
+ await sap.locator('[data-paper-field="operationsNote"]').fill('Remain locked before work.');
+ await sap.locator('[data-paper-field="protective.details"]').fill('Gloves and safety barrier.');
+ await sap.locator('[data-ap-detail="0:department"]').selectOption('EMD');
+ await sap.locator('[data-ap-detail="0:paper_name"]').fill('AP Field Name');
+ await sap.locator('[data-ap-detail="0:employee_id"]').fill('10077');
+ await sap.locator('[data-ap-detail="0:paper_date"]').fill('2026-11-23');
+ await sap.locator('[data-ap-detail="0:paper_time"]').fill('10:30');
  await sap.locator('[data-field="work_condition"]').selectOption('dead');
  await sap.locator('[data-activity="mechanical"]').check();
  await sap.locator('[data-view="isolation"]').first().click();
@@ -197,9 +207,19 @@ test('native ST7-1 and ST7-11 print screens receive server-confirmed form fields
  await expect.poll(()=>main.evaluate(()=>window.__WS_PTW_PRINT_DATA_LOADED)).toBe(true);
  await expect(main.locator('[data-key="ptwNo"]')).toHaveValue('0206');
  await expect(main.locator('[data-key="workDescription"]')).toHaveValue('Valve inspection and manual isolation');
- // Account login names are not verified physical persons. Their name/signature fields stay blank.
- await expect(main.locator('[data-key="issuer.name"]')).toHaveValue('');
- await expect(main.locator('[data-key="receipt.0.name"]')).toHaveValue('');
+ await expect(main.locator('[data-key="issuer.name"]')).toHaveValue('SAP Field Name');
+ await expect(main.locator('[data-key="issuer.date"]')).toHaveValue('23/11/2026');
+ await expect(main.locator('[data-key="issuer.time"]')).toHaveValue('10:15');
+ await expect(main.locator('[data-key="receipt.0.dept"]')).toHaveValue('EMD');
+ await expect(main.locator('[data-key="receipt.0.name"]')).toHaveValue('AP Field Name');
+ await expect(main.locator('[data-key="receipt.0.id"]')).toHaveValue('10077');
+ await expect(main.locator('[data-key="receipt.0.date"]')).toHaveValue('23/11/2026');
+ await expect(main.locator('[data-key="receipt.0.time"]')).toHaveValue('10:30');
+ await expect(main.locator('[data-key="operationsNote"]')).toHaveValue('Remain locked before work.');
+ await expect(main.locator('[data-key="protective.details"]')).toHaveValue('Gloves and safety barrier.');
+ // Dates/names are typed form details; official paper signatures remain blank.
+ await expect(main.locator('[data-key="issuer.signed"]')).toHaveValue('');
+ await expect(main.locator('[data-key="receipt.0.sign"]')).toHaveValue('');
  await main.screenshot({path:'ptw-evidence/ST7-1-main-screen.png',fullPage:true});
  await main.pdf({path:'ptw-evidence/ST7-1-main-A4-portrait.pdf',format:'A4',landscape:false,printBackground:true,preferCSSPageSize:true});
  await main.close();await sap.close();
